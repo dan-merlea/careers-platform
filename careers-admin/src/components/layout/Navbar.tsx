@@ -1,0 +1,42 @@
+import React from 'react';
+import { 
+  BellIcon, 
+  MagnifyingGlassIcon,
+  UserCircleIcon
+} from '@heroicons/react/24/outline';
+
+const Navbar: React.FC = () => {
+  return (
+    <nav className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4">
+      <div className="flex items-center gap-4 flex-1">
+        <div className="relative max-w-md w-full">
+          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
+          </div>
+          <input
+            type="search"
+            className="block w-full p-2 pl-10 text-sm border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Search..."
+          />
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-4">
+        <button className="relative p-1 rounded-full text-gray-600 hover:bg-gray-100">
+          <BellIcon className="w-6 h-6" />
+          <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
+        </button>
+        
+        <div className="flex items-center gap-2">
+          <UserCircleIcon className="w-8 h-8 text-gray-600" />
+          <div className="hidden md:block">
+            <div className="text-sm font-medium">Admin User</div>
+            <div className="text-xs text-gray-500">admin@careers.com</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navbar;
