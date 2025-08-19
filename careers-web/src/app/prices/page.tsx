@@ -55,9 +55,9 @@ export default function Pricing() {
             </div>
 
             <div className="mt-8">
-              <Link href="/signup" className="w-full bg-blue-600 border border-transparent rounded-md py-3 px-5 inline-flex items-center justify-center text-base font-medium text-white hover:bg-blue-700">
+              <a href="http://localhost:3000/signup" className="w-full bg-blue-600 border border-transparent rounded-md py-3 px-5 inline-flex items-center justify-center text-base font-medium text-white hover:bg-blue-700">
                 Get Started
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -123,9 +123,9 @@ export default function Pricing() {
             </div>
 
             <div className="mt-8">
-              <Link href="/signup" className="w-full bg-white border border-transparent rounded-md py-3 px-5 inline-flex items-center justify-center text-base font-medium text-blue-600 hover:bg-gray-50">
+              <a href="http://localhost:3000/signup" className="w-full bg-white border border-transparent rounded-md py-3 px-5 inline-flex items-center justify-center text-base font-medium text-blue-600 hover:bg-gray-50">
                 Get Started
-              </Link>
+              </a>
             </div>
           </div>
 
@@ -186,9 +186,9 @@ export default function Pricing() {
             </div>
 
             <div className="mt-8">
-              <Link href="/signup" className="w-full bg-blue-600 border border-transparent rounded-md py-3 px-5 inline-flex items-center justify-center text-base font-medium text-white hover:bg-blue-700">
+              <a href="http://localhost:3000/signup" className="w-full bg-blue-600 border border-transparent rounded-md py-3 px-5 inline-flex items-center justify-center text-base font-medium text-white hover:bg-blue-700">
                 Get Started
-              </Link>
+              </a>
             </div>
           </div>
         </div>

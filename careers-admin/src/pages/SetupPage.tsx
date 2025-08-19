@@ -1,6 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import ApiKeyForm from '../components/integrations/ApiKeyForm';
+import { apiKeysService, IntegrationType, ApiKey, CreateApiKeyDto } from '../services/apiKeys.service';
 
 const SetupPage: React.FC = () => {
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    loadApiKeys();
+  }, []);
+  
+  const loadApiKeys = async () => {
+    try {
+      setLoading(true);
+      const keys = await apiKeysService.getAll();
+      setApiKeys(keys);
+      setError(null);
+    } catch (err) {
+      console.error('Error loading API keys:', err);
+      setError('Failed to load API keys. Please refresh the page.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const handleSaveApiKey = async (data: CreateApiKeyDto) => {
+    try {
+      const savedKey = await apiKeysService.saveApiKey(data);
+      
+      // Update the local state with the new/updated key
+      setApiKeys(prev => {
+        const exists = prev.some(key => key.type === data.type);
+        if (exists) {
+          return prev.map(key => key.type === data.type ? savedKey : key);
+        } else {
+          return [...prev, savedKey];
+        }
+      });
+      
+      return Promise.resolve();
+    } catch (err) {
+      console.error('Error saving API key:', err);
+      return Promise.reject(err);
+    }
+  };
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -15,116 +59,46 @@ const SetupPage: React.FC = () => {
           </p>
           
           <div className="space-y-6">
-            {/* System Settings Section */}
+            {/* ATS Integrations Section */}
             <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-md font-medium text-gray-800 mb-4">General Settings</h3>
+              <h3 className="text-md font-medium text-gray-800 mb-4">ATS Integrations</h3>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Platform Name
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Careers Platform"
-                  />
+              {error && (
+                <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                  {error}
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Contact Email
-                  </label>
-                  <input
-                    type="email"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="admin@careers.com"
-                  />
-                </div>
-              </div>
-            </div>
-            
-            {/* API Configuration Section */}
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-md font-medium text-gray-800 mb-4">API Configuration</h3>
+              )}
               
-              <div className="grid grid-cols-1 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    API Base URL
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="http://localhost:3001"
+              {loading ? (
+                <div className="py-4 text-center">
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                  <p className="mt-2 text-sm text-gray-600">Loading integrations...</p>
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {/* Greenhouse Integration */}
+                  <ApiKeyForm
+                    type={IntegrationType.GREENHOUSE}
+                    title="Greenhouse Integration"
+                    description="Connect to Greenhouse ATS to sync job postings and applications. The Company ID is your Greenhouse board ID (e.g., 'companyname' from https://boards-api.greenhouse.io/v1/boards/companyname/jobs) and is required to import jobs and submit applications."
+                    onSave={handleSaveApiKey}
+                    initialValues={apiKeys?.find(key => key.type === IntegrationType.GREENHOUSE)}
+                    isLoading={loading}
+                  />
+                  
+                  {/* Ashby Integration */}
+                  <ApiKeyForm
+                    type={IntegrationType.ASHBY}
+                    title="Ashby Integration"
+                    description="Connect to Ashby ATS to sync job postings and applications. The Company ID is your Ashby company identifier and is required to import jobs and submit applications to your Ashby instance."
+                    onSave={handleSaveApiKey}
+                    initialValues={apiKeys?.find(key => key.type === IntegrationType.ASHBY)}
+                    isLoading={loading}
                   />
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    API Key
-                  </label>
-                  <div className="flex">
-                    <input
-                      type="password"
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="••••••••••••••••"
-                    />
-                    <button
-                      type="button"
-                      className="px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm font-medium text-gray-700 hover:bg-gray-200"
-                    >
-                      Generate
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Database Configuration Section */}
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-md font-medium text-gray-800 mb-4">Database Configuration</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Database URL
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="mongodb://localhost:27017/dev_careers"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Database Name
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="dev_careers"
-                  />
-                </div>
-              </div>
+              )}
             </div>
           </div>
-        </div>
-        
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end">
-          <button
-            type="button"
-            className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200 mr-3"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700"
-          >
-            Save Changes
-          </button>
         </div>
       </div>
     </div>

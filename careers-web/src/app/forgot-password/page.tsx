@@ -138,7 +138,7 @@ export default function ForgotPassword() {
 
                 <div className="mt-6 flex items-center justify-center">
                   <div className="text-sm">
-                    <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+                    <Link href="http://localhost:3000/admin/login" className="font-medium text-blue-600 hover:text-blue-500">
                       Return to login
                     </Link>
                   </div>

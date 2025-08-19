@@ -3,7 +3,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
-import { User, UserDocument } from './schemas/user.schema';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { User, UserDocument, UserRole } from './schemas/user.schema';
 import { AuthService } from '../auth/auth.service';
 
 @Injectable()
@@ -28,10 +30,15 @@ export class UsersService {
       createUserDto.password,
     );
 
+    // Check if this is the first user (make them admin)
+    const userCount = await this.userModel.countDocuments().exec();
+    const isFirstUser = userCount === 0;
+
     // Create new user with hashed password
     const newUser = new this.userModel({
       ...createUserDto,
       password: hashedPassword,
+      role: isFirstUser ? UserRole.ADMIN : UserRole.USER,
     });
 
     // Save the user to the database
@@ -41,6 +48,7 @@ export class UsersService {
       id: savedUser._id,
       name: savedUser.name,
       email: savedUser.email,
+      role: savedUser.role,
     };
   }
 
@@ -64,10 +72,11 @@ export class UsersService {
       throw new Error('Invalid credentials');
     }
 
-    // Generate JWT token
+    // Generate JWT token with role information
     const token = this.authService.generateToken({
       sub: user._id,
       email: user.email,
+      role: user.role,
     });
 
     return {
@@ -76,6 +85,7 @@ export class UsersService {
         id: user._id,
         email: user.email,
         name: user.name,
+        role: user.role,
       },
     };
   }
@@ -100,5 +110,120 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
+  }
+
+  async findAll() {
+    const users = await this.userModel.find().exec();
+    return users.map((user) => ({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    }));
+  }
+
+  async updateRole(id: string, role: string) {
+    // Validate that the role is a valid UserRole
+    if (!Object.values(UserRole).includes(role as UserRole)) {
+      throw new Error('Invalid role');
+    }
+
+    const user = await this.userModel.findById(id).exec();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    user.role = role as UserRole;
+    const updatedUser = await user.save();
+
+    return {
+      id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+    };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.userModel.findById(userId).exec();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    return {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      createdAt: user.createdAt,
+    };
+  }
+
+  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+    const user = await this.userModel.findById(userId).exec();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Check if email is being updated and if it's already in use
+    if (updateProfileDto.email && updateProfileDto.email !== user.email) {
+      const existingUser = await this.userModel
+        .findOne({ email: updateProfileDto.email })
+        .exec();
+
+      if (existingUser) {
+        throw new Error('Email is already in use');
+      }
+    }
+
+    // Update user fields
+    if (updateProfileDto.name) {
+      user.name = updateProfileDto.name;
+    }
+    if (updateProfileDto.email) {
+      user.email = updateProfileDto.email;
+    }
+
+    const updatedUser = await user.save();
+
+    return {
+      id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      createdAt: updatedUser.createdAt,
+    };
+  }
+
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+    const user = await this.userModel.findById(userId).exec();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Verify current password
+    const isPasswordValid = await this.authService.comparePasswords(
+      changePasswordDto.currentPassword,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new Error('Current password is incorrect');
+    }
+
+    // Hash the new password
+    const hashedPassword = await this.authService.hashPassword(
+      changePasswordDto.newPassword,
+    );
+
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+
+    return { message: 'Password updated successfully' };
   }
 }

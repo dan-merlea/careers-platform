@@ -1,0 +1,70 @@
+import { IsString, IsOptional, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+export class SocialLinksDto {
+  @IsString()
+  @IsOptional()
+  linkedin: string;
+
+  @IsString()
+  @IsOptional()
+  twitter: string;
+
+  @IsString()
+  @IsOptional()
+  facebook: string;
+
+  @IsString()
+  @IsOptional()
+  instagram: string;
+}
+
+export class CompanyDto {
+  @IsString()
+  name: string;
+
+  @IsString()
+  @IsOptional()
+  logo: string;
+
+  @IsString()
+  @IsOptional()
+  website: string;
+
+  @IsString()
+  @IsOptional()
+  description: string;
+
+  @IsString()
+  @IsOptional()
+  industry: string;
+
+  @IsString()
+  @IsOptional()
+  foundedYear: string;
+
+  @IsString()
+  @IsOptional()
+  size: string;
+
+  @IsString()
+  @IsOptional()
+  headquarters: string;
+
+  @ValidateNested()
+  @Type(() => SocialLinksDto)
+  socialLinks: SocialLinksDto;
+
+  @IsString()
+  @IsOptional()
+  mission: string;
+
+  @IsString()
+  @IsOptional()
+  vision: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  values: string[];
+}

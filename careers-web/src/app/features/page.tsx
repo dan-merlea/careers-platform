@@ -190,7 +190,7 @@ export default function Features() {
         </div>
 
         <div className="mt-20 text-center">
-          <Link href="/signup" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+          <Link href="http://localhost:3000/admin/login" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
             Get Started Today
           </Link>
         </div>

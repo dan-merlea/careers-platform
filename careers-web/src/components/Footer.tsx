@@ -28,12 +28,12 @@ export default function Footer() {
             </Link>
           </div>
           <div className="px-5 py-2">
-            <Link href="/login" className="text-base text-gray-300 hover:text-white">
+            <Link href="http://localhost:3000/admin/login" className="text-base text-gray-300 hover:text-white">
               Login
             </Link>
           </div>
           <div className="px-5 py-2">
-            <Link href="/signup" className="text-base text-gray-300 hover:text-white">
+            <Link href="http://localhost:3000/admin/login" className="text-base text-gray-300 hover:text-white">
               Sign Up
             </Link>
           </div>

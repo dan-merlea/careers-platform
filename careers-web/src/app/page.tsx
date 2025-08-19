@@ -16,7 +16,7 @@ export default function Home() {
                 Connect with top employers and discover opportunities that match your skills and aspirations.
               </p>
               <div className="mt-10 flex space-x-4">
-                <Link href="/signup" className="px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-800 hover:bg-blue-900">
+                <Link href="http://localhost:3000/admin/login" className="px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-800 hover:bg-blue-900">
                   Get Started
                 </Link>
                 <Link href="/features" className="px-6 py-3 border border-transparent text-base font-medium rounded-md text-blue-800 bg-white hover:bg-gray-100">
@@ -116,12 +116,12 @@ export default function Home() {
                 </div>
                 <div className="mt-8 lg:mt-0 flex items-center justify-center lg:justify-end">
                   <div className="inline-flex rounded-md shadow">
-                    <Link href="/signup" className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-gray-50">
+                    <Link href="http://localhost:3000/admin/login" className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-md text-blue-700 bg-white hover:bg-gray-50">
                       Sign Up Now
                     </Link>
                   </div>
                   <div className="ml-4 inline-flex">
-                    <Link href="/login" className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-md text-white bg-blue-800 hover:bg-blue-900">
+                    <Link href="http://localhost:3000/admin/login" className="inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-md text-white bg-blue-800 hover:bg-blue-900">
                       Login
                     </Link>
                   </div>

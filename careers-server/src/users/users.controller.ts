@@ -2,16 +2,56 @@ import {
   Body,
   Controller,
   Post,
+  Get,
+  Patch,
+  Param,
+  UseGuards,
   HttpStatus,
   HttpException,
+  Request,
 } from '@nestjs/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '../auth';
+import { UserRole } from './schemas/user.schema';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getAllUsers() {
+    try {
+      return await this.usersService.findAll();
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('An error occurred', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Patch(':id/role')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async updateUserRole(
+    @Param('id') id: string,
+    @Body() updateRoleDto: { role: string },
+  ) {
+    try {
+      return await this.usersService.updateRole(id, updateRoleDto.role);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('An error occurred', HttpStatus.BAD_REQUEST);
+    }
+  }
 
   @Post('signup')
   async signup(@Body() createUserDto: CreateUserDto) {
@@ -41,6 +81,57 @@ export class UsersController {
   async resetPassword(@Body() resetPasswordDto: { email: string }) {
     try {
       return await this.usersService.resetPassword(resetPasswordDto.email);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('An error occurred', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  async getProfile(@Request() req: { user: { userId: string } }) {
+    try {
+      return await this.usersService.getProfile(req.user.userId);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('An error occurred', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Request() req: { user: { userId: string } },
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    try {
+      return await this.usersService.updateProfile(
+        req.user.userId,
+        updateProfileDto,
+      );
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('An error occurred', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Patch('change-password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Request() req: { user: { userId: string } },
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    try {
+      return await this.usersService.changePassword(
+        req.user.userId,
+        changePasswordDto,
+      );
     } catch (error) {
       if (error instanceof Error) {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

@@ -1,0 +1,805 @@
+import React, { useState, useEffect } from 'react';
+import { companyService, CompanyDetails } from '../services/company.service';
+import { headquartersService, Headquarters, CreateHeadquartersDto, UpdateHeadquartersDto } from '../services/headquartersService';
+import { departmentService, Department, CreateDepartmentDto, UpdateDepartmentDto } from '../services/departmentService';
+import HeadquartersList from '../components/company/HeadquartersList';
+import HeadquartersForm from '../components/company/HeadquartersForm';
+import DepartmentTree from '../components/company/DepartmentTree';
+import DepartmentForm from '../components/company/DepartmentForm';
+
+const CompanyDetailsPage: React.FC = () => {
+  // State for company profile section
+  const [companyDetails, setCompanyDetails] = useState<CompanyDetails>({
+    name: '',
+    logo: '',
+    website: '',
+    description: '',
+    industry: '',
+    foundedYear: '',
+    size: '',
+    headquarters: '',
+    socialLinks: {
+      linkedin: '',
+      twitter: '',
+      facebook: '',
+      instagram: ''
+    },
+    mission: '',
+    vision: '',
+    values: []
+  });
+  
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [valueInput, setValueInput] = useState<string>('');
+  
+  // State for headquarters section
+  const [activeSection, setActiveSection] = useState<'profile' | 'headquarters' | 'departments'>('profile');
+  const [headquarters, setHeadquarters] = useState<Headquarters[]>([]);
+  const [loadingHQ, setLoadingHQ] = useState<boolean>(false);
+  const [selectedHQ, setSelectedHQ] = useState<Headquarters | undefined>(undefined);
+  const [showHQForm, setShowHQForm] = useState<boolean>(false);
+  const [savingHQ, setSavingHQ] = useState<boolean>(false);
+  const [hqError, setHQError] = useState<string | null>(null);
+  const [hqSuccess, setHQSuccess] = useState<string | null>(null);
+  
+  // State for departments section
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loadingDept, setLoadingDept] = useState<boolean>(false);
+  const [selectedDept, setSelectedDept] = useState<Department | undefined>(undefined);
+  const [showDeptForm, setShowDeptForm] = useState<boolean>(false);
+  const [savingDept, setSavingDept] = useState<boolean>(false);
+  const [deptError, setDeptError] = useState<string | null>(null);
+  const [deptSuccess, setDeptSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadCompanyDetails();
+    loadHeadquarters();
+    loadDepartments();
+  }, []);
+  
+  // Load headquarters data
+  const loadHeadquarters = async () => {
+    try {
+      setLoadingHQ(true);
+      const data = await headquartersService.getAll();
+      setHeadquarters(data);
+      setHQError(null);
+    } catch (err) {
+      console.error('Error loading headquarters:', err);
+      setHQError('Failed to load headquarters. Please try again.');
+    } finally {
+      setLoadingHQ(false);
+    }
+  };
+  
+  // Load departments data with hierarchical structure
+  const loadDepartments = async () => {
+    try {
+      setLoadingDept(true);
+      const data = await departmentService.getHierarchy();
+      setDepartments(data);
+      setDeptError(null);
+    } catch (err) {
+      console.error('Error loading departments:', err);
+      setDeptError('Failed to load departments. Please try again.');
+    } finally {
+      setLoadingDept(false);
+    }
+  };
+  
+  // Headquarters CRUD handlers
+  const handleCreateHeadquarters = async (data: CreateHeadquartersDto) => {
+    try {
+      setSavingHQ(true);
+      await headquartersService.create(data);
+      await loadHeadquarters();
+      setShowHQForm(false);
+      setSelectedHQ(undefined);
+      setHQSuccess('Headquarters created successfully');
+      setTimeout(() => setHQSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error creating headquarters:', err);
+      setHQError('Failed to create headquarters. Please try again.');
+    } finally {
+      setSavingHQ(false);
+    }
+  };
+  
+  const handleUpdateHeadquarters = async (id: string, data: UpdateHeadquartersDto) => {
+    try {
+      setSavingHQ(true);
+      await headquartersService.update(id, data);
+      await loadHeadquarters();
+      setShowHQForm(false);
+      setSelectedHQ(undefined);
+      setHQSuccess('Headquarters updated successfully');
+      setTimeout(() => setHQSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error updating headquarters:', err);
+      setHQError('Failed to update headquarters. Please try again.');
+    } finally {
+      setSavingHQ(false);
+    }
+  };
+  
+  const handleDeleteHeadquarters = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this headquarters?')) {
+      try {
+        await headquartersService.delete(id);
+        await loadHeadquarters();
+        setHQSuccess('Headquarters deleted successfully');
+        setTimeout(() => setHQSuccess(null), 3000);
+      } catch (err) {
+        console.error('Error deleting headquarters:', err);
+        setHQError('Failed to delete headquarters. Please try again.');
+      }
+    }
+  };
+  
+  // Department CRUD handlers
+  const handleCreateDepartment = async (data: CreateDepartmentDto) => {
+    try {
+      setSavingDept(true);
+      await departmentService.create(data);
+      await loadDepartments();
+      setShowDeptForm(false);
+      setSelectedDept(undefined);
+      setDeptSuccess('Department created successfully');
+      setTimeout(() => setDeptSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error creating department:', err);
+      setDeptError('Failed to create department. Please try again.');
+    } finally {
+      setSavingDept(false);
+    }
+  };
+  
+  const handleUpdateDepartment = async (id: string, data: UpdateDepartmentDto) => {
+    try {
+      setSavingDept(true);
+      await departmentService.update(id, data);
+      await loadDepartments();
+      setShowDeptForm(false);
+      setSelectedDept(undefined);
+      setDeptSuccess('Department updated successfully');
+      setTimeout(() => setDeptSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error updating department:', err);
+      setDeptError('Failed to update department. Please try again.');
+    } finally {
+      setSavingDept(false);
+    }
+  };
+  
+  const handleDeleteDepartment = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this department?')) {
+      try {
+        await departmentService.delete(id);
+        await loadDepartments();
+        setDeptSuccess('Department deleted successfully');
+        setTimeout(() => setDeptSuccess(null), 3000);
+      } catch (err) {
+        console.error('Error deleting department:', err);
+        setDeptError('Failed to delete department. Please try again.');
+      }
+    }
+  };
+
+  const loadCompanyDetails = async () => {
+    try {
+      setLoading(true);
+      const details = await companyService.getCompanyDetails();
+      if (details) {
+        setCompanyDetails(details);
+      }
+      setError(null);
+    } catch (err) {
+      console.error('Error loading company details:', err);
+      setError('Failed to load company details. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    if (name.includes('.')) {
+      // Handle nested properties (like socialLinks.linkedin)
+      const [parent, child] = name.split('.');
+      setCompanyDetails(prev => {
+        if (parent === 'socialLinks') {
+          return {
+            ...prev,
+            socialLinks: {
+              ...prev.socialLinks,
+              [child]: value
+            }
+          };
+        }
+        return prev;
+      });
+    } else {
+      setCompanyDetails(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleSocialLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const socialType = name.split('.')[1]; // Extract social media type (linkedin, twitter, etc.)
+    
+    setCompanyDetails(prev => ({
+      ...prev,
+      socialLinks: {
+        ...prev.socialLinks,
+        [socialType]: value
+      }
+    }));
+  };
+
+  const handleAddValue = () => {
+    if (valueInput.trim()) {
+      setCompanyDetails(prev => ({
+        ...prev,
+        values: [...(Array.isArray(prev.values) ? prev.values : []), valueInput.trim()]
+      }));
+      setValueInput('');
+    }
+  };
+
+  const handleRemoveValue = (index: number) => {
+    setCompanyDetails(prev => ({
+      ...prev,
+      values: Array.isArray(prev.values) ? prev.values.filter((_, i) => i !== index) : []
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
+    setSaving(true);
+    
+    try {
+      await companyService.saveCompanyDetails(companyDetails);
+      setSuccess('Company details updated successfully');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error updating company details:', err);
+      setError('Failed to update company details. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+  
+  // Handle section navigation
+  const handleSectionChange = (section: 'profile' | 'headquarters' | 'departments') => {
+    setActiveSection(section);
+  };
+  
+  // Handle headquarters form actions
+  const handleEditHeadquarters = (hq: Headquarters) => {
+    setSelectedHQ(hq);
+    setShowHQForm(true);
+  };
+  
+  const handleAddHeadquarters = () => {
+    setSelectedHQ(undefined);
+    setShowHQForm(true);
+  };
+  
+  const handleHQFormSubmit = async (data: CreateHeadquartersDto | UpdateHeadquartersDto) => {
+    if (selectedHQ && selectedHQ._id) {
+      await handleUpdateHeadquarters(selectedHQ._id, data as UpdateHeadquartersDto);
+    } else {
+      await handleCreateHeadquarters(data as CreateHeadquartersDto);
+    }
+  };
+  
+  const handleHQFormCancel = () => {
+    setShowHQForm(false);
+    setSelectedHQ(undefined);
+  };
+  
+  // Handle department form actions
+  const handleEditDepartment = (dept: Department) => {
+    setSelectedDept(dept);
+    setShowDeptForm(true);
+  };
+  
+  const handleAddDepartment = () => {
+    setSelectedDept(undefined);
+    setShowDeptForm(true);
+  };
+  
+  const handleDeptFormSubmit = async (data: CreateDepartmentDto | UpdateDepartmentDto) => {
+    if (selectedDept && selectedDept._id) {
+      await handleUpdateDepartment(selectedDept._id, data as UpdateDepartmentDto);
+    } else {
+      await handleCreateDepartment(data as CreateDepartmentDto);
+    }
+  };
+  
+  const handleDeptFormCancel = () => {
+    setShowDeptForm(false);
+    setSelectedDept(undefined);
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-8">Company Details</h1>
+
+      {/* Navigation Tabs */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => handleSectionChange('profile')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeSection === 'profile' 
+              ? 'border-blue-500 text-blue-600' 
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+          >
+            Company Profile
+          </button>
+          <button
+            onClick={() => handleSectionChange('headquarters')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeSection === 'headquarters' 
+              ? 'border-blue-500 text-blue-600' 
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+          >
+            Headquarters
+          </button>
+          <button
+            onClick={() => handleSectionChange('departments')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeSection === 'departments' 
+              ? 'border-blue-500 text-blue-600' 
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+          >
+            Departments
+          </button>
+        </nav>
+      </div>
+
+      {/* Loading and Error States */}
+      {loading && activeSection === 'profile' && (
+        <div className="flex items-center justify-center h-32">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+          <p className="ml-2 text-gray-600">Loading company details...</p>
+        </div>
+      )}
+      
+      {loadingHQ && activeSection === 'headquarters' && (
+        <div className="flex items-center justify-center h-32">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+          <p className="ml-2 text-gray-600">Loading headquarters...</p>
+        </div>
+      )}
+      
+      {loadingDept && activeSection === 'departments' && (
+        <div className="flex items-center justify-center h-32">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+          <p className="ml-2 text-gray-600">Loading departments...</p>
+        </div>
+      )}
+      
+      {error && activeSection === 'profile' && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          {error}
+          <button 
+            onClick={loadCompanyDetails}
+            className="ml-2 underline text-red-700 hover:text-red-800"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+      
+      {hqError && activeSection === 'headquarters' && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          {hqError}
+          <button 
+            onClick={loadHeadquarters}
+            className="ml-2 underline text-red-700 hover:text-red-800"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+      
+      {deptError && activeSection === 'departments' && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          {deptError}
+          <button 
+            onClick={loadDepartments}
+            className="ml-2 underline text-red-700 hover:text-red-800"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+      
+      {/* Success Messages */}
+      {success && activeSection === 'profile' && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4">
+          {success}
+        </div>
+      )}
+      
+      {hqSuccess && activeSection === 'headquarters' && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4">
+          {hqSuccess}
+        </div>
+      )}
+      
+      {deptSuccess && activeSection === 'departments' && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4">
+          {deptSuccess}
+        </div>
+      )}
+      
+      {/* Headquarters Section */}
+      {activeSection === 'headquarters' && !loadingHQ && !hqError && (
+        <div className="space-y-6">
+          {showHQForm ? (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <HeadquartersForm
+                headquarters={selectedHQ}
+                onSubmit={handleHQFormSubmit}
+                onCancel={handleHQFormCancel}
+                isSubmitting={savingHQ}
+              />
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <HeadquartersList
+                onEdit={handleEditHeadquarters}
+                onDelete={handleDeleteHeadquarters}
+                onAddNew={handleAddHeadquarters}
+              />
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Departments Section */}
+      {activeSection === 'departments' && !loadingDept && !deptError && (
+        <div className="space-y-6">
+          {showDeptForm ? (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <DepartmentForm
+                department={selectedDept}
+                departments={departments}
+                onSubmit={handleDeptFormSubmit}
+                onCancel={handleDeptFormCancel}
+                isSubmitting={savingDept}
+              />
+            </div>
+          ) : (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-lg font-medium text-gray-800">Departments</h2>
+                  <button
+                    onClick={handleAddDepartment}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    Add Department
+                  </button>
+                </div>
+                <DepartmentTree
+                  departments={departments}
+                  onEdit={handleEditDepartment}
+                  onDelete={handleDeleteDepartment}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Company Profile Section */}
+      {activeSection === 'profile' && !loading && !error && (
+        <div className="space-y-8">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <form onSubmit={handleSubmit}>
+              <div className="p-6 space-y-6">
+                {/* Basic Information */}
+                <div>
+                  <h2 className="text-lg font-medium text-gray-800 mb-4">Basic Information</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Company Name
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={companyDetails.name}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter company name"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Logo URL
+                      </label>
+                      <input
+                        type="text"
+                        name="logo"
+                        value={companyDetails.logo}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter logo URL"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Website
+                      </label>
+                      <input
+                        type="url"
+                        name="website"
+                        value={companyDetails.website}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="https://example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Industry
+                      </label>
+                      <input
+                        type="text"
+                        name="industry"
+                        value={companyDetails.industry}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g. Technology, Healthcare, Finance"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Founded Year
+                      </label>
+                      <input
+                        type="text"
+                        name="foundedYear"
+                        value={companyDetails.foundedYear}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g. 2010"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Company Size
+                      </label>
+                      <select
+                        name="size"
+                        value={companyDetails.size}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="">Select company size</option>
+                        <option value="1-10">1-10 employees</option>
+                        <option value="11-50">11-50 employees</option>
+                        <option value="51-200">51-200 employees</option>
+                        <option value="201-500">201-500 employees</option>
+                        <option value="501-1000">501-1000 employees</option>
+                        <option value="1001-5000">1001-5000 employees</option>
+                        <option value="5001+">5001+ employees</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Headquarters
+                      </label>
+                      <input
+                        type="text"
+                        name="headquarters"
+                        value={companyDetails.headquarters}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="e.g. San Francisco, CA"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Company Description */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h2 className="text-lg font-medium text-gray-800 mb-4">Company Description</h2>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description
+                    </label>
+                    <textarea
+                      name="description"
+                      value={companyDetails.description}
+                      onChange={handleInputChange}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Describe your company..."
+                    ></textarea>
+                  </div>
+                </div>
+
+                {/* Mission, Vision, Values */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h2 className="text-lg font-medium text-gray-800 mb-4">Mission, Vision & Values</h2>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Mission
+                      </label>
+                      <textarea
+                        name="mission"
+                        value={companyDetails.mission}
+                        onChange={handleInputChange}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Company mission statement..."
+                      ></textarea>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Vision
+                      </label>
+                      <textarea
+                        name="vision"
+                        value={companyDetails.vision}
+                        onChange={handleInputChange}
+                        rows={2}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Company vision statement..."
+                      ></textarea>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Values
+                      </label>
+                      <div className="flex space-x-2 mb-2">
+                        <input
+                          type="text"
+                          value={valueInput}
+                          onChange={(e) => setValueInput(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Add a company value"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddValue}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          Add
+                        </button>
+                      </div>
+                      <div className="mt-2 space-y-2">
+                        {companyDetails.values?.map((value, index) => (
+                          <div key={index} className="flex items-center">
+                            <span className="flex-grow">{value}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveValue(index)}
+                              className="ml-2 text-gray-500 hover:text-red-500"
+                            >
+                              &times;
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Links */}
+                <div className="border-t border-gray-200 pt-6">
+                  <h2 className="text-lg font-medium text-gray-800 mb-4">Social Media Links</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        LinkedIn
+                      </label>
+                      <input
+                        type="url"
+                        name="socialLinks.linkedin"
+                        value={companyDetails.socialLinks?.linkedin || ''}
+                        onChange={handleSocialLinkChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="https://linkedin.com/company/..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Twitter
+                      </label>
+                      <input
+                        type="url"
+                        name="socialLinks.twitter"
+                        value={companyDetails.socialLinks?.twitter || ''}
+                        onChange={handleSocialLinkChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="https://twitter.com/..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Facebook
+                      </label>
+                      <input
+                        type="url"
+                        name="socialLinks.facebook"
+                        value={companyDetails.socialLinks?.facebook || ''}
+                        onChange={handleSocialLinkChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="https://facebook.com/..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Instagram
+                      </label>
+                      <input
+                        type="url"
+                        name="socialLinks.instagram"
+                        value={companyDetails.socialLinks?.instagram || ''}
+                        onChange={handleSocialLinkChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="https://instagram.com/..."
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end">
+                {success && (
+                  <div className="mr-auto bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-md text-sm">
+                    {success}
+                  </div>
+                )}
+                <div className="flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={loadCompanyDetails}
+                    className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200 mr-3"
+                    disabled={saving}
+                  >
+                    Reset
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                    disabled={saving}
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CompanyDetailsPage;
