@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { companyService, CompanyDetails } from '../services/company.service';
 import { headquartersService, Headquarters, CreateHeadquartersDto, UpdateHeadquartersDto } from '../services/headquartersService';
 import { departmentService, Department, CreateDepartmentDto, UpdateDepartmentDto } from '../services/departmentService';
@@ -6,8 +7,22 @@ import HeadquartersList from '../components/company/HeadquartersList';
 import HeadquartersForm from '../components/company/HeadquartersForm';
 import DepartmentTree from '../components/company/DepartmentTree';
 import DepartmentForm from '../components/company/DepartmentForm';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const CompanyDetailsPage: React.FC = () => {
+  // React Router hooks
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Navigation handler
+  const handleSectionChange = (section: string) => {
+    if (section === 'profile') {
+      navigate('/company-details');
+    } else {
+      navigate(`/company-details/${section}`);
+    }
+  };
+  
   // State for company profile section
   const [companyDetails, setCompanyDetails] = useState<CompanyDetails>({
     name: '',
@@ -33,10 +48,18 @@ const CompanyDetailsPage: React.FC = () => {
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [valueInput, setValueInput] = useState<string>('');
+  const [valueInput, setValueInput] = useState('');
+  const [valueIcon, setValueIcon] = useState('star');
   
+  // Determine active section based on URL path
+  const path = location.pathname;
+  const activeSection = path.includes('/headquarters') 
+    ? 'headquarters' 
+    : path.includes('/departments') 
+      ? 'departments' 
+      : 'profile';
+      
   // State for headquarters section
-  const [activeSection, setActiveSection] = useState<'profile' | 'headquarters' | 'departments'>('profile');
   const [headquarters, setHeadquarters] = useState<Headquarters[]>([]);
   const [loadingHQ, setLoadingHQ] = useState<boolean>(false);
   const [selectedHQ, setSelectedHQ] = useState<Headquarters | undefined>(undefined);
@@ -247,9 +270,10 @@ const CompanyDetailsPage: React.FC = () => {
     if (valueInput.trim()) {
       setCompanyDetails(prev => ({
         ...prev,
-        values: [...(Array.isArray(prev.values) ? prev.values : []), valueInput.trim()]
+        values: [...(Array.isArray(prev.values) ? prev.values : []), { text: valueInput.trim(), icon: valueIcon }]
       }));
       setValueInput('');
+      // Keep the selected icon for the next value
     }
   };
 
@@ -259,6 +283,12 @@ const CompanyDetailsPage: React.FC = () => {
       values: Array.isArray(prev.values) ? prev.values.filter((_, i) => i !== index) : []
     }));
   };
+  
+  // Common Bootstrap icons for company values
+  const commonIcons = [
+    'star', 'heart', 'check-circle', 'award', 'trophy', 'gem',
+    'people', 'globe', 'lightning', 'shield', 'lightbulb', 'hand-thumbs-up'
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -276,11 +306,6 @@ const CompanyDetailsPage: React.FC = () => {
     } finally {
       setSaving(false);
     }
-  };
-  
-  // Handle section navigation
-  const handleSectionChange = (section: 'profile' | 'headquarters' | 'departments') => {
-    setActiveSection(section);
   };
   
   // Handle headquarters form actions
@@ -331,146 +356,344 @@ const CompanyDetailsPage: React.FC = () => {
     setSelectedDept(undefined);
   };
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-8">Company Details</h1>
-
-      {/* Navigation Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => handleSectionChange('profile')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeSection === 'profile' 
-              ? 'border-blue-500 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-          >
-            Company Profile
-          </button>
-          <button
-            onClick={() => handleSectionChange('headquarters')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeSection === 'headquarters' 
-              ? 'border-blue-500 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-          >
-            Headquarters
-          </button>
-          <button
-            onClick={() => handleSectionChange('departments')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${activeSection === 'departments' 
-              ? 'border-blue-500 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
-          >
-            Departments
-          </button>
-        </nav>
-      </div>
-
-      {/* Loading and Error States */}
-      {loading && activeSection === 'profile' && (
-        <div className="flex items-center justify-center h-32">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
-          <p className="ml-2 text-gray-600">Loading company details...</p>
+  // Company Profile Section Component
+  const CompanyProfileSection = () => (
+    <div className="bg-white shadow-md rounded-lg p-6">
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-500">Loading company details...</p>
         </div>
-      )}
-      
-      {loadingHQ && activeSection === 'headquarters' && (
-        <div className="flex items-center justify-center h-32">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
-          <p className="ml-2 text-gray-600">Loading headquarters...</p>
-        </div>
-      )}
-      
-      {loadingDept && activeSection === 'departments' && (
-        <div className="flex items-center justify-center h-32">
-          <div className="inline-block animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
-          <p className="ml-2 text-gray-600">Loading departments...</p>
-        </div>
-      )}
-      
-      {error && activeSection === 'profile' && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {error}
+      ) : error ? (
+        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+          <p>{error}</p>
           <button 
             onClick={loadCompanyDetails}
-            className="ml-2 underline text-red-700 hover:text-red-800"
+            className="mt-2 bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded"
           >
-            Try again
+            Retry
           </button>
         </div>
+      ) : (
+        <form onSubmit={handleSubmit}>
+          {success && (
+            <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
+              <p>{success}</p>
+            </div>
+          )}
+          
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700 mb-2">Company Name</label>
+                <input
+                  type="text"
+                  name="name"
+                  value={companyDetails.name}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2">Logo URL</label>
+                <input
+                  type="text"
+                  name="logo"
+                  value={companyDetails.logo}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2">Website</label>
+                <input
+                  type="url"
+                  name="website"
+                  value={companyDetails.website}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2">Industry</label>
+                <input
+                  type="text"
+                  name="industry"
+                  value={companyDetails.industry}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2">Founded Year</label>
+                <input
+                  type="text"
+                  name="foundedYear"
+                  value={companyDetails.foundedYear}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2">Company Size</label>
+                <select
+                  name="size"
+                  value={companyDetails.size}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  <option value="">Select size</option>
+                  <option value="1-10">1-10 employees</option>
+                  <option value="11-50">11-50 employees</option>
+                  <option value="51-200">51-200 employees</option>
+                  <option value="201-500">201-500 employees</option>
+                  <option value="501-1000">501-1000 employees</option>
+                  <option value="1001+">1001+ employees</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mb-6">
+            <label className="block text-gray-700 mb-2">Description</label>
+            <textarea
+              name="description"
+              value={companyDetails.description}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border rounded-md h-32"
+            />
+          </div>
+          
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4">Social Links</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700 mb-2">LinkedIn</label>
+                <input
+                  type="url"
+                  name="socialLinks.linkedin"
+                  value={companyDetails.socialLinks.linkedin}
+                  onChange={handleSocialLinkChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2">Twitter</label>
+                <input
+                  type="url"
+                  name="socialLinks.twitter"
+                  value={companyDetails.socialLinks.twitter}
+                  onChange={handleSocialLinkChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2">Facebook</label>
+                <input
+                  type="url"
+                  name="socialLinks.facebook"
+                  value={companyDetails.socialLinks.facebook}
+                  onChange={handleSocialLinkChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 mb-2">Instagram</label>
+                <input
+                  type="url"
+                  name="socialLinks.instagram"
+                  value={companyDetails.socialLinks.instagram}
+                  onChange={handleSocialLinkChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-4">Company Culture</h2>
+            
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2">Mission</label>
+              <textarea
+                name="mission"
+                value={companyDetails.mission}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border rounded-md h-24"
+              />
+            </div>
+            
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2">Vision</label>
+              <textarea
+                name="vision"
+                value={companyDetails.vision}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border rounded-md h-24"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-gray-700 mb-2">Values</label>
+              <div className="flex flex-col mb-2">
+                <div className="flex items-center mb-2">
+                  <input
+                    type="text"
+                    value={valueInput}
+                    onChange={(e) => setValueInput(e.target.value)}
+                    placeholder="Enter a company value"
+                    className="w-full px-3 py-2 border rounded-md mr-2"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddValue}
+                    className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
+                  >
+                    Add
+                  </button>
+                </div>
+                
+                <div className="mb-2">
+                  <label className="block text-gray-700 mb-1">Select an icon:</label>
+                  <div className="flex flex-wrap gap-2">
+                    {commonIcons.map(icon => (
+                      <button
+                        key={icon}
+                        type="button"
+                        onClick={() => setValueIcon(icon)}
+                        className={`p-2 border rounded ${valueIcon === icon ? 'bg-blue-100 border-blue-500' : 'border-gray-300'}`}
+                        title={icon}
+                      >
+                        <i className={`bi bi-${icon}`}></i>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-2">
+                {Array.isArray(companyDetails.values) && companyDetails.values.map((value, index) => (
+                  <div key={index} className="inline-flex items-center bg-gray-100 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2">
+                    {typeof value === 'object' && value.icon && <i className={`bi bi-${value.icon} mr-1`}></i>}
+                    {typeof value === 'object' ? value.text : value}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveValue(index)}
+                      className="ml-2 text-red-500 hover:text-red-700"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
+                
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={saving}
+              className={`bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
       )}
+    </div>
+  );
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-2xl font-bold mb-6">Company Details</h1>
       
-      {hqError && activeSection === 'headquarters' && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {hqError}
-          <button 
-            onClick={loadHeadquarters}
-            className="ml-2 underline text-red-700 hover:text-red-800"
-          >
-            Try again
-          </button>
-        </div>
-      )}
+      {/* Navigation Tabs */}
+      <div className="flex border-b mb-6">
+        <button
+          onClick={() => handleSectionChange('profile')}
+          className={`py-2 px-4 mr-2 ${activeSection === 'profile' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Company Profile
+        </button>
+        <button
+          onClick={() => handleSectionChange('headquarters')}
+          className={`py-2 px-4 mr-2 ${activeSection === 'headquarters' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Headquarters
+        </button>
+        <button
+          onClick={() => handleSectionChange('departments')}
+          className={`py-2 px-4 ${activeSection === 'departments' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Departments
+        </button>
+      </div>
       
-      {deptError && activeSection === 'departments' && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-          {deptError}
-          <button 
-            onClick={loadDepartments}
-            className="ml-2 underline text-red-700 hover:text-red-800"
-          >
-            Try again
-          </button>
-        </div>
-      )}
-      
-      {/* Success Messages */}
-      {success && activeSection === 'profile' && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4">
-          {success}
-        </div>
-      )}
-      
-      {hqSuccess && activeSection === 'headquarters' && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4">
-          {hqSuccess}
-        </div>
-      )}
-      
-      {deptSuccess && activeSection === 'departments' && (
-        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md mb-4">
-          {deptSuccess}
-        </div>
-      )}
-      
-      {/* Headquarters Section */}
-      {activeSection === 'headquarters' && !loadingHQ && !hqError && (
-        <div className="space-y-6">
-          {showHQForm ? (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+      {/* Content Area with React Router */}
+      <Routes>
+        <Route path="/" element={<CompanyProfileSection />} />
+        <Route path="/headquarters" element={
+          <div className="bg-white shadow-md rounded-lg p-6">
+            {showHQForm ? (
               <HeadquartersForm
                 headquarters={selectedHQ}
                 onSubmit={handleHQFormSubmit}
                 onCancel={handleHQFormCancel}
                 isSubmitting={savingHQ}
               />
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <HeadquartersList
-                onEdit={handleEditHeadquarters}
-                onDelete={handleDeleteHeadquarters}
-                onAddNew={handleAddHeadquarters}
-              />
-            </div>
-          )}
-        </div>
-      )}
-      
-      {/* Departments Section */}
-      {activeSection === 'departments' && !loadingDept && !deptError && (
-        <div className="space-y-6">
-          {showDeptForm ? (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
+            ) : (
+              <>
+                {hqSuccess && (
+                  <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
+                    <p>{hqSuccess}</p>
+                  </div>
+                )}
+                
+                {hqError && (
+                  <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+                    <p>{hqError}</p>
+                  </div>
+                )}
+                
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold">Headquarters</h2>
+                  <button
+                    onClick={handleAddHeadquarters}
+                    className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
+                  >
+                    Add Headquarters
+                  </button>
+                </div>
+                
+                {loadingHQ ? (
+                  <div className="flex justify-center items-center h-32">
+                    <p className="text-gray-500">Loading headquarters...</p>
+                  </div>
+                ) : (
+                  <HeadquartersList
+                    headquarters={headquarters}
+                    onEdit={handleEditHeadquarters}
+                    onDelete={handleDeleteHeadquarters}
+                    onAddNew={handleAddHeadquarters}
+                  />
+                )}
+              </>
+            )}
+          </div>
+        } />
+        <Route path="/departments" element={
+          <div className="bg-white shadow-md rounded-lg p-6">
+            {showDeptForm ? (
               <DepartmentForm
                 department={selectedDept}
                 departments={departments}
@@ -478,326 +701,46 @@ const CompanyDetailsPage: React.FC = () => {
                 onCancel={handleDeptFormCancel}
                 isSubmitting={savingDept}
               />
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-lg font-medium text-gray-800">Departments</h2>
+            ) : (
+              <>
+                {deptSuccess && (
+                  <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
+                    <p>{deptSuccess}</p>
+                  </div>
+                )}
+                
+                {deptError && (
+                  <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+                    <p>{deptError}</p>
+                  </div>
+                )}
+                
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-semibold">Departments</h2>
                   <button
                     onClick={handleAddDepartment}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
                   >
                     Add Department
                   </button>
                 </div>
-                <DepartmentTree
-                  departments={departments}
-                  onEdit={handleEditDepartment}
-                  onDelete={handleDeleteDepartment}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-      
-      {/* Company Profile Section */}
-      {activeSection === 'profile' && !loading && !error && (
-        <div className="space-y-8">
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <form onSubmit={handleSubmit}>
-              <div className="p-6 space-y-6">
-                {/* Basic Information */}
-                <div>
-                  <h2 className="text-lg font-medium text-gray-800 mb-4">Basic Information</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Company Name
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={companyDetails.name}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter company name"
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Logo URL
-                      </label>
-                      <input
-                        type="text"
-                        name="logo"
-                        value={companyDetails.logo}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Enter logo URL"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Website
-                      </label>
-                      <input
-                        type="url"
-                        name="website"
-                        value={companyDetails.website}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="https://example.com"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Industry
-                      </label>
-                      <input
-                        type="text"
-                        name="industry"
-                        value={companyDetails.industry}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="e.g. Technology, Healthcare, Finance"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Founded Year
-                      </label>
-                      <input
-                        type="text"
-                        name="foundedYear"
-                        value={companyDetails.foundedYear}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="e.g. 2010"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Company Size
-                      </label>
-                      <select
-                        name="size"
-                        value={companyDetails.size}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      >
-                        <option value="">Select company size</option>
-                        <option value="1-10">1-10 employees</option>
-                        <option value="11-50">11-50 employees</option>
-                        <option value="51-200">51-200 employees</option>
-                        <option value="201-500">201-500 employees</option>
-                        <option value="501-1000">501-1000 employees</option>
-                        <option value="1001-5000">1001-5000 employees</option>
-                        <option value="5001+">5001+ employees</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Headquarters
-                      </label>
-                      <input
-                        type="text"
-                        name="headquarters"
-                        value={companyDetails.headquarters}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="e.g. San Francisco, CA"
-                      />
-                    </div>
+                
+                {loadingDept ? (
+                  <div className="flex justify-center items-center h-32">
+                    <p className="text-gray-500">Loading departments...</p>
                   </div>
-                </div>
-
-                {/* Company Description */}
-                <div className="border-t border-gray-200 pt-6">
-                  <h2 className="text-lg font-medium text-gray-800 mb-4">Company Description</h2>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Description
-                    </label>
-                    <textarea
-                      name="description"
-                      value={companyDetails.description}
-                      onChange={handleInputChange}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="Describe your company..."
-                    ></textarea>
-                  </div>
-                </div>
-
-                {/* Mission, Vision, Values */}
-                <div className="border-t border-gray-200 pt-6">
-                  <h2 className="text-lg font-medium text-gray-800 mb-4">Mission, Vision & Values</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Mission
-                      </label>
-                      <textarea
-                        name="mission"
-                        value={companyDetails.mission}
-                        onChange={handleInputChange}
-                        rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Company mission statement..."
-                      ></textarea>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Vision
-                      </label>
-                      <textarea
-                        name="vision"
-                        value={companyDetails.vision}
-                        onChange={handleInputChange}
-                        rows={2}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="Company vision statement..."
-                      ></textarea>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Values
-                      </label>
-                      <div className="flex space-x-2 mb-2">
-                        <input
-                          type="text"
-                          value={valueInput}
-                          onChange={(e) => setValueInput(e.target.value)}
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Add a company value"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddValue}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                        >
-                          Add
-                        </button>
-                      </div>
-                      <div className="mt-2 space-y-2">
-                        {companyDetails.values?.map((value, index) => (
-                          <div key={index} className="flex items-center">
-                            <span className="flex-grow">{value}</span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveValue(index)}
-                              className="ml-2 text-gray-500 hover:text-red-500"
-                            >
-                              &times;
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Social Links */}
-                <div className="border-t border-gray-200 pt-6">
-                  <h2 className="text-lg font-medium text-gray-800 mb-4">Social Media Links</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        LinkedIn
-                      </label>
-                      <input
-                        type="url"
-                        name="socialLinks.linkedin"
-                        value={companyDetails.socialLinks?.linkedin || ''}
-                        onChange={handleSocialLinkChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="https://linkedin.com/company/..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Twitter
-                      </label>
-                      <input
-                        type="url"
-                        name="socialLinks.twitter"
-                        value={companyDetails.socialLinks?.twitter || ''}
-                        onChange={handleSocialLinkChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="https://twitter.com/..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Facebook
-                      </label>
-                      <input
-                        type="url"
-                        name="socialLinks.facebook"
-                        value={companyDetails.socialLinks?.facebook || ''}
-                        onChange={handleSocialLinkChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="https://facebook.com/..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Instagram
-                      </label>
-                      <input
-                        type="url"
-                        name="socialLinks.instagram"
-                        value={companyDetails.socialLinks?.instagram || ''}
-                        onChange={handleSocialLinkChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="https://instagram.com/..."
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-end">
-                {success && (
-                  <div className="mr-auto bg-green-50 border border-green-200 text-green-700 px-4 py-2 rounded-md text-sm">
-                    {success}
-                  </div>
+                ) : (
+                  <DepartmentTree
+                    departments={departments}
+                    onEdit={handleEditDepartment}
+                    onDelete={handleDeleteDepartment}
+                  />
                 )}
-                <div className="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={loadCompanyDetails}
-                    className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200 mr-3"
-                    disabled={saving}
-                  >
-                    Reset
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-                    disabled={saving}
-                  >
-                    {saving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                </div>
-              </div>
-            </form>
+              </>
+            )}
           </div>
-        </div>
-      )}
+        } />
+      </Routes>
     </div>
   );
 };

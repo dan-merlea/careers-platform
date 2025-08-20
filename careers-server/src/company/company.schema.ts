@@ -16,6 +16,15 @@ class SocialLinks {
   instagram: string;
 }
 
+@Schema()
+class CompanyValue {
+  @Prop({ required: true })
+  text: string;
+
+  @Prop()
+  icon: string;
+}
+
 @Schema({ timestamps: true })
 export class Company extends Document {
   @Prop({ required: true })
@@ -51,8 +60,8 @@ export class Company extends Document {
   @Prop()
   vision: string;
 
-  @Prop([String])
-  values: string[];
+  @Prop([{ type: Object }])
+  values: CompanyValue[];
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);

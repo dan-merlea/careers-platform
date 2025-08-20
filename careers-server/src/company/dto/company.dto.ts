@@ -19,6 +19,15 @@ export class SocialLinksDto {
   instagram: string;
 }
 
+export class CompanyValueDto {
+  @IsString()
+  text: string;
+
+  @IsString()
+  @IsOptional()
+  icon: string;
+}
+
 export class CompanyDto {
   @IsString()
   name: string;
@@ -64,7 +73,8 @@ export class CompanyDto {
   vision: string;
 
   @IsArray()
-  @IsString({ each: true })
+  @ValidateNested({ each: true })
+  @Type(() => CompanyValueDto)
   @IsOptional()
-  values: string[];
+  values: CompanyValueDto[];
 }

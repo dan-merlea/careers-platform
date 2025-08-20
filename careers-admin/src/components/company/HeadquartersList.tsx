@@ -2,25 +2,36 @@ import React, { useState, useEffect } from 'react';
 import { headquartersService, Headquarters } from '../../services/headquartersService';
 
 interface HeadquartersListProps {
+  headquarters?: Headquarters[];
   onEdit: (headquarters: Headquarters) => void;
   onDelete: (id: string) => void;
   onAddNew: () => void;
 }
 
-const HeadquartersList: React.FC<HeadquartersListProps> = ({ onEdit, onDelete, onAddNew }) => {
-  const [headquarters, setHeadquarters] = useState<Headquarters[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+const HeadquartersList: React.FC<HeadquartersListProps> = ({ headquarters: hqProp, onEdit, onDelete, onAddNew }) => {
+  const [localHeadquarters, setLocalHeadquarters] = useState<Headquarters[]>([]);
+  const [loading, setLoading] = useState<boolean>(hqProp ? false : true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Use the prop value if provided
+  const headquarters = hqProp || localHeadquarters;
 
   useEffect(() => {
     loadHeadquarters();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadHeadquarters = async () => {
+    // Skip loading if headquarters are provided via props
+    if (hqProp) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       setLoading(true);
       const data = await headquartersService.getAll();
-      setHeadquarters(data);
+      setLocalHeadquarters(data);
       setError(null);
     } catch (err) {
       console.error('Error loading headquarters:', err);
@@ -57,26 +68,13 @@ const HeadquartersList: React.FC<HeadquartersListProps> = ({ onEdit, onDelete, o
     return (
       <div className="text-center py-8">
         <p className="text-gray-500 mb-4">No headquarters found.</p>
-        <button
-          onClick={onAddNew}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Add Headquarters
-        </button>
       </div>
     );
   }
 
   return (
     <div className="overflow-x-auto">
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={onAddNew}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Add Headquarters
-        </button>
-      </div>
+      {/* Button removed - now in parent component */}
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -84,10 +82,7 @@ const HeadquartersList: React.FC<HeadquartersListProps> = ({ onEdit, onDelete, o
               Name
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Location
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Status
+              Address
             </th>
             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
               Actions
@@ -101,22 +96,7 @@ const HeadquartersList: React.FC<HeadquartersListProps> = ({ onEdit, onDelete, o
                 <div className="text-sm font-medium text-gray-900">{hq.name}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-900">
-                  {hq.city}, {hq.state ? `${hq.state}, ` : ''}{hq.country}
-                </div>
                 <div className="text-sm text-gray-500">{hq.address}</div>
-                <div className="text-sm text-gray-500">{hq.postalCode}</div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap">
-                {hq.isMainHeadquarters ? (
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                    Main HQ
-                  </span>
-                ) : (
-                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                    Branch
-                  </span>
-                )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                 <button
@@ -128,8 +108,6 @@ const HeadquartersList: React.FC<HeadquartersListProps> = ({ onEdit, onDelete, o
                 <button
                   onClick={() => onDelete(hq._id!)}
                   className="text-red-600 hover:text-red-900"
-                  disabled={hq.isMainHeadquarters}
-                  title={hq.isMainHeadquarters ? "Cannot delete main headquarters" : ""}
                 >
                   Delete
                 </button>

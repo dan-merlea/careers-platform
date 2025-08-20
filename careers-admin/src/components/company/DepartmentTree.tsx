@@ -29,7 +29,7 @@ const DepartmentNode: React.FC<{
         )}
         {!hasChildren && <div className="w-5 mr-2"></div>}
         
-        <div className="flex-grow font-medium">{department.name}</div>
+        <div className="flex-grow font-medium">{department.title}</div>
         
         <div className="flex space-x-2">
           <button

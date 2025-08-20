@@ -10,33 +10,6 @@ export class Headquarters {
 
   @Prop({ required: true })
   address: string;
-
-  @Prop()
-  city: string;
-
-  @Prop()
-  state: string;
-
-  @Prop()
-  country: string;
-
-  @Prop()
-  postalCode: string;
-
-  @Prop()
-  phone: string;
-
-  @Prop()
-  email: string;
-
-  @Prop({ default: false })
-  isMainHeadquarters: boolean;
-
-  @Prop()
-  coordinates: {
-    latitude: number;
-    longitude: number;
-  };
 }
 
 export const HeadquartersSchema = SchemaFactory.createForClass(Headquarters);

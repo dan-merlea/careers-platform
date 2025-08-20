@@ -102,7 +102,7 @@ const AppRoutes: React.FC = () => {
                 }
               />
               <Route
-                path="/company-details"
+                path="/company-details/*"
                 element={
                   <RoleGuard requiredRoles={['admin']} showUnauthorized>
                     <CompanyDetailsPage />

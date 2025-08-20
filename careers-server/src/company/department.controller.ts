@@ -56,7 +56,8 @@ export class DepartmentController {
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  remove(@Param('id') id: string) {
-    return this.departmentService.remove(id);
+  async remove(@Param('id') id: string) {
+    await this.departmentService.remove(id);
+    return { success: true, message: 'Department deleted successfully' };
   }
 }

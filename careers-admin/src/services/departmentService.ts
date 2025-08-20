@@ -3,8 +3,7 @@ import { api } from '../utils/api';
 // Types
 export interface Department {
   _id?: string;
-  name: string;
-  description?: string;
+  title: string;
   parentDepartment?: string | null;
   subDepartments?: Department[]; // Used for hierarchical view
   createdAt?: Date;
@@ -12,14 +11,12 @@ export interface Department {
 }
 
 export interface CreateDepartmentDto {
-  name: string;
-  description?: string;
+  title: string;
   parentDepartment?: string | null;
 }
 
 export interface UpdateDepartmentDto {
-  name?: string;
-  description?: string;
+  title?: string;
   parentDepartment?: string | null;
 }
 
@@ -60,7 +57,7 @@ export const departmentService = {
    * Delete a department
    */
   delete: (id: string) => {
-    return api.delete(`${DEPARTMENT_API}/${id}`);
+    return api.delete<{success: boolean; message: string}>(`${DEPARTMENT_API}/${id}`);
   },
 
   /**

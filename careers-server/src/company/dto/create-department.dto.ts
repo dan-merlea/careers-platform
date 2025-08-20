@@ -1,34 +1,10 @@
-import {
-  IsString,
-  IsOptional,
-  IsNumber,
-  IsBoolean,
-  IsMongoId,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsString, IsOptional, IsMongoId } from 'class-validator';
 
 export class CreateDepartmentDto {
   @IsString()
-  name: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @IsNumber()
-  @IsOptional()
-  @Type(() => Number)
-  headCount?: number;
+  title: string;
 
   @IsMongoId()
   @IsOptional()
   parentDepartment?: string;
-
-  @IsString()
-  @IsOptional()
-  manager?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
 }

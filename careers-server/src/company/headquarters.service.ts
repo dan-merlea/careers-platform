@@ -15,11 +15,6 @@ export class HeadquartersService {
   ) {}
 
   async create(createHeadquartersDto: CreateHeadquartersDto): Promise<Headquarters> {
-    // If this is set as main headquarters, unset any existing main headquarters
-    if (createHeadquartersDto.isMainHeadquarters) {
-      await this.unsetMainHeadquarters();
-    }
-    
     const createdHeadquarters = new this.headquartersModel(createHeadquartersDto);
     return createdHeadquarters.save();
   }
@@ -37,11 +32,6 @@ export class HeadquartersService {
   }
 
   async update(id: string, updateHeadquartersDto: UpdateHeadquartersDto): Promise<Headquarters> {
-    // If this is being set as main headquarters, unset any existing main headquarters
-    if (updateHeadquartersDto.isMainHeadquarters) {
-      await this.unsetMainHeadquarters(id);
-    }
-    
     const updatedHeadquarters = await this.headquartersModel
       .findByIdAndUpdate(id, updateHeadquartersDto, { new: true })
       .exec();
@@ -62,20 +52,8 @@ export class HeadquartersService {
   }
 
   async getMainHeadquarters(): Promise<Headquarters | null> {
-    return this.headquartersModel.findOne({ isMainHeadquarters: true }).exec();
-  }
-
-  private async unsetMainHeadquarters(excludeId?: string): Promise<void> {
-    const query = { isMainHeadquarters: true };
-    
-    // If excludeId is provided, don't unset that specific headquarters
-    if (excludeId) {
-      Object.assign(query, { _id: { $ne: excludeId } });
-    }
-    
-    await this.headquartersModel.updateMany(
-      query,
-      { $set: { isMainHeadquarters: false } }
-    ).exec();
+    // Since we no longer have isMainHeadquarters field, return the first headquarters
+    // or implement another way to determine the main headquarters
+    return this.headquartersModel.findOne().exec();
   }
 }

@@ -17,8 +17,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
   isSubmitting
 }) => {
   const [formData, setFormData] = useState<CreateDepartmentDto>({
-    name: '',
-    description: '',
+    title: '',
     parentDepartment: null
   });
 
@@ -26,8 +25,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
   useEffect(() => {
     if (department) {
       setFormData({
-        name: department.name,
-        description: department.description || '',
+        title: department.title,
         parentDepartment: department.parentDepartment || null
       });
     }
@@ -79,33 +77,18 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-          Department Name *
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+          Department Title *
         </label>
         <input
           type="text"
-          id="name"
-          name="name"
-          value={formData.name}
+          id="title"
+          name="title"
+          value={formData.title}
           onChange={handleInputChange}
           className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Department name"
+          placeholder="Department title"
           required
-        />
-      </div>
-
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-          Description
-        </label>
-        <textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={handleInputChange}
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          placeholder="Department description (optional)"
         />
       </div>
 
@@ -123,7 +106,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
           <option value="">No parent (top-level department)</option>
           {getAvailableParents().map((dept) => (
             <option key={dept._id} value={dept._id}>
-              {dept.name}
+              {dept.title}
             </option>
           ))}
         </select>

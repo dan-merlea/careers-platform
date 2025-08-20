@@ -7,6 +7,11 @@ export interface SocialLinks {
   instagram: string;
 }
 
+export interface CompanyValue {
+  text: string;
+  icon?: string;
+}
+
 export interface CompanyDetails {
   name: string;
   logo: string;
@@ -19,7 +24,7 @@ export interface CompanyDetails {
   socialLinks: SocialLinks;
   mission: string;
   vision: string;
-  values: string[];
+  values: CompanyValue[];
 }
 
 export const companyService = {

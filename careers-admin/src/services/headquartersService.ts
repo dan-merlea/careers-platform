@@ -5,11 +5,6 @@ export interface Headquarters {
   _id?: string;
   name: string;
   address: string;
-  city: string;
-  state?: string;
-  country: string;
-  postalCode: string;
-  isMainHeadquarters: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,21 +12,11 @@ export interface Headquarters {
 export interface CreateHeadquartersDto {
   name: string;
   address: string;
-  city: string;
-  state?: string;
-  country: string;
-  postalCode: string;
-  isMainHeadquarters: boolean;
 }
 
 export interface UpdateHeadquartersDto {
   name?: string;
   address?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  postalCode?: string;
-  isMainHeadquarters?: boolean;
 }
 
 // API endpoints

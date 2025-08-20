@@ -6,13 +6,7 @@ export type DepartmentDocument = Department & Document;
 @Schema({ timestamps: true })
 export class Department {
   @Prop({ required: true })
-  name: string;
-
-  @Prop()
-  description: string;
-
-  @Prop()
-  headCount: number;
+  title: string;
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,
@@ -23,12 +17,6 @@ export class Department {
 
   @Prop([{ type: MongooseSchema.Types.ObjectId, ref: 'Department' }])
   subDepartments: Department[];
-  
-  @Prop()
-  manager: string;
-  
-  @Prop({ default: true })
-  isActive: boolean;
 }
 
 export const DepartmentSchema = SchemaFactory.createForClass(Department);
