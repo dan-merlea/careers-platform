@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import './styles/ScrollFix.css';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
 import SetupPage from './pages/SetupPage';

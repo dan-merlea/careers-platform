@@ -1,0 +1,41 @@
+/* Prevent scroll jumping when typing in input fields */
+html {
+  overflow-y: scroll;
+  height: 100%;
+}
+
+body {
+  position: relative;
+  min-height: 100%;
+}
+
+/* Prevent focus from causing scroll jumps */
+input, textarea, select, button {
+  scroll-behavior: auto;
+  scroll-margin-top: 0;
+}
+
+/* Ensure form elements don't cause layout shifts */
+form {
+  margin: 0;
+}
+
+/* Fix for dropdown scroll issues */
+.dropdown-container {
+  position: relative;
+}
+
+.dropdown-menu {
+  position: absolute;
+  z-index: 10;
+}
+
+/* Prevent focus outline from causing layout shifts */
+*:focus {
+  outline-offset: 0;
+}
+
+/* Add padding to bottom of page to ensure scrolling doesn't jump */
+.page-container {
+  padding-bottom: 20px;
+}

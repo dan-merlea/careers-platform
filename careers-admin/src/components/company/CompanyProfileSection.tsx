@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { CompanyDetails } from '../../services/company.service';
 
 interface CompanyProfileSectionProps {
@@ -286,7 +286,10 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
               <div className="space-y-2">
                 {companyDetails.values.map((value, index) => (
                   <div key={index} className="flex items-center justify-between bg-gray-50 p-3 rounded-md">
-                    <span>{value}</span>
+                    <span>
+                      {typeof value === 'object' && value.icon && <i className={`bi bi-${value.icon} mr-2`}></i>}
+                      {typeof value === 'object' ? value.text : String(value)}
+                    </span>
                     <button
                       type="button"
                       onClick={() => handleRemoveValue(index)}
