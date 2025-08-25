@@ -48,9 +48,6 @@ export class Company extends Document {
   @Prop()
   size: string;
 
-  @Prop()
-  headquarters: string;
-
   @Prop({ type: SocialLinks, default: {} })
   socialLinks: SocialLinks;
 

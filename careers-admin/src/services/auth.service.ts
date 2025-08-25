@@ -3,6 +3,7 @@ import { API_URL } from '../config';
 
 export enum UserRole {
   ADMIN = 'admin',
+  DIRECTOR = 'director',
   MANAGER = 'manager',
   RECRUITER = 'recruiter',
   USER = 'user'

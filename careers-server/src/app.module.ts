@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
 import { CompanyModule } from './company/company.module';
 import { JobBoardsModule } from './job-boards/job-boards.module';
+import { JobModule } from './job/job.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { JobBoardsModule } from './job-boards/job-boards.module';
     ApiKeysModule,
     CompanyModule,
     JobBoardsModule,
+    JobModule,
   ],
   controllers: [AppController],
   providers: [AppService],

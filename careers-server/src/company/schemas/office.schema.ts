@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type HeadquartersDocument = Headquarters & Document;
+export type OfficeDocument = Office & Document;
 
 @Schema({ timestamps: true })
-export class Headquarters {
+export class Office {
   @Prop({ required: true })
   name: string;
 
@@ -12,4 +12,4 @@ export class Headquarters {
   address: string;
 }
 
-export const HeadquartersSchema = SchemaFactory.createForClass(Headquarters);
+export const OfficeSchema = SchemaFactory.createForClass(Office);

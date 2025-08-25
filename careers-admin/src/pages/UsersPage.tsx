@@ -64,6 +64,8 @@ const UsersPage: React.FC = () => {
     switch (role) {
       case 'admin':
         return 'bg-red-100 text-red-800';
+      case 'director':
+        return 'bg-purple-100 text-purple-800';
       case 'manager':
         return 'bg-blue-100 text-blue-800';
       case 'recruiter':
@@ -139,6 +141,7 @@ const UsersPage: React.FC = () => {
                               onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as UserRole })}
                             >
                               <option value="admin">Admin</option>
+                              <option value="director">Director</option>
                               <option value="manager">Manager</option>
                               <option value="recruiter">Recruiter</option>
                               <option value="user">User</option>

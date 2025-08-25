@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Department, CreateDepartmentDto, UpdateDepartmentDto } from '../../services/departmentService';
+import { UserRole } from '../../services/auth.service';
 
 interface DepartmentFormProps {
   department?: Department;
@@ -18,7 +19,8 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
 }) => {
   const [formData, setFormData] = useState<CreateDepartmentDto>({
     title: '',
-    parentDepartment: null
+    parentDepartment: null,
+    approvalRole: UserRole.DIRECTOR
   });
 
   // Initialize form with department data if provided (edit mode)
@@ -26,7 +28,8 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
     if (department) {
       setFormData({
         title: department.title,
-        parentDepartment: department.parentDepartment || null
+        parentDepartment: department.parentDepartment || null,
+        approvalRole: department.approvalRole || UserRole.DIRECTOR
       });
     }
   }, [department]);
@@ -54,13 +57,13 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
 
   // Filter out the current department and its children from parent options to prevent circular references
   const getAvailableParents = () => {
-    if (!department || !department._id) {
+    if (!department || !department.id) {
       return departments;
     }
     
     // Helper function to check if a department is the current one or its descendant
     const isCurrentOrDescendant = (dept: Department): boolean => {
-      if (dept._id === department._id) {
+      if (dept.id === department.id) {
         return true;
       }
       
@@ -105,13 +108,34 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
         >
           <option value="">No parent (top-level department)</option>
           {getAvailableParents().map((dept) => (
-            <option key={dept._id} value={dept._id}>
+            <option key={dept.id} value={dept.id}>
               {dept.title}
             </option>
           ))}
         </select>
         <p className="mt-1 text-sm text-gray-500">
           Select a parent department or leave empty for a top-level department
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="approvalRole" className="block text-sm font-medium text-gray-700 mb-1">
+          Approval Role *
+        </label>
+        <select
+          id="approvalRole"
+          name="approvalRole"
+          value={formData.approvalRole || UserRole.DIRECTOR}
+          onChange={handleInputChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          required
+        >
+          <option value={UserRole.ADMIN}>Admin</option>
+          <option value={UserRole.DIRECTOR}>Director</option>
+          <option value={UserRole.MANAGER}>Manager</option>
+        </select>
+        <p className="mt-1 text-sm text-gray-500">
+          Select the role required to approve jobs for this department
         </p>
       </div>
 

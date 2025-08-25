@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
 
 const JobBoardsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [jobBoards, setJobBoards] = useState<JobBoard[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -187,25 +189,32 @@ const JobBoardsPage: React.FC = () => {
           {jobBoards.map((jobBoard) => (
             <div
               key={jobBoard._id}
-              className={`bg-white p-6 rounded shadow border-l-4 ${
+              className={`bg-white p-6 rounded shadow border-l-4 cursor-pointer ${
                 jobBoard.isExternal
                   ? jobBoard.source === 'greenhouse'
                     ? 'border-green-500'
                     : 'border-purple-500'
                   : 'border-blue-500'
               }`}
+              onClick={() => navigate(`/job-boards/${jobBoard._id}/jobs`)}
             >
               <div className="flex justify-between items-start">
                 <h2 className="text-xl font-semibold text-gray-800">{jobBoard.title}</h2>
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => openEditModal(jobBoard)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModal(jobBoard);
+                    }}
                     className="p-1 text-gray-500 hover:text-blue-600"
                   >
                     <PencilIcon className="w-5 h-5" />
                   </button>
                   <button
-                    onClick={() => openDeleteModal(jobBoard)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openDeleteModal(jobBoard);
+                    }}
                     className="p-1 text-gray-500 hover:text-red-600"
                   >
                     <TrashIcon className="w-5 h-5" />

@@ -11,6 +11,13 @@ import SignupPage from './pages/SignupPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ProfilePage from './pages/ProfilePage';
 import JobBoardsPage from './pages/JobBoardsPage';
+import JobBoardJobsPage from './pages/JobBoardJobsPage';
+import JobBoardJobCreatePage from './pages/JobBoardJobCreatePage';
+import JobsPage from './pages/JobsPage';
+import JobCreatePage from './pages/JobCreatePage';
+import JobEditPage from './pages/JobEditPage';
+import JobDetailPage from './pages/JobDetailPage';
+import JobApprovalPage from './pages/JobApprovalPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import RoleGuard from './components/guards/RoleGuard';
 import SessionExpiredNotification from './components/notifications/SessionExpiredNotification';
@@ -97,7 +104,7 @@ const AppRoutes: React.FC = () => {
               <Route
                 path="/setup"
                 element={
-                  <RoleGuard requiredRoles={['admin']} showUnauthorized>
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
                     <SetupPage />
                   </RoleGuard>
                 }
@@ -105,7 +112,7 @@ const AppRoutes: React.FC = () => {
               <Route
                 path="/company-details/*"
                 element={
-                  <RoleGuard requiredRoles={['admin']} showUnauthorized>
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
                     <CompanyDetailsPage />
                   </RoleGuard>
                 }
@@ -113,7 +120,7 @@ const AppRoutes: React.FC = () => {
               <Route
                 path="/users"
                 element={
-                  <RoleGuard requiredRoles={['admin']} showUnauthorized>
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
                     <UsersPage />
                   </RoleGuard>
                 }
@@ -125,8 +132,76 @@ const AppRoutes: React.FC = () => {
               <Route
                 path="/job-boards"
                 element={
-                  <RoleGuard requiredRoles={['admin']} showUnauthorized>
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
                     <JobBoardsPage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/job-boards/:jobBoardId/jobs"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <JobBoardJobsPage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/job-boards/:jobBoardId/jobs/create"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <JobBoardJobCreatePage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/job-boards/:jobBoardId/jobs/:id/edit"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <JobEditPage />
+                  </RoleGuard>
+                }
+              />
+              
+              {/* Job pages - accessible to admin users */}
+              <Route
+                path="/jobs"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <JobsPage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/jobs/create"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <JobCreatePage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/jobs/:id"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <JobDetailPage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/jobs/:id/edit"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <JobEditPage />
+                  </RoleGuard>
+                }
+              />
+              
+              {/* Job approval page - accessible to users with approval roles */}
+              <Route
+                path="/job-approvals"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'manager']} showUnauthorized>
+                    <JobApprovalPage />
                   </RoleGuard>
                 }
               />

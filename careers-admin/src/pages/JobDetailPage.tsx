@@ -1,0 +1,250 @@
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { PencilIcon, TrashIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
+import jobService, { Job, JobStatus } from '../services/jobService';
+
+const JobDetailPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [job, setJob] = useState<Job | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchJob = async () => {
+      if (!id) return;
+      
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const jobData = await jobService.getJob(id);
+        setJob(jobData);
+      } catch (err) {
+        console.error('Error fetching job:', err);
+        setError('Failed to load job data. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchJob();
+  }, [id]);
+
+  // Handle job deletion
+  const handleDelete = async () => {
+    if (!id) return;
+    
+    try {
+      await jobService.deleteJob(id);
+      navigate('/jobs');
+    } catch (err) {
+      console.error('Error deleting job:', err);
+      setError('Failed to delete job. Please try again.');
+    }
+  };
+
+  // Handle job status change (publish/archive)
+  const handleStatusChange = async (action: 'publish' | 'archive') => {
+    if (!id) return;
+    
+    try {
+      let updatedJob;
+      if (action === 'publish') {
+        updatedJob = await jobService.publishJob(id);
+      } else {
+        updatedJob = await jobService.archiveJob(id);
+      }
+      setJob(updatedJob);
+    } catch (err) {
+      console.error(`Error ${action}ing job:`, err);
+      setError(`Failed to ${action} job. Please try again.`);
+    }
+  };
+
+  // Get status badge color
+  const getStatusBadgeClass = (status: JobStatus) => {
+    switch (status) {
+      case JobStatus.PUBLISHED:
+        return 'bg-green-100 text-green-800';
+      case JobStatus.ARCHIVED:
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-yellow-100 text-yellow-800';
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!job) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-100 p-4 rounded text-red-700">
+          {error || 'Job not found'}
+        </div>
+        <div className="mt-4">
+          <Link to="/jobs" className="text-blue-600 hover:underline">
+            Back to Jobs
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">{job.title}</h1>
+        <div className="flex space-x-2">
+          <Link
+            to={`/jobs/${job.id}/edit`}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            <PencilIcon className="w-5 h-5 mr-2" />
+            Edit
+          </Link>
+          {job.status !== JobStatus.PUBLISHED && (
+            <button
+              onClick={() => handleStatusChange('publish')}
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Publish
+            </button>
+          )}
+          {job.status !== JobStatus.ARCHIVED && (
+            <button
+              onClick={() => handleStatusChange('archive')}
+              className="flex items-center px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+            >
+              <ArchiveBoxIcon className="w-5 h-5 mr-2" />
+              Archive
+            </button>
+          )}
+          <button
+            onClick={() => setIsDeleting(true)}
+            className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            <TrashIcon className="w-5 h-5 mr-2" />
+            Delete
+          </button>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+          {error}
+        </div>
+      )}
+
+      <div className="bg-white shadow rounded overflow-hidden mb-6">
+        <div className="p-6">
+          <div className="flex justify-between mb-4">
+            <div>
+              <span className="text-sm text-gray-500">Internal ID:</span>
+              <p className="font-medium">{job.internalId}</p>
+            </div>
+            <div>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
+                {job.status}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <span className="text-sm text-gray-500">Location:</span>
+              <p className="font-medium">{job.location}</p>
+            </div>
+            <div>
+              <span className="text-sm text-gray-500">Company:</span>
+              <p className="font-medium">{job.company.name}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <span className="text-sm text-gray-500">Departments:</span>
+              <p className="font-medium">
+                {job.departments.length > 0 
+                  ? job.departments.map(dept => dept.name).join(', ')
+                  : 'None'}
+              </p>
+            </div>
+            <div>
+              <span className="text-sm text-gray-500">Offices:</span>
+              <p className="font-medium">
+                {job.offices.length > 0 
+                  ? job.offices.map(office => `${office.name} (${office.location})`).join(', ')
+                  : 'None'}
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-6">
+            <span className="text-sm text-gray-500">Last Updated:</span>
+            <p className="font-medium">{new Date(job.updatedAt).toLocaleString()}</p>
+          </div>
+
+          {job.publishedDate && (
+            <div className="mb-6">
+              <span className="text-sm text-gray-500">Published Date:</span>
+              <p className="font-medium">{new Date(job.publishedDate).toLocaleString()}</p>
+            </div>
+          )}
+
+          <div>
+            <h2 className="text-lg font-semibold mb-2">Job Description</h2>
+            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: job.content }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <Link to="/jobs" className="text-blue-600 hover:underline">
+          Back to Jobs
+        </Link>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      {isDeleting && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Delete Job</h2>
+            <p className="mb-6">
+              Are you sure you want to delete the job "{job.title}"? This action cannot be undone.
+            </p>
+            
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setIsDeleting(false)}
+                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default JobDetailPage;

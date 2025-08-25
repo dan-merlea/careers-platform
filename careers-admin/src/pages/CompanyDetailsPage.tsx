@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { companyService, CompanyDetails } from '../services/company.service';
-import { headquartersService, Headquarters, CreateHeadquartersDto, UpdateHeadquartersDto } from '../services/headquartersService';
+import { officesService, Office, CreateOfficeDto, UpdateOfficeDto } from '../services/officesService';
 import { departmentService, Department, CreateDepartmentDto, UpdateDepartmentDto } from '../services/departmentService';
 import CompanyProfileSection from '../components/company/details/CompanyProfileSection';
-import HeadquartersSection from '../components/company/details/HeadquartersSection';
+import OfficesSection from '../components/company/details/OfficesSection';
 import DepartmentsSection from '../components/company/details/DepartmentsSection';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
@@ -31,7 +31,6 @@ const CompanyDetailsPage: React.FC = () => {
     industry: '',
     foundedYear: '',
     size: '',
-    headquarters: '',
     socialLinks: {
       linkedin: '',
       twitter: '',
@@ -52,20 +51,20 @@ const CompanyDetailsPage: React.FC = () => {
   
   // Determine active section based on URL path
   const path = location.pathname;
-  const activeSection = path.includes('/headquarters') 
-    ? 'headquarters' 
+  const activeSection = path.includes('/offices') 
+    ? 'offices' 
     : path.includes('/departments') 
       ? 'departments' 
       : 'profile';
       
-  // State for headquarters section
-  const [headquarters, setHeadquarters] = useState<Headquarters[]>([]);
-  const [loadingHQ, setLoadingHQ] = useState<boolean>(false);
-  const [selectedHQ, setSelectedHQ] = useState<Headquarters | undefined>(undefined);
-  const [showHQForm, setShowHQForm] = useState<boolean>(false);
-  const [savingHQ, setSavingHQ] = useState<boolean>(false);
-  const [hqError, setHQError] = useState<string | null>(null);
-  const [hqSuccess, setHQSuccess] = useState<string | null>(null);
+  // State for offices section
+  const [offices, setOffices] = useState<Office[]>([]);
+  const [loadingOffice, setLoadingOffice] = useState<boolean>(false);
+  const [selectedOffice, setSelectedOffice] = useState<Office | undefined>(undefined);
+  const [showOfficeForm, setShowOfficeForm] = useState<boolean>(false);
+  const [savingOffice, setSavingOffice] = useState<boolean>(false);
+  const [officeError, setOfficeError] = useState<string | null>(null);
+  const [officeSuccess, setOfficeSuccess] = useState<string | null>(null);
   
   // State for departments section
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -78,22 +77,22 @@ const CompanyDetailsPage: React.FC = () => {
 
   useEffect(() => {
     loadCompanyDetails();
-    loadHeadquarters();
+    loadOffices();
     loadDepartments();
   }, []);
   
-  // Load headquarters data
-  const loadHeadquarters = async () => {
+  // Load offices data
+  const loadOffices = async () => {
     try {
-      setLoadingHQ(true);
-      const data = await headquartersService.getAll();
-      setHeadquarters(data);
-      setHQError(null);
+      setLoadingOffice(true);
+      const data = await officesService.getAll();
+      setOffices(data);
+      setOfficeError(null);
     } catch (err) {
-      console.error('Error loading headquarters:', err);
-      setHQError('Failed to load headquarters. Please try again.');
+      console.error('Error loading offices:', err);
+      setOfficeError('Failed to load offices. Please try again.');
     } finally {
-      setLoadingHQ(false);
+      setLoadingOffice(false);
     }
   };
   
@@ -112,51 +111,51 @@ const CompanyDetailsPage: React.FC = () => {
     }
   };
   
-  // Headquarters CRUD handlers
-  const handleCreateHeadquarters = async (data: CreateHeadquartersDto) => {
+  // Offices CRUD handlers
+  const handleCreateOffice = async (data: CreateOfficeDto) => {
     try {
-      setSavingHQ(true);
-      await headquartersService.create(data);
-      await loadHeadquarters();
-      setShowHQForm(false);
-      setSelectedHQ(undefined);
-      setHQSuccess('Headquarters created successfully');
-      setTimeout(() => setHQSuccess(null), 3000);
+      setSavingOffice(true);
+      await officesService.create(data);
+      await loadOffices();
+      setShowOfficeForm(false);
+      setSelectedOffice(undefined);
+      setOfficeSuccess('Office created successfully');
+      setTimeout(() => setOfficeSuccess(null), 3000);
     } catch (err) {
-      console.error('Error creating headquarters:', err);
-      setHQError('Failed to create headquarters. Please try again.');
+      console.error('Error creating office:', err);
+      setOfficeError('Failed to create office. Please try again.');
     } finally {
-      setSavingHQ(false);
+      setSavingOffice(false);
     }
   };
   
-  const handleUpdateHeadquarters = async (id: string, data: UpdateHeadquartersDto) => {
+  const handleUpdateOffice = async (id: string, data: UpdateOfficeDto) => {
     try {
-      setSavingHQ(true);
-      await headquartersService.update(id, data);
-      await loadHeadquarters();
-      setShowHQForm(false);
-      setSelectedHQ(undefined);
-      setHQSuccess('Headquarters updated successfully');
-      setTimeout(() => setHQSuccess(null), 3000);
+      setSavingOffice(true);
+      await officesService.update(id, data);
+      await loadOffices();
+      setShowOfficeForm(false);
+      setSelectedOffice(undefined);
+      setOfficeSuccess('Office updated successfully');
+      setTimeout(() => setOfficeSuccess(null), 3000);
     } catch (err) {
-      console.error('Error updating headquarters:', err);
-      setHQError('Failed to update headquarters. Please try again.');
+      console.error('Error updating office:', err);
+      setOfficeError('Failed to update office. Please try again.');
     } finally {
-      setSavingHQ(false);
+      setSavingOffice(false);
     }
   };
   
-  const handleDeleteHeadquarters = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this headquarters?')) {
+  const handleDeleteOffice = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this office?')) {
       try {
-        await headquartersService.delete(id);
-        await loadHeadquarters();
-        setHQSuccess('Headquarters deleted successfully');
-        setTimeout(() => setHQSuccess(null), 3000);
+        await officesService.delete(id);
+        await loadOffices();
+        setOfficeSuccess('Office deleted successfully');
+        setTimeout(() => setOfficeSuccess(null), 3000);
       } catch (err) {
-        console.error('Error deleting headquarters:', err);
-        setHQError('Failed to delete headquarters. Please try again.');
+        console.error('Error deleting office:', err);
+        setOfficeError('Failed to delete office. Please try again.');
       }
     }
   };
@@ -301,28 +300,28 @@ const CompanyDetailsPage: React.FC = () => {
     }
   };
   
-  // Handle headquarters form actions
-  const handleEditHeadquarters = (hq: Headquarters) => {
-    setSelectedHQ(hq);
-    setShowHQForm(true);
+  // Handle offices form actions
+  const handleEditOffice = (office: Office) => {
+    setSelectedOffice(office);
+    setShowOfficeForm(true);
   };
   
-  const handleAddHeadquarters = () => {
-    setSelectedHQ(undefined);
-    setShowHQForm(true);
+  const handleAddOffice = () => {
+    setSelectedOffice(undefined);
+    setShowOfficeForm(true);
   };
   
-  const handleHQFormSubmit = async (data: CreateHeadquartersDto | UpdateHeadquartersDto) => {
-    if (selectedHQ && selectedHQ._id) {
-      await handleUpdateHeadquarters(selectedHQ._id, data as UpdateHeadquartersDto);
+  const handleOfficeFormSubmit = async (data: CreateOfficeDto | UpdateOfficeDto) => {
+    if (selectedOffice && selectedOffice._id) {
+      await handleUpdateOffice(selectedOffice._id, data as UpdateOfficeDto);
     } else {
-      await handleCreateHeadquarters(data as CreateHeadquartersDto);
+      await handleCreateOffice(data as CreateOfficeDto);
     }
   };
   
-  const handleHQFormCancel = () => {
-    setShowHQForm(false);
-    setSelectedHQ(undefined);
+  const handleOfficeFormCancel = () => {
+    setShowOfficeForm(false);
+    setSelectedOffice(undefined);
   };
   
   // Handle department form actions
@@ -383,10 +382,10 @@ const CompanyDetailsPage: React.FC = () => {
           Company Profile
         </button>
         <button
-          onClick={() => handleSectionChange('headquarters')}
-          className={`py-2 px-4 mr-2 ${activeSection === 'headquarters' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+          onClick={() => handleSectionChange('offices')}
+          className={`py-2 px-4 mr-2 ${activeSection === 'offices' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
         >
-          Headquarters
+          Offices
         </button>
         <button
           onClick={() => handleSectionChange('departments')}
@@ -399,20 +398,20 @@ const CompanyDetailsPage: React.FC = () => {
       {/* Content Area with React Router */}
       <Routes>
         <Route path="/" element={renderProfileSection()} />
-        <Route path="/headquarters" element={
-          <HeadquartersSection
-            headquarters={headquarters}
-            loadingHQ={loadingHQ}
-            selectedHQ={selectedHQ}
-            showHQForm={showHQForm}
-            savingHQ={savingHQ}
-            hqError={hqError}
-            hqSuccess={hqSuccess}
-            handleEditHeadquarters={handleEditHeadquarters}
-            handleAddHeadquarters={handleAddHeadquarters}
-            handleHQFormSubmit={handleHQFormSubmit}
-            handleHQFormCancel={handleHQFormCancel}
-            handleDeleteHeadquarters={handleDeleteHeadquarters}
+        <Route path="/offices" element={
+          <OfficesSection
+            offices={offices}
+            loadingOffice={loadingOffice}
+            selectedOffice={selectedOffice}
+            showOfficeForm={showOfficeForm}
+            savingOffice={savingOffice}
+            officeError={officeError}
+            officeSuccess={officeSuccess}
+            handleEditOffice={handleEditOffice}
+            handleAddOffice={handleAddOffice}
+            handleOfficeFormSubmit={handleOfficeFormSubmit}
+            handleOfficeFormCancel={handleOfficeFormCancel}
+            handleDeleteOffice={handleDeleteOffice}
           />
         } />
         <Route path="/departments" element={

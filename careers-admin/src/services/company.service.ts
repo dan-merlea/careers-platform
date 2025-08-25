@@ -13,6 +13,8 @@ export interface CompanyValue {
 }
 
 export interface CompanyDetails {
+  _id?: string;
+  id?: string;
   name: string;
   logo: string;
   website: string;
@@ -20,7 +22,6 @@ export interface CompanyDetails {
   industry: string;
   foundedYear: string;
   size: string;
-  headquarters: string;
   socialLinks: SocialLinks;
   mission: string;
   vision: string;
@@ -46,7 +47,6 @@ export const companyService = {
           industry: '',
           foundedYear: '',
           size: '',
-          headquarters: '',
           socialLinks: {
             linkedin: '',
             twitter: '',

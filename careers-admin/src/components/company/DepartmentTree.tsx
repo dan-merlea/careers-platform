@@ -36,15 +36,15 @@ const DepartmentNode: React.FC<{
             onClick={() => onEdit(department)}
             className="text-blue-600 hover:text-blue-900"
           >
-            Edit
+            <i className="bi bi-pencil-square me-1"></i> Edit
           </button>
           <button
-            onClick={() => onDelete(department._id!)}
+            onClick={() => onDelete(department.id!)}
             className="text-red-600 hover:text-red-900"
             disabled={hasChildren}
             title={hasChildren ? "Cannot delete department with sub-departments" : ""}
           >
-            Delete
+            <i className="bi bi-trash me-1"></i> Delete
           </button>
         </div>
       </div>
@@ -53,7 +53,7 @@ const DepartmentNode: React.FC<{
         <div className="department-children border-l border-gray-200 ml-2 pl-2">
           {department.subDepartments!.map((child) => (
             <DepartmentNode
-              key={child._id}
+              key={child.id}
               department={child}
               level={level + 1}
               onEdit={onEdit}
@@ -75,7 +75,7 @@ const DepartmentTree: React.FC<DepartmentTreeProps> = ({ departments, onEdit, on
     <div className="department-tree bg-white rounded-md border border-gray-200 p-4">
       {departments.map((dept) => (
         <DepartmentNode
-          key={dept._id}
+          key={dept.id}
           department={dept}
           level={0}
           onEdit={onEdit}

@@ -1,11 +1,14 @@
 import { api } from '../utils/api';
+import { UserRole } from './auth.service';
 
 // Types
 export interface Department {
   _id?: string;
+  id?: string;
   title: string;
   parentDepartment?: string | null;
   subDepartments?: Department[]; // Used for hierarchical view
+  approvalRole?: UserRole;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -13,11 +16,13 @@ export interface Department {
 export interface CreateDepartmentDto {
   title: string;
   parentDepartment?: string | null;
+  approvalRole?: UserRole;
 }
 
 export interface UpdateDepartmentDto {
   title?: string;
   parentDepartment?: string | null;
+  approvalRole?: UserRole;
 }
 
 // API endpoints
