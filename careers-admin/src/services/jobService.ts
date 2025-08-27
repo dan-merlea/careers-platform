@@ -161,8 +161,8 @@ const jobService = {
     return response.data;
   },
 
-  getJobsForApproval: async (role: string): Promise<Job[]> => {
-    const response = await axios.get(`${API_URL}/jobs/for-approval?role=${role}`, getAuthHeaders());
+  getJobsForApproval: async (): Promise<Job[]> => {
+    const response = await axios.get(`${API_URL}/jobs/for-approval`, getAuthHeaders());
     return response.data;
   }
 };

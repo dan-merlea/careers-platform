@@ -9,8 +9,7 @@ import {
   ChartBarIcon,
   DocumentTextIcon,
   ArrowLeftOnRectangleIcon,
-  BuildingOfficeIcon,
-  ClipboardDocumentCheckIcon
+  BuildingOfficeIcon
 } from '@heroicons/react/24/outline';
 
 interface SidebarLinkProps {
@@ -65,8 +64,7 @@ const Sidebar: React.FC = () => {
     { path: '/company-details', text: 'Company Details', icon: <BuildingOfficeIcon />, roles: ['admin'] },
     { path: '/users', text: 'Users', icon: <UsersIcon />, roles: ['admin'] },
     { path: '/job-boards', text: 'Job boards', icon: <BriefcaseIcon />, roles: ['admin', 'manager', 'recruiter'] },
-    { path: '/jobs', text: 'Jobs', icon: <BriefcaseIcon />, roles: ['admin', 'director', 'manager'] },
-    { path: '/job-approvals', text: 'Job Approvals', icon: <ClipboardDocumentCheckIcon />, roles: ['admin', 'director', 'manager'] },
+    { path: '/jobs', text: 'Openings', icon: <BriefcaseIcon />, roles: ['admin', 'director', 'manager'] },
     { path: '/analytics', text: 'Analytics', icon: <ChartBarIcon />, roles: ['admin', 'manager'] },
     { path: '/reports', text: 'Reports', icon: <DocumentTextIcon />, roles: ['admin', 'manager', 'recruiter'] },
   ];

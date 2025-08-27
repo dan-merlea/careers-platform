@@ -45,21 +45,33 @@ const JobDetailPage: React.FC = () => {
     }
   };
 
-  // Handle job status change (publish/archive)
-  const handleStatusChange = async (action: 'publish' | 'archive') => {
+  // Handle job status change (publish/archive/submit for approval)
+  const handleStatusChange = async (action: 'publish' | 'archive' | 'submit-for-approval') => {
     if (!id) return;
     
     try {
-      let updatedJob;
+      let updatedJob: Job;
       if (action === 'publish') {
+        // If job is in draft status, submit for approval first
+        if (job?.status === JobStatus.DRAFT) {
+          updatedJob = await jobService.submitForApproval(id);
+          setJob(updatedJob);
+          setError(null);
+          return;
+        }
+        // Otherwise proceed with publishing (only works for approved jobs)
         updatedJob = await jobService.publishJob(id);
-      } else {
+      } else if (action === 'archive') {
         updatedJob = await jobService.archiveJob(id);
+      } else if (action === 'submit-for-approval') {
+        updatedJob = await jobService.submitForApproval(id);
+      } else {
+        throw new Error(`Unknown action: ${action}`);
       }
       setJob(updatedJob);
     } catch (err) {
-      console.error(`Error ${action}ing job:`, err);
-      setError(`Failed to ${action} job. Please try again.`);
+      console.error(`Error performing action ${action} on job:`, err);
+      setError(`Failed to ${action.replace('-', ' ')} job. Please try again.`);
     }
   };
 
@@ -70,6 +82,12 @@ const JobDetailPage: React.FC = () => {
         return 'bg-green-100 text-green-800';
       case JobStatus.ARCHIVED:
         return 'bg-gray-100 text-gray-800';
+      case JobStatus.APPROVED:
+        return 'bg-blue-100 text-blue-800';
+      case JobStatus.PENDING_APPROVAL:
+        return 'bg-purple-100 text-purple-800';
+      case JobStatus.REJECTED:
+        return 'bg-red-100 text-red-800';
       default:
         return 'bg-yellow-100 text-yellow-800';
     }
@@ -112,17 +130,21 @@ const JobDetailPage: React.FC = () => {
             <PencilIcon className="w-5 h-5 mr-2" />
             Edit
           </Link>
-          {job.status !== JobStatus.PUBLISHED && (
+          
+          {/* Publish/Submit button - shown for DRAFT and APPROVED jobs */}
+          {(job.status === JobStatus.DRAFT || job.status === JobStatus.APPROVED) && (
             <button
               onClick={() => handleStatusChange('publish')}
-              className="flex items-center px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+              className={`flex items-center px-4 py-2 ${job.status === JobStatus.DRAFT ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded`}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={job.status === JobStatus.DRAFT ? "M9 5l7 7-7 7" : "M5 13l4 4L19 7"} />
               </svg>
-              Publish
+              {job.status === JobStatus.DRAFT ? 'Submit for Review' : 'Publish'}
             </button>
           )}
+          
+          {/* Archive button - not shown for already archived jobs */}
           {job.status !== JobStatus.ARCHIVED && (
             <button
               onClick={() => handleStatusChange('archive')}

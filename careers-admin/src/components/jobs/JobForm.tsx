@@ -61,6 +61,19 @@ const JobForm: React.FC<JobFormProps> = ({
           const officesData = await officesService.getAll();
           setOffices(officesData);
           
+          // Set initial office and update location if not in edit mode
+          if (officesData.length > 0 && !isEdit) {
+            const firstOffice = officesData[0];
+            setSelectedOffice(firstOffice._id);
+            
+            // Update location based on selected office and work arrangement
+            const newLocation = `${firstOffice.address} (${workArrangement})`;
+            setFormData(prev => ({
+              ...prev,
+              location: newLocation
+            }));
+          }
+          
           // Fetch departments
           const departmentsData = await departmentService.getAll();
           setDepartments(departmentsData);
@@ -101,7 +114,7 @@ const JobForm: React.FC<JobFormProps> = ({
     };
     
     fetchData();
-  }, [formData.companyId, isEdit, initialData]);
+  }, [formData.companyId, isEdit, initialData, workArrangement]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -121,13 +134,7 @@ const JobForm: React.FC<JobFormProps> = ({
     });
   };
 
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value as JobStatus;
-    setFormData({
-      ...formData,
-      status: value
-    });
-  };
+  // Status is always set to DRAFT for new jobs and managed via buttons after creation
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,7 +218,6 @@ const JobForm: React.FC<JobFormProps> = ({
                   }}
                   className="w-full p-2 border border-gray-300 rounded"
                 >
-                  <option value="">Select an office</option>
                   {offices.map(office => (
                     <option key={office._id} value={office._id}>
                       {office.name} - {office.address}
@@ -290,22 +296,7 @@ const JobForm: React.FC<JobFormProps> = ({
         </div>
       </div>
 
-      <div>
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-          Status
-        </label>
-        <select
-          id="status"
-          name="status"
-          value={formData.status || JobStatus.DRAFT}
-          onChange={handleStatusChange}
-          className="w-full p-2 border border-gray-300 rounded"
-        >
-          <option value={JobStatus.DRAFT}>Draft</option>
-          <option value={JobStatus.PUBLISHED}>Published</option>
-          <option value={JobStatus.ARCHIVED}>Archived</option>
-        </select>
-      </div>
+      {/* Status field removed - always defaults to DRAFT */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>

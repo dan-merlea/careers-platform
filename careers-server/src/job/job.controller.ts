@@ -59,6 +59,13 @@ export class JobController {
     return jobs.map((job) => this.mapJobToResponseDto(job));
   }
 
+  @Get('pending-approval')
+  @UseGuards(AuthGuard('jwt'))
+  async getPendingApprovalJobs(): Promise<JobResponseDto[]> {
+    // Alias for findJobsForApproval to maintain backward compatibility
+    return this.findJobsForApproval();
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<JobResponseDto> {
     // Special case for 'for-approval' route is now handled by dedicated endpoint above
@@ -116,6 +123,36 @@ export class JobController {
     return jobs.map((job) => this.mapJobToResponseDto(job));
   }
 
+  // Endpoint moved to the top of the controller
+
+  @Put(':id/submit-for-approval')
+  @UseGuards(AuthGuard('jwt'))
+  async submitForApproval(@Param('id') id: string): Promise<JobResponseDto> {
+    const job = await this.jobService.submitForApproval(id);
+    return this.mapJobToResponseDto(job);
+  }
+
+  @Put(':id/approve')
+  @UseGuards(AuthGuard('jwt'))
+  async approveJob(
+    @Param('id') id: string,
+    @Body('userId') userId: string = 'admin', // Default to 'admin' if not provided
+  ): Promise<JobResponseDto> {
+    const job = await this.jobService.approveJob(id, userId);
+    return this.mapJobToResponseDto(job);
+  }
+
+  @Put(':id/reject')
+  @UseGuards(AuthGuard('jwt'))
+  async rejectJob(
+    @Param('id') id: string,
+    @Body('userId') userId: string = 'admin', // Default to 'admin' if not provided
+    @Body('rejectionReason') rejectionReason: string,
+  ): Promise<JobResponseDto> {
+    const job = await this.jobService.rejectJob(id, userId, rejectionReason);
+    return this.mapJobToResponseDto(job);
+  }
+
   @Put(':id/publish')
   @UseGuards(AuthGuard('jwt'))
   async publishJob(@Param('id') id: string): Promise<JobResponseDto> {
@@ -136,17 +173,7 @@ export class JobController {
     const jobId = job._id as { toString(): string };
 
     // Handle jobBoardId - convert to string if it exists
-    let jobBoardIdStr: string | undefined = undefined;
-    if (job.jobBoardId) {
-      try {
-        // Handle both ObjectId and string cases
-        jobBoardIdStr = typeof job.jobBoardId.toString === 'function'
-          ? job.jobBoardId.toString()
-          : String(job.jobBoardId);
-      } catch (error) {
-        console.error('Error converting jobBoardId to string:', error);
-      }
-    }
+    const jobBoardIdStr: string = job.jobBoardId.toString();
 
     return {
       id: jobId.toString(),
@@ -162,19 +189,21 @@ export class JobController {
       updatedAt: job.updatedAt,
       createdAt: job.createdAt,
       content: job.content,
-      departments: job.departments?.map((dept: DepartmentDocument) => {
-        return {
-          id: dept._id ? dept._id.toString() : '',
-          name: dept.title || '', // Changed from name to title based on department schema
-        };
-      }) || [],
-      offices: job.offices?.map((office: OfficeDocument) => {
-        return {
-          id: office._id ? office._id.toString() : '',
-          name: office.name || '',
-          location: office.address || '', // Changed from location to address based on office schema
-        };
-      }) || [],
+      departments:
+        job.departments?.map((dept: DepartmentDocument) => {
+          return {
+            id: dept._id ? dept._id.toString() : '',
+            name: dept.title || '', // Changed from name to title based on department schema
+          };
+        }) || [],
+      offices:
+        job.offices?.map((office: OfficeDocument) => {
+          return {
+            id: office._id ? office._id.toString() : '',
+            name: office.name || '',
+            location: office.address || '', // Changed from location to address based on office schema
+          };
+        }) || [],
       status: job.status,
       jobBoardId: jobBoardIdStr,
     };

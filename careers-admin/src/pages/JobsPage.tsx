@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { PlusIcon, PencilIcon, TrashIcon, EyeIcon, ArchiveBoxIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, EyeIcon, ArchiveBoxIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import jobService, { Job, JobStatus } from '../services/jobService';
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
+import { getStatusBadgeClass } from '../utils/jobStatusUtils';
 
 const JobsPage: React.FC = () => {
   const { userRole } = useAuth();
@@ -14,6 +15,9 @@ const JobsPage: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
   const [viewMode, setViewMode] = useState<'all' | 'pending'>('all');
+  const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [jobToReject, setJobToReject] = useState<Job | null>(null);
+  const [isRejecting, setIsRejecting] = useState<boolean>(false);
 
   // Fetch jobs and job boards on component mount
   useEffect(() => {
@@ -44,9 +48,9 @@ const JobsPage: React.FC = () => {
     
     try {
       let data;
-      if (viewMode === 'pending' && userRole) {
-        // Fetch jobs that need approval by this user's role
-        data = await jobService.getJobsForApproval(userRole);
+      if (viewMode === 'pending') {
+        // Fetch jobs that need approval (role is determined from JWT token)
+        data = await jobService.getPendingApprovalJobs();
       } else {
         // Fetch all jobs
         data = await jobService.getAllJobs();
@@ -92,8 +96,36 @@ const JobsPage: React.FC = () => {
     }
   };
 
-  // Handle job status change (submit for approval/publish/archive/approve/reject)
-  const handleStatusChange = async (job: Job, action: 'submit' | 'publish' | 'archive' | 'approve' | 'reject') => {
+  // Open rejection modal
+  const openRejectModal = (job: Job) => {
+    setJobToReject(job);
+    setRejectionReason('');
+    setIsRejecting(true);
+  };
+
+  // Close rejection modal
+  const closeRejectModal = () => {
+    setIsRejecting(false);
+    setJobToReject(null);
+    setRejectionReason('');
+  };
+
+  // Handle job rejection
+  const handleReject = async () => {
+    if (!jobToReject || !rejectionReason.trim()) return;
+    
+    try {
+      await jobService.rejectJob(jobToReject.id, rejectionReason);
+      await fetchJobs();
+      closeRejectModal();
+    } catch (err) {
+      console.error('Error rejecting job:', err);
+      setError('Failed to reject job. Please try again.');
+    }
+  };
+
+  // Handle job status change (submit for approval/publish/archive/approve)
+  const handleStatusChange = async (job: Job, action: 'submit' | 'publish' | 'archive' | 'approve') => {
     try {
       if (action === 'submit') {
         await jobService.submitForApproval(job.id);
@@ -103,11 +135,6 @@ const JobsPage: React.FC = () => {
         await jobService.archiveJob(job.id);
       } else if (action === 'approve') {
         await jobService.approveJob(job.id);
-      } else if (action === 'reject') {
-        // For simplicity, using a basic prompt for rejection reason
-        const reason = prompt('Please provide a reason for rejection:');
-        if (reason === null) return; // User cancelled
-        await jobService.rejectJob(job.id, reason);
       }
       await fetchJobs();
     } catch (err) {
@@ -116,51 +143,31 @@ const JobsPage: React.FC = () => {
     }
   };
 
-  // Get status badge color
-  const getStatusBadgeClass = (status: JobStatus) => {
-    switch (status) {
-      case JobStatus.PUBLISHED:
-        return 'bg-green-100 text-green-800';
-      case JobStatus.ARCHIVED:
-        return 'bg-gray-100 text-gray-800';
-      case JobStatus.PENDING_APPROVAL:
-        return 'bg-blue-100 text-blue-800';
-      case JobStatus.APPROVED:
-        return 'bg-emerald-100 text-emerald-800';
-      case JobStatus.REJECTED:
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-yellow-100 text-yellow-800';
-    }
-  };
+  // Status badge color is now imported from jobStatusUtils
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Jobs</h1>
-          <div className="mt-2 flex space-x-4">
-            <button
-              onClick={() => setViewMode('all')}
-              className={`px-3 py-1 rounded text-sm ${viewMode === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-            >
-              All Jobs
-            </button>
-            <button
-              onClick={() => setViewMode('pending')}
-              className={`px-3 py-1 rounded text-sm ${viewMode === 'pending' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-            >
-              Pending Approval
-            </button>
-          </div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Openings</h1>
+        <div className="mt-2 flex space-x-4">
+          <button
+            onClick={() => setViewMode('all')}
+            className={`px-3 py-1 rounded text-sm ${viewMode === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+          >
+            All Openings
+          </button>
+          <button
+            onClick={() => setViewMode('pending')}
+            className={`px-3 py-1 rounded text-sm ${viewMode === 'pending' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
+          >
+            Requests
+          </button>
         </div>
-        <Link
-          to="/jobs/create"
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          <PlusIcon className="w-5 h-5 mr-2" />
-          Create Job
-        </Link>
+        <p className="mt-2 text-sm text-gray-600">
+          {viewMode === 'all' 
+            ? 'Manage all job openings. To create a new opening, please navigate to the specific job board page.' 
+            : 'Review and approve or reject job requests for departments where you have approval authority.'}
+        </p>
       </div>
 
       {error && (
@@ -175,7 +182,11 @@ const JobsPage: React.FC = () => {
         </div>
       ) : jobs.length === 0 ? (
         <div className="bg-white p-6 rounded shadow text-center">
-          <p className="text-gray-500">No jobs found. Create your first job to get started.</p>
+          <p className="text-gray-500">
+            {viewMode === 'pending' 
+              ? 'No jobs pending your approval at this time.' 
+              : 'No jobs found. Create your first job to get started.'}
+          </p>
         </div>
       ) : (
         <div className="bg-white shadow rounded overflow-hidden">
@@ -185,20 +196,26 @@ const JobsPage: React.FC = () => {
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Job Title
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location
-                </th>
+                {viewMode === 'all' && (
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Location
+                  </th>
+                )}
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Departments
                 </th>
+                {viewMode === 'all' && (
+                  <>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Job Board
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                  </>
+                )}
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Job Board
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Updated
+                  {viewMode === 'pending' ? 'Submitted On' : 'Last Updated'}
                 </th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -209,12 +226,16 @@ const JobsPage: React.FC = () => {
               {jobs.map((job) => (
                 <tr key={job.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{job.title}</div>
-                    {job.internalId !== "" ? <div className="text-sm text-gray-500">ID: {job.internalId}</div> : <></>}
+                    <Link to={`/jobs/${job.id}`} className="block">
+                      <div className="text-sm font-medium text-gray-900 hover:text-blue-600">{job.title}</div>
+                      {job.internalId !== "" ? <div className="text-sm text-gray-500">ID: {job.internalId}</div> : <></>}
+                    </Link>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{job.location}</div>
-                  </td>
+                  {viewMode === 'all' && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{job.location}</div>
+                    </td>
+                  )}
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900">
                       {job.departments.length > 0 
@@ -222,57 +243,108 @@ const JobsPage: React.FC = () => {
                         : 'None'}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      {job.jobBoardId && jobBoards.has(job.jobBoardId) ? (
-                        <div className="flex items-center">
-                          <span>{jobBoards.get(job.jobBoardId)?.title || 'Unknown'}</span>
-                          {jobBoards.get(job.jobBoardId)?.isExternal && (
-                            <span className="ml-1 px-1.5 py-0.5 bg-purple-100 text-purple-800 text-xs rounded">
-                              {jobBoards.get(job.jobBoardId)?.source}
-                            </span>
+                  {viewMode === 'all' && (
+                    <>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {job.jobBoardId && jobBoards.has(job.jobBoardId) ? (
+                            <div className="flex items-center">
+                              <span>{jobBoards.get(job.jobBoardId)?.title || 'Unknown'}</span>
+                              {jobBoards.get(job.jobBoardId)?.isExternal && (
+                                <span className="ml-1 px-1.5 py-0.5 bg-purple-100 text-purple-800 text-xs rounded">
+                                  {jobBoards.get(job.jobBoardId)?.source}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            'None'
                           )}
                         </div>
-                      ) : (
-                        'None'
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
-                      {job.status}
-                    </span>
-                  </td>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="relative group">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
+                            {job.status}
+                          </span>
+                          {job.status === JobStatus.REJECTED && job.rejectionReason && (
+                            <div className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-sm rounded p-2 mt-1 w-64 shadow-lg">
+                              <div className="font-semibold mb-1">Rejection Reason:</div>
+                              <div>{job.rejectionReason}</div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </>
+                  )}
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(job.createdAt).toLocaleDateString()}
+                    {new Date(viewMode === 'pending' ? job.updatedAt : job.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex justify-end space-x-2">
-                      <Link
-                        to={`/jobs/${job.id}`}
-                        className="text-blue-600 hover:text-blue-900"
-                        title="View"
-                      >
-                        <EyeIcon className="w-5 h-5" />
-                      </Link>
-                      <Link
-                        to={`/jobs/${job.id}/edit`}
-                        className="text-indigo-600 hover:text-indigo-900"
-                        title="Edit"
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                      </Link>
-                      {job.status === JobStatus.DRAFT && (
-                        <button
-                          onClick={() => handleStatusChange(job, 'submit')}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Submit for Approval"
-                        >
-                          <ClockIcon className="h-5 w-5" />
-                        </button>
-                      )}
-                      {job.status === JobStatus.PENDING_APPROVAL && userRole && (
+                      {/* Show different actions based on view mode */}
+                      {viewMode === 'all' ? (
                         <>
+                          <Link
+                            to={`/jobs/${job.id}`}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View"
+                          >
+                            <EyeIcon className="w-5 h-5" />
+                          </Link>
+                          <Link
+                            to={`/jobs/${job.id}/edit`}
+                            className="text-indigo-600 hover:text-indigo-900"
+                            title="Edit"
+                          >
+                            <PencilIcon className="h-5 w-5" />
+                          </Link>
+                          {job.status === JobStatus.DRAFT && (
+                            <button
+                              onClick={() => handleStatusChange(job, 'submit')}
+                              className="text-blue-600 hover:text-blue-900"
+                              title="Submit for Approval"
+                            >
+                              <ClockIcon className="h-5 w-5" />
+                            </button>
+                          )}
+                          {job.status === JobStatus.APPROVED && (
+                            <button
+                              onClick={() => handleStatusChange(job, 'publish')}
+                              className="text-green-600 hover:text-green-900"
+                              title="Publish"
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </button>
+                          )}
+                          {job.status !== JobStatus.ARCHIVED && job.status !== JobStatus.DRAFT && (
+                            <button
+                              onClick={() => handleStatusChange(job, 'archive')}
+                              className="text-gray-600 hover:text-gray-900"
+                              title="Archive"
+                            >
+                              <ArchiveBoxIcon className="w-5 h-5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => openDeleteModal(job)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete"
+                          >
+                            <TrashIcon className="h-5 w-5" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {/* Only show view, approve, reject in requests tab */}
+                          <Link
+                            to={`/jobs/${job.id}`}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="View"
+                          >
+                            <EyeIcon className="w-5 h-5" />
+                          </Link>
                           <button
                             onClick={() => handleStatusChange(job, 'approve')}
                             className="text-green-600 hover:text-green-900"
@@ -281,7 +353,7 @@ const JobsPage: React.FC = () => {
                             <CheckCircleIcon className="h-5 w-5" />
                           </button>
                           <button
-                            onClick={() => handleStatusChange(job, 'reject')}
+                            onClick={() => openRejectModal(job)}
                             className="text-red-600 hover:text-red-900"
                             title="Reject"
                           >
@@ -289,37 +361,10 @@ const JobsPage: React.FC = () => {
                           </button>
                         </>
                       )}
-                      {job.status === JobStatus.APPROVED && (
-                        <button
-                          onClick={() => handleStatusChange(job, 'publish')}
-                          className="text-green-600 hover:text-green-900"
-                          title="Publish"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </button>
-                      )}
-                      {job.status !== JobStatus.ARCHIVED && (
-                        <button
-                          onClick={() => handleStatusChange(job, 'archive')}
-                          className="text-yellow-600 hover:text-yellow-900"
-                          title="Archive"
-                        >
-                          <ArchiveBoxIcon className="w-5 h-5" />
-                        </button>
-                      )}
-                      <button
-                        onClick={() => openDeleteModal(job)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                  </div>
+                </td>
+              </tr>
+            ))}
             </tbody>
           </table>
         </div>
@@ -346,6 +391,43 @@ const JobsPage: React.FC = () => {
                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Rejection Modal */}
+      {isRejecting && jobToReject && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Reject Job</h2>
+            <p className="mb-4">
+              Please provide a reason for rejecting "{jobToReject.title}":
+            </p>
+            
+            <textarea
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 mb-4"
+              rows={4}
+              placeholder="Enter rejection reason..."
+              required
+            />
+            
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={closeRejectModal}
+                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReject}
+                disabled={!rejectionReason.trim()}
+                className={`px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 ${!rejectionReason.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                Reject
               </button>
             </div>
           </div>

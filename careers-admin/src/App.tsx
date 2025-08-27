@@ -17,7 +17,6 @@ import JobsPage from './pages/JobsPage';
 import JobCreatePage from './pages/JobCreatePage';
 import JobEditPage from './pages/JobEditPage';
 import JobDetailPage from './pages/JobDetailPage';
-import JobApprovalPage from './pages/JobApprovalPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import RoleGuard from './components/guards/RoleGuard';
 import SessionExpiredNotification from './components/notifications/SessionExpiredNotification';
@@ -154,6 +153,14 @@ const AppRoutes: React.FC = () => {
                 }
               />
               <Route
+                path="/job-boards/:jobBoardId/jobs/:id"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <JobDetailPage />
+                  </RoleGuard>
+                }
+              />
+              <Route
                 path="/job-boards/:jobBoardId/jobs/:id/edit"
                 element={
                   <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
@@ -196,15 +203,7 @@ const AppRoutes: React.FC = () => {
                 }
               />
               
-              {/* Job approval page - accessible to users with approval roles */}
-              <Route
-                path="/job-approvals"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'manager']} showUnauthorized>
-                    <JobApprovalPage />
-                  </RoleGuard>
-                }
-              />
+              {/* Job approval functionality has been merged into the Jobs page */}
               
               {/* Access control pages */}
               <Route path="/unauthorized" element={<UnauthorizedPage />} />

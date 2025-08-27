@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PlusIcon, EyeIcon, PencilIcon, TrashIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
-import jobService, { Job } from '../services/jobService';
+import jobService, { Job, JobStatus } from '../services/jobService';
+import { getStatusBadgeClass } from '../utils/jobStatusUtils';
 
 const JobBoardJobsPage: React.FC = () => {
   const { jobBoardId } = useParams<{ jobBoardId: string }>();
@@ -108,16 +109,11 @@ const JobBoardJobsPage: React.FC = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'draft':
-        return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-medium">Draft</span>;
-      case 'published':
-        return <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-medium">Published</span>;
-      case 'archived':
-        return <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-medium">Archived</span>;
-      default:
-        return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-medium">{status}</span>;
-    }
+    return (
+      <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(status as JobStatus)}`}>
+        {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
+      </span>
+    );
   };
 
   return (
@@ -218,7 +214,12 @@ const JobBoardJobsPage: React.FC = () => {
               {jobs.map((job) => (
                 <tr key={job.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{job.title}</div>
+                    <div 
+                      className="text-sm font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
+                      onClick={() => handleViewJob(job.id)}
+                    >
+                      {job.title}
+                    </div>
                     {job.internalId !== "" ? <div className="text-sm text-gray-500">{job.internalId}</div> : <></>}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">

@@ -15,10 +15,13 @@ export class JobService {
   constructor(
     @InjectModel(Job.name)
     private jobModel: Model<JobDocument>,
+
     @InjectModel(Company.name)
     private companyModel: Model<CompanyDocument>,
+
     @InjectModel(Department.name)
     private departmentModel: Model<DepartmentDocument>,
+
     @InjectModel(Office.name)
     private officeModel: Model<OfficeDocument>,
   ) {}
@@ -63,21 +66,19 @@ export class JobService {
     }
 
     // Convert string IDs to ObjectIds
-    const departmentObjectIds = departmentIds.map((id) => new Types.ObjectId(id));
-    const officeObjectIds = officeIds.map((id) => new Types.ObjectId(id));
+    const departmentObjectIds = departmentIds.map(id => new Types.ObjectId(id));
+    const officeObjectIds = officeIds.map(id => new Types.ObjectId(id));
 
-    // Create new job
+    // Create new job - always set status to DRAFT regardless of what's in the DTO
     const newJob = new this.jobModel({
       ...jobData,
+      status: JobStatus.DRAFT, // Always enforce DRAFT status for new jobs
       company: company._id,
       departments: departmentObjectIds,
       offices: officeObjectIds,
     });
 
-    // Set publishedDate if status is PUBLISHED
-    if (jobData.status === JobStatus.PUBLISHED) {
-      newJob.publishedDate = new Date();
-    }
+    // We don't need to set publishedDate since status is always DRAFT
 
     return newJob.save();
   }
@@ -95,20 +96,20 @@ export class JobService {
       if (!company) {
         throw new NotFoundException(`Company with ID ${companyId} not found`);
       }
-      // Cast to any to avoid TypeScript errors with ObjectId vs Company
-      (job as any).company = company._id;
+      // Set company ID properly with type safety
+      job.company = company._id;
     }
 
     // Update departments if provided
     if (departmentIds) {
-      // Cast to any to avoid TypeScript errors with ObjectId vs Department
-      job.departments = departmentIds.map((id) => new Types.ObjectId(id)) as any;
+      // Set departments with proper typing
+      job.departments = departmentIds.map(id => new Types.ObjectId(id));
     }
 
     // Update offices if provided
     if (officeIds) {
-      // Cast to any to avoid TypeScript errors with ObjectId vs Office
-      job.offices = officeIds.map((id) => new Types.ObjectId(id)) as any;
+      // Set offices with proper typing
+      job.offices = officeIds.map(id => new Types.ObjectId(id));
     }
 
     // Set publishedDate if status is changing to PUBLISHED
@@ -124,7 +125,7 @@ export class JobService {
   }
 
   async findByDepartment(departmentId: string): Promise<JobDocument[]> {
-    return this.jobModel.find({ departments: new Types.ObjectId(departmentId) })
+    return this.jobModel.find({ departments: { $in: [new Types.ObjectId(departmentId)] } })
       .populate('company')
       .populate('departments')
       .populate('offices')
@@ -132,15 +133,75 @@ export class JobService {
   }
 
   async findByOffice(officeId: string): Promise<JobDocument[]> {
-    return this.jobModel.find({ offices: new Types.ObjectId(officeId) })
+    return this.jobModel.find({ offices: { $in: [new Types.ObjectId(officeId)] } })
       .populate('company')
       .populate('departments')
       .populate('offices')
       .exec();
   }
 
+  async findByIds(ids: string[]): Promise<JobDocument[]> {
+    const objectIds = ids.map((id) => new Types.ObjectId(id));
+    return this.jobModel.find({ _id: { $in: objectIds } })
+      .populate('company')
+      .populate('departments')
+      .populate('offices')
+      .exec();
+  }
+
+  async submitForApproval(id: string): Promise<JobDocument> {
+    const job = await this.findOne(id);
+    
+    // Only draft jobs can be submitted for approval
+    if (job.status !== JobStatus.DRAFT) {
+      throw new Error('Only draft jobs can be submitted for approval');
+    }
+    
+    job.status = JobStatus.PENDING_APPROVAL;
+    return job.save();
+  }
+
+  async approveJob(id: string, userId: string): Promise<JobDocument> {
+    const job = await this.findOne(id);
+    
+    // Only pending approval jobs can be approved
+    if (job.status !== JobStatus.PENDING_APPROVAL) {
+      throw new Error('Only jobs pending approval can be approved');
+    }
+    
+    job.status = JobStatus.APPROVED;
+    job.approvedBy = userId;
+    job.approvedAt = new Date();
+    return job.save();
+  }
+
+  async rejectJob(
+    id: string,
+    userId: string,
+    rejectionReason: string,
+  ): Promise<JobDocument> {
+    const job = await this.findOne(id);
+    
+    // Only pending approval jobs can be rejected
+    if (job.status !== JobStatus.PENDING_APPROVAL) {
+      throw new Error('Only jobs pending approval can be rejected');
+    }
+    
+    job.status = JobStatus.REJECTED;
+    job.rejectedBy = userId;
+    job.rejectionReason = rejectionReason;
+    job.rejectedAt = new Date();
+    return job.save();
+  }
+
   async publishJob(id: string): Promise<JobDocument> {
     const job = await this.findOne(id);
+    
+    // Only approved jobs can be published
+    if (job.status !== JobStatus.APPROVED) {
+      throw new Error('Only approved jobs can be published');
+    }
+    
     job.status = JobStatus.PUBLISHED;
     job.publishedDate = new Date();
     return job.save();
@@ -153,7 +214,7 @@ export class JobService {
   }
 
   async findByJobBoard(jobBoardId: string): Promise<JobDocument[]> {
-    return this.jobModel.find({ jobBoardId: new Types.ObjectId(jobBoardId) })
+    return this.jobModel.find({ jobBoardId })
       .populate('company')
       .populate('departments')
       .populate('offices')
