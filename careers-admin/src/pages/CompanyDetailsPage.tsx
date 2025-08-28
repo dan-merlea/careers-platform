@@ -3,9 +3,13 @@ import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { companyService, CompanyDetails } from '../services/company.service';
 import { officesService, Office, CreateOfficeDto, UpdateOfficeDto } from '../services/officesService';
 import { departmentService, Department, CreateDepartmentDto, UpdateDepartmentDto } from '../services/departmentService';
+import { jobFunctionService, JobFunction, CreateJobFunctionDto, UpdateJobFunctionDto } from '../services/jobFunctionService';
+import { jobRoleService, JobRole, CreateJobRoleDto, UpdateJobRoleDto } from '../services/jobRoleService';
 import CompanyProfileSection from '../components/company/details/CompanyProfileSection';
 import OfficesSection from '../components/company/details/OfficesSection';
 import DepartmentsSection from '../components/company/details/DepartmentsSection';
+import JobFunctionsSection from '../components/company/details/JobFunctionsSection';
+import JobRolesSection from '../components/company/details/JobRolesSection';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const CompanyDetailsPage: React.FC = () => {
@@ -55,7 +59,11 @@ const CompanyDetailsPage: React.FC = () => {
     ? 'offices' 
     : path.includes('/departments') 
       ? 'departments' 
-      : 'profile';
+      : path.includes('/job-functions')
+        ? 'job-functions'
+        : path.includes('/job-roles')
+          ? 'job-roles'
+          : 'profile';
       
   // State for offices section
   const [offices, setOffices] = useState<Office[]>([]);
@@ -75,10 +83,30 @@ const CompanyDetailsPage: React.FC = () => {
   const [deptError, setDeptError] = useState<string | null>(null);
   const [deptSuccess, setDeptSuccess] = useState<string | null>(null);
 
+  // State for job functions section
+  const [jobFunctions, setJobFunctions] = useState<JobFunction[]>([]);
+  const [loadingJobFunction, setLoadingJobFunction] = useState<boolean>(false);
+  const [selectedJobFunction, setSelectedJobFunction] = useState<JobFunction | undefined>(undefined);
+  const [showJobFunctionForm, setShowJobFunctionForm] = useState<boolean>(false);
+  const [savingJobFunction, setSavingJobFunction] = useState<boolean>(false);
+  const [jobFunctionError, setJobFunctionError] = useState<string | null>(null);
+  const [jobFunctionSuccess, setJobFunctionSuccess] = useState<string | null>(null);
+
+  // State for job roles section
+  const [jobRoles, setJobRoles] = useState<JobRole[]>([]);
+  const [loadingJobRole, setLoadingJobRole] = useState<boolean>(false);
+  const [selectedJobRole, setSelectedJobRole] = useState<JobRole | undefined>(undefined);
+  const [showJobRoleForm, setShowJobRoleForm] = useState<boolean>(false);
+  const [savingJobRole, setSavingJobRole] = useState<boolean>(false);
+  const [jobRoleError, setJobRoleError] = useState<string | null>(null);
+  const [jobRoleSuccess, setJobRoleSuccess] = useState<string | null>(null);
+
   useEffect(() => {
     loadCompanyDetails();
     loadOffices();
     loadDepartments();
+    loadJobFunctions();
+    loadJobRoles();
   }, []);
   
   // Load offices data
@@ -348,6 +376,178 @@ const CompanyDetailsPage: React.FC = () => {
     setSelectedDept(undefined);
   };
 
+  // Load job functions data
+  const loadJobFunctions = async () => {
+    try {
+      setLoadingJobFunction(true);
+      const data = await jobFunctionService.getAll();
+      setJobFunctions(data);
+      setJobFunctionError(null);
+    } catch (err) {
+      console.error('Error loading job functions:', err);
+      setJobFunctionError('Failed to load job functions. Please try again.');
+    } finally {
+      setLoadingJobFunction(false);
+    }
+  };
+
+  // Load job roles data
+  const loadJobRoles = async () => {
+    try {
+      setLoadingJobRole(true);
+      const data = await jobRoleService.getAll();
+      setJobRoles(data);
+      setJobRoleError(null);
+    } catch (err) {
+      console.error('Error loading job roles:', err);
+      setJobRoleError('Failed to load job roles. Please try again.');
+    } finally {
+      setLoadingJobRole(false);
+    }
+  };
+
+  // Job Functions CRUD handlers
+  const handleCreateJobFunction = async (data: CreateJobFunctionDto) => {
+    try {
+      setSavingJobFunction(true);
+      await jobFunctionService.create(data);
+      await loadJobFunctions();
+      setShowJobFunctionForm(false);
+      setSelectedJobFunction(undefined);
+      setJobFunctionSuccess('Job function created successfully');
+      setTimeout(() => setJobFunctionSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error creating job function:', err);
+      setJobFunctionError('Failed to create job function. Please try again.');
+    } finally {
+      setSavingJobFunction(false);
+    }
+  };
+
+  const handleUpdateJobFunction = async (id: string, data: UpdateJobFunctionDto) => {
+    try {
+      setSavingJobFunction(true);
+      await jobFunctionService.update(id, data);
+      await loadJobFunctions();
+      setShowJobFunctionForm(false);
+      setSelectedJobFunction(undefined);
+      setJobFunctionSuccess('Job function updated successfully');
+      setTimeout(() => setJobFunctionSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error updating job function:', err);
+      setJobFunctionError('Failed to update job function. Please try again.');
+    } finally {
+      setSavingJobFunction(false);
+    }
+  };
+
+  const handleDeleteJobFunction = async (id: string) => {
+    try {
+      await jobFunctionService.delete(id);
+      await loadJobFunctions();
+      setJobFunctionSuccess('Job function deleted successfully');
+      setTimeout(() => setJobFunctionSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error deleting job function:', err);
+      setJobFunctionError('Failed to delete job function. Please try again.');
+    }
+  };
+
+  // Job Roles CRUD handlers
+  const handleCreateJobRole = async (data: CreateJobRoleDto) => {
+    try {
+      setSavingJobRole(true);
+      await jobRoleService.create(data);
+      await loadJobRoles();
+      setShowJobRoleForm(false);
+      setSelectedJobRole(undefined);
+      setJobRoleSuccess('Job role created successfully');
+      setTimeout(() => setJobRoleSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error creating job role:', err);
+      setJobRoleError('Failed to create job role. Please try again.');
+    } finally {
+      setSavingJobRole(false);
+    }
+  };
+
+  const handleUpdateJobRole = async (id: string, data: UpdateJobRoleDto) => {
+    try {
+      setSavingJobRole(true);
+      await jobRoleService.update(id, data);
+      await loadJobRoles();
+      setShowJobRoleForm(false);
+      setSelectedJobRole(undefined);
+      setJobRoleSuccess('Job role updated successfully');
+      setTimeout(() => setJobRoleSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error updating job role:', err);
+      setJobRoleError('Failed to update job role. Please try again.');
+    } finally {
+      setSavingJobRole(false);
+    }
+  };
+
+  const handleDeleteJobRole = async (id: string) => {
+    try {
+      await jobRoleService.delete(id);
+      await loadJobRoles();
+      setJobRoleSuccess('Job role deleted successfully');
+      setTimeout(() => setJobRoleSuccess(null), 3000);
+    } catch (err) {
+      console.error('Error deleting job role:', err);
+      setJobRoleError('Failed to delete job role. Please try again.');
+    }
+  };
+
+  // Handle job function form actions
+  const handleEditJobFunction = (jobFunction: JobFunction) => {
+    setSelectedJobFunction(jobFunction);
+    setShowJobFunctionForm(true);
+  };
+
+  const handleAddJobFunction = () => {
+    setSelectedJobFunction(undefined);
+    setShowJobFunctionForm(true);
+  };
+
+  const handleJobFunctionFormSubmit = async (data: CreateJobFunctionDto | UpdateJobFunctionDto) => {
+    if (selectedJobFunction && selectedJobFunction._id) {
+      await handleUpdateJobFunction(selectedJobFunction._id, data as UpdateJobFunctionDto);
+    } else {
+      await handleCreateJobFunction(data as CreateJobFunctionDto);
+    }
+  };
+
+  const handleJobFunctionFormCancel = () => {
+    setShowJobFunctionForm(false);
+    setSelectedJobFunction(undefined);
+  };
+
+  // Handle job role form actions
+  const handleEditJobRole = (jobRole: JobRole) => {
+    setSelectedJobRole(jobRole);
+    setShowJobRoleForm(true);
+  };
+
+  const handleAddJobRole = () => {
+    setSelectedJobRole(undefined);
+    setShowJobRoleForm(true);
+  };
+
+  const handleJobRoleFormSubmit = async (data: CreateJobRoleDto | UpdateJobRoleDto) => {
+    if (selectedJobRole && selectedJobRole._id) {
+      await handleUpdateJobRole(selectedJobRole._id, data as UpdateJobRoleDto);
+    } else {
+      await handleCreateJobRole(data as CreateJobRoleDto);
+    }
+  };
+
+  const handleJobRoleFormCancel = () => {
+    setShowJobRoleForm(false);
+    setSelectedJobRole(undefined);
+  };
+
   // Render the profile section with all required props
   const renderProfileSection = () => (
     <CompanyProfileSection
@@ -389,9 +589,21 @@ const CompanyDetailsPage: React.FC = () => {
         </button>
         <button
           onClick={() => handleSectionChange('departments')}
-          className={`py-2 px-4 ${activeSection === 'departments' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`py-2 px-4 mr-2 ${activeSection === 'departments' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
         >
           Departments
+        </button>
+        <button
+          onClick={() => handleSectionChange('job-functions')}
+          className={`py-2 px-4 mr-2 ${activeSection === 'job-functions' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Job Functions
+        </button>
+        <button
+          onClick={() => handleSectionChange('job-roles')}
+          className={`py-2 px-4 ${activeSection === 'job-roles' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Job Roles
         </button>
       </div>
       
@@ -428,6 +640,40 @@ const CompanyDetailsPage: React.FC = () => {
             handleDeptFormSubmit={handleDeptFormSubmit}
             handleDeptFormCancel={handleDeptFormCancel}
             handleDeleteDepartment={handleDeleteDepartment}
+          />
+        } />
+        <Route path="/job-functions" element={
+          <JobFunctionsSection
+            jobFunctions={jobFunctions}
+            loadingJobFunction={loadingJobFunction}
+            selectedJobFunction={selectedJobFunction}
+            showJobFunctionForm={showJobFunctionForm}
+            savingJobFunction={savingJobFunction}
+            jobFunctionError={jobFunctionError}
+            jobFunctionSuccess={jobFunctionSuccess}
+            handleEditJobFunction={handleEditJobFunction}
+            handleAddJobFunction={handleAddJobFunction}
+            handleJobFunctionFormSubmit={handleJobFunctionFormSubmit}
+            handleJobFunctionFormCancel={handleJobFunctionFormCancel}
+            handleDeleteJobFunction={handleDeleteJobFunction}
+            companyId={companyDetails._id}
+          />
+        } />
+        <Route path="/job-roles" element={
+          <JobRolesSection
+            jobRoles={jobRoles}
+            jobFunctions={jobFunctions}
+            loadingJobRole={loadingJobRole}
+            selectedJobRole={selectedJobRole}
+            showJobRoleForm={showJobRoleForm}
+            savingJobRole={savingJobRole}
+            jobRoleError={jobRoleError}
+            jobRoleSuccess={jobRoleSuccess}
+            handleEditJobRole={handleEditJobRole}
+            handleAddJobRole={handleAddJobRole}
+            handleJobRoleFormSubmit={handleJobRoleFormSubmit}
+            handleJobRoleFormCancel={handleJobRoleFormCancel}
+            handleDeleteJobRole={handleDeleteJobRole}
           />
         } />
       </Routes>

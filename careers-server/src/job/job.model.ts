@@ -75,5 +75,6 @@ export interface JobResponseDto {
     location: string;
   }[];
   status: JobStatus;
+  rejectionReason?: string;
   jobBoardId?: string;
 }

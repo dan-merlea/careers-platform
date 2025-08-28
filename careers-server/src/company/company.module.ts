@@ -9,6 +9,12 @@ import { DepartmentController } from './department.controller';
 import { DepartmentService } from './department.service';
 import { Office, OfficeSchema } from './schemas/office.schema';
 import { Department, DepartmentSchema } from './schemas/department.schema';
+import { JobFunction, JobFunctionSchema } from './schemas/job-function.schema';
+import { JobRole, JobRoleSchema } from './schemas/job-role.schema';
+import { JobFunctionController } from './job-function.controller';
+import { JobRoleController } from './job-role.controller';
+import { JobFunctionService } from './job-function.service';
+import { JobRoleService } from './job-role.service';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
@@ -17,11 +23,31 @@ import { AuthModule } from '../auth/auth.module';
       { name: Company.name, schema: CompanySchema },
       { name: Office.name, schema: OfficeSchema },
       { name: Department.name, schema: DepartmentSchema },
+      { name: JobFunction.name, schema: JobFunctionSchema },
+      { name: JobRole.name, schema: JobRoleSchema },
     ]),
     AuthModule,
   ],
-  controllers: [CompanyController, OfficesController, DepartmentController],
-  providers: [CompanyService, OfficesService, DepartmentService],
-  exports: [CompanyService, OfficesService, DepartmentService],
+  controllers: [
+    CompanyController,
+    OfficesController,
+    DepartmentController,
+    JobFunctionController,
+    JobRoleController,
+  ],
+  providers: [
+    CompanyService,
+    OfficesService,
+    DepartmentService,
+    JobFunctionService,
+    JobRoleService,
+  ],
+  exports: [
+    CompanyService,
+    OfficesService,
+    DepartmentService,
+    JobFunctionService,
+    JobRoleService,
+  ],
 })
 export class CompanyModule {}

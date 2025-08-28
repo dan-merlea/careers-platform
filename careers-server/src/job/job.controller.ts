@@ -205,6 +205,7 @@ export class JobController {
           };
         }) || [],
       status: job.status,
+      rejectionReason: job.rejectionReason,
       jobBoardId: jobBoardIdStr,
     };
   }

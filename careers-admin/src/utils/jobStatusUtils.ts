@@ -21,3 +21,27 @@ export const getStatusBadgeClass = (status: JobStatus): string => {
       return 'bg-yellow-100 text-yellow-800';
   }
 };
+
+/**
+ * Converts job status to a user-friendly display format
+ * @param status The job status
+ * @returns A formatted string for display
+ */
+export const getPrettyStatus = (status: JobStatus): string => {
+  switch (status) {
+    case JobStatus.DRAFT:
+      return 'Draft';
+    case JobStatus.PENDING_APPROVAL:
+      return 'Pending Approval';
+    case JobStatus.APPROVED:
+      return 'Approved';
+    case JobStatus.REJECTED:
+      return 'Rejected';
+    case JobStatus.PUBLISHED:
+      return 'Published';
+    case JobStatus.ARCHIVED:
+      return 'Archived';
+    default:
+      return String(status).charAt(0).toUpperCase() + String(status).slice(1).replace(/_/g, ' ');
+  }
+};

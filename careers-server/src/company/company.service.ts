@@ -3,11 +3,13 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Company } from './company.schema';
 import { CompanyDto } from './dto/company.dto';
+import { JobFunctionService } from './job-function.service';
 
 @Injectable()
 export class CompanyService {
   constructor(
     @InjectModel(Company.name) private readonly companyModel: Model<Company>,
+    private readonly jobFunctionService: JobFunctionService,
   ) {}
 
   /**
@@ -46,7 +48,14 @@ export class CompanyService {
     } else {
       // Create new company
       const newCompany = new this.companyModel(companyDto);
-      return newCompany.save();
+      const savedCompany = await newCompany.save();
+
+      // Create default job functions for the new company
+      await this.jobFunctionService.createDefaultJobFunctions(
+        savedCompany.id as string,
+      );
+
+      return savedCompany;
     }
   }
 }

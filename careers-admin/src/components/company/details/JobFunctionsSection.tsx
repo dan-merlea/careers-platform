@@ -1,0 +1,137 @@
+import React from 'react';
+import { JobFunction, CreateJobFunctionDto, UpdateJobFunctionDto } from '../../../services/jobFunctionService';
+import JobFunctionForm from '../JobFunctionForm';
+
+interface JobFunctionsSectionProps {
+  jobFunctions: JobFunction[];
+  loadingJobFunction: boolean;
+  selectedJobFunction: JobFunction | undefined;
+  showJobFunctionForm: boolean;
+  savingJobFunction: boolean;
+  jobFunctionError: string | null;
+  jobFunctionSuccess: string | null;
+  handleEditJobFunction: (jobFunction: JobFunction) => void;
+  handleAddJobFunction: () => void;
+  handleJobFunctionFormSubmit: (data: CreateJobFunctionDto | UpdateJobFunctionDto) => Promise<void>;
+  handleJobFunctionFormCancel: () => void;
+  handleDeleteJobFunction: (id: string) => void;
+  companyId?: string;
+}
+
+const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
+  jobFunctions,
+  loadingJobFunction,
+  selectedJobFunction,
+  showJobFunctionForm,
+  savingJobFunction,
+  jobFunctionError,
+  jobFunctionSuccess,
+  handleEditJobFunction,
+  handleAddJobFunction,
+  handleJobFunctionFormSubmit,
+  handleJobFunctionFormCancel,
+  handleDeleteJobFunction,
+  companyId
+}) => {
+  return (
+    <div className="bg-white shadow-md rounded-lg p-6">
+      {showJobFunctionForm ? (
+        <JobFunctionForm
+          jobFunction={selectedJobFunction}
+          onSubmit={handleJobFunctionFormSubmit}
+          onCancel={handleJobFunctionFormCancel}
+          isSubmitting={savingJobFunction}
+          companyId={companyId || ''}
+        />
+      ) : (
+        <>
+          {jobFunctionSuccess && (
+            <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
+              <p>{jobFunctionSuccess}</p>
+            </div>
+          )}
+          
+          {jobFunctionError && (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+              <p>{jobFunctionError}</p>
+            </div>
+          )}
+          
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Job Functions</h2>
+            <button
+              onClick={handleAddJobFunction}
+              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
+            >
+              Add Job Function
+            </button>
+          </div>
+          
+          {loadingJobFunction ? (
+            <div className="flex justify-center items-center h-32">
+              <p className="text-gray-500">Loading job functions...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white">
+                <thead>
+                  <tr>
+                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Description
+                    </th>
+                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {jobFunctions.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="py-4 px-4 text-center text-gray-500">
+                        No job functions found. Add your first job function.
+                      </td>
+                    </tr>
+                  ) : (
+                    jobFunctions.map((jobFunction) => (
+                      <tr key={jobFunction._id}>
+                        <td className="py-2 px-4 whitespace-nowrap">
+                          {jobFunction.title}
+                        </td>
+                        <td className="py-2 px-4">
+                          {jobFunction.description || '-'}
+                        </td>
+                        <td className="py-2 px-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => handleEditJobFunction(jobFunction)}
+                            className="text-blue-600 hover:text-blue-900 mr-4"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm('Are you sure you want to delete this job function?')) {
+                                handleDeleteJobFunction(jobFunction._id);
+                              }
+                            }}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default JobFunctionsSection;

@@ -4,7 +4,7 @@ import { PencilIcon, TrashIcon, EyeIcon, ArchiveBoxIcon, CheckCircleIcon, XCircl
 import { useAuth } from '../context/AuthContext';
 import jobService, { Job, JobStatus } from '../services/jobService';
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
-import { getStatusBadgeClass } from '../utils/jobStatusUtils';
+import { getStatusBadgeClass, getPrettyStatus } from '../utils/jobStatusUtils';
 
 const JobsPage: React.FC = () => {
   const { userRole } = useAuth();
@@ -189,7 +189,7 @@ const JobsPage: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white shadow rounded overflow-hidden">
+        <div className="bg-white shadow rounded">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -264,10 +264,10 @@ const JobsPage: React.FC = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="relative group">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
-                            {job.status}
+                            {getPrettyStatus(job.status)}
                           </span>
                           {job.status === JobStatus.REJECTED && job.rejectionReason && (
-                            <div className="absolute z-10 invisible group-hover:visible bg-gray-800 text-white text-sm rounded p-2 mt-1 w-64 shadow-lg">
+                            <div className="fixed z-50 invisible group-hover:visible bg-gray-800 text-white text-sm rounded p-2 mt-1 w-64 shadow-lg transform -translate-x-1/4 translate-y-1">
                               <div className="font-semibold mb-1">Rejection Reason:</div>
                               <div>{job.rejectionReason}</div>
                             </div>
