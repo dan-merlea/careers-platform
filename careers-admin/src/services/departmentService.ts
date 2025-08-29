@@ -9,6 +9,7 @@ export interface Department {
   parentDepartment?: string | null;
   subDepartments?: Department[]; // Used for hierarchical view
   approvalRole?: UserRole;
+  jobRoles?: string[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,12 +18,14 @@ export interface CreateDepartmentDto {
   title: string;
   parentDepartment?: string | null;
   approvalRole?: UserRole;
+  jobRoles?: string[];
 }
 
 export interface UpdateDepartmentDto {
   title?: string;
   parentDepartment?: string | null;
   approvalRole?: UserRole;
+  jobRoles?: string[];
 }
 
 // API endpoints

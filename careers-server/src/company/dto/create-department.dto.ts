@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsMongoId } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsMongoId,
+  IsArray,
+  IsEnum,
+} from 'class-validator';
+import { UserRole } from '../../users/schemas/user.schema';
 
 export class CreateDepartmentDto {
   @IsString()
@@ -7,4 +14,13 @@ export class CreateDepartmentDto {
   @IsMongoId()
   @IsOptional()
   parentDepartment?: string;
+
+  @IsEnum(UserRole)
+  @IsOptional()
+  approvalRole?: UserRole;
+
+  @IsArray()
+  @IsMongoId({ each: true })
+  @IsOptional()
+  jobRoles?: string[];
 }

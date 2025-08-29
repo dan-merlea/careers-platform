@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
+import { UserRole } from '../../users/schemas/user.schema';
 
 export type DepartmentDocument = Department & Document;
 
@@ -17,6 +18,12 @@ export class Department {
 
   @Prop([{ type: MongooseSchema.Types.ObjectId, ref: 'Department' }])
   subDepartments: Department[];
+
+  @Prop({ type: String, enum: UserRole, default: UserRole.DIRECTOR })
+  approvalRole: string;
+
+  @Prop([{ type: MongooseSchema.Types.ObjectId, ref: 'JobRole' }])
+  jobRoles: string[];
 }
 
 export const DepartmentSchema = SchemaFactory.createForClass(Department);

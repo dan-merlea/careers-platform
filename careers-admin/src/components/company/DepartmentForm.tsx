@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Department, CreateDepartmentDto, UpdateDepartmentDto } from '../../services/departmentService';
 import { UserRole } from '../../services/auth.service';
+import { JobRole, jobRoleService } from '../../services/jobRoleService';
 
 interface DepartmentFormProps {
   department?: Department;
@@ -20,8 +21,29 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
   const [formData, setFormData] = useState<CreateDepartmentDto>({
     title: '',
     parentDepartment: null,
-    approvalRole: UserRole.DIRECTOR
+    approvalRole: UserRole.DIRECTOR,
+    jobRoles: []
   });
+  
+  const [jobRoles, setJobRoles] = useState<JobRole[]>([]);
+  const [loadingJobRoles, setLoadingJobRoles] = useState(false);
+
+  // Fetch job roles
+  useEffect(() => {
+    const fetchJobRoles = async () => {
+      setLoadingJobRoles(true);
+      try {
+        const roles = await jobRoleService.getAll();
+        setJobRoles(roles);
+      } catch (error) {
+        console.error('Failed to fetch job roles:', error);
+      } finally {
+        setLoadingJobRoles(false);
+      }
+    };
+    
+    fetchJobRoles();
+  }, []);
 
   // Initialize form with department data if provided (edit mode)
   useEffect(() => {
@@ -29,7 +51,8 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
       setFormData({
         title: department.title,
         parentDepartment: department.parentDepartment || null,
-        approvalRole: department.approvalRole || UserRole.DIRECTOR
+        approvalRole: department.approvalRole || UserRole.DIRECTOR,
+        jobRoles: department.jobRoles || []
       });
     }
   }, [department]);
@@ -48,6 +71,15 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
         [name]: value
       }));
     }
+  };
+  
+  // Handle job role selection
+  const handleJobRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
+    setFormData(prev => ({
+      ...prev,
+      jobRoles: selectedOptions
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,6 +168,37 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
         </select>
         <p className="mt-1 text-sm text-gray-500">
           Select the role required to approve jobs for this department
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="jobRoles" className="block text-sm font-medium text-gray-700 mb-1">
+          Job Roles
+        </label>
+        <select
+          id="jobRoles"
+          name="jobRoles"
+          multiple
+          value={formData.jobRoles || []}
+          onChange={handleJobRoleChange}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+          size={5}
+          disabled={isSubmitting || loadingJobRoles}
+        >
+          {loadingJobRoles ? (
+            <option disabled>Loading job roles...</option>
+          ) : jobRoles.length === 0 ? (
+            <option disabled>No job roles available</option>
+          ) : (
+            jobRoles.map((role) => (
+              <option key={role._id} value={role._id}>
+                {role.title} ({role.jobFunction.title})
+              </option>
+            ))
+          )}
+        </select>
+        <p className="mt-1 text-sm text-gray-500">
+          Hold Ctrl/Cmd to select multiple job roles relevant for this department
         </p>
       </div>
 
