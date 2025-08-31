@@ -1,9 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
+import 'react-toastify/dist/ReactToastify.css';
+import '../../styles/QuillEditor.css';
 import { JobCreateDto, JobUpdateDto, JobStatus } from '../../services/jobService';
 import { companyService, CompanyDetails } from '../../services/company.service';
 import { officesService, Office } from '../../services/officesService';
 import { departmentService, Department } from '../../services/departmentService';
 import { jobRoleService, JobRole } from '../../services/jobRoleService';
+import SaveTemplateModal from './SaveTemplateModal';
 
 interface JobFormProps {
   initialData?: JobCreateDto | JobUpdateDto;
@@ -43,7 +48,8 @@ const JobForm: React.FC<JobFormProps> = ({
   const [isLoadingJobRoles, setIsLoadingJobRoles] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+
   // Function to fetch job roles for a department
   const fetchJobRolesForDepartment = useCallback(async (department: Department) => {
     if (!department || !department.jobRoles || department.jobRoles.length === 0) {
@@ -229,6 +235,7 @@ const JobForm: React.FC<JobFormProps> = ({
   }
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <div className="p-4 bg-red-100 text-red-700 rounded">
@@ -456,36 +463,77 @@ const JobForm: React.FC<JobFormProps> = ({
             <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
               Job Description *
             </label>
-            <textarea
-              id="content"
-              name="content"
+            <ReactQuill
+              theme="snow"
               value={formData.content || ''}
-              onChange={handleInputChange}
-              className="w-full p-2 border border-gray-300 rounded"
-              rows={10}
-              required
+              onChange={(content) => {
+                setFormData(prev => ({
+                  ...prev,
+                  content
+                }));
+              }}
+              modules={{
+                toolbar: [
+                  [{ 'header': [1, 2, 3, false] }],
+                  ['bold', 'italic', 'underline', 'strike'],
+                  [{'list': 'ordered'}, {'list': 'bullet'}],
+                  ['link', 'blockquote'],
+                  [{ 'indent': '-1'}, { 'indent': '+1' }],
+                  ['clean']
+                ],
+              }}
+              formats={[
+                'header',
+                'bold', 'italic', 'underline', 'strike',
+                'list', 'bullet',
+                'link', 'blockquote',
+                'indent'
+              ]}
+              className="bg-white mb-4 quill-editor"
             />
           </div>
 
-          <div className="flex justify-end space-x-4 mt-8">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              disabled={isLoading || !selectedDepartment}
-            >
-              {isLoading ? 'Saving...' : isEdit ? 'Update Job' : 'Create Job'}
-            </button>
+          <div className="flex justify-between mt-8">
+            <div>
+              <button
+                type="button"
+                onClick={() => setIsTemplateModalOpen(true)}
+                className="px-4 py-2 text-sm border border-blue-500 text-blue-600 rounded hover:bg-blue-50"
+                disabled={!selectedJobRole || !formData.content}
+              >
+                Save as Template
+              </button>
+            </div>
+            <div className="flex space-x-4">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                disabled={isLoading || !selectedDepartment}
+              >
+                {isLoading ? 'Saving...' : isEdit ? 'Update Job' : 'Create Job'}
+              </button>
+            </div>
           </div>
         </>
       )}
     </form>
+    
+    <SaveTemplateModal
+      isOpen={isTemplateModalOpen}
+      onClose={() => setIsTemplateModalOpen(false)}
+      content={formData.content || ''}
+      role={selectedJobRole || ''}
+      departmentId={selectedDepartment || undefined}
+      onSaveSuccess={() => {}}
+    />
+    </>
   );
 };
 

@@ -1,18 +1,4 @@
-import axios from 'axios';
-import { API_URL } from '../config';
-
-const getToken = () => {
-  return localStorage.getItem('token');
-};
-
-const getAuthHeaders = () => {
-  const token = getToken();
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-};
+import { api } from '../utils/api';
 
 export enum JobStatus {
   DRAFT = 'draft',
@@ -88,82 +74,82 @@ export interface JobUpdateDto {
 
 const jobService = {
   getAllJobs: async (): Promise<Job[]> => {
-    const response = await axios.get(`${API_URL}/jobs`, getAuthHeaders());
-    return response.data;
+    const response = await api.get<Job[]>('/jobs');
+    return response;
   },
 
   getJobsByCompany: async (companyId: string): Promise<Job[]> => {
-    const response = await axios.get(`${API_URL}/jobs?company=${companyId}`, getAuthHeaders());
-    return response.data;
+    const response = await api.get<Job[]>(`/jobs?company=${companyId}`);
+    return response;
   },
 
   getJob: async (id: string): Promise<Job> => {
-    const response = await axios.get(`${API_URL}/jobs/${id}`, getAuthHeaders());
-    return response.data;
+    const response = await api.get<Job>(`/jobs/${id}`);
+    return response;
   },
 
   createJob: async (jobData: JobCreateDto): Promise<Job> => {
-    const response = await axios.post(`${API_URL}/jobs`, jobData, getAuthHeaders());
-    return response.data;
+    const response = await api.post<Job>('/jobs', jobData);
+    return response;
   },
 
   updateJob: async (id: string, jobData: JobUpdateDto): Promise<Job> => {
-    const response = await axios.put(`${API_URL}/jobs/${id}`, jobData, getAuthHeaders());
-    return response.data;
+    const response = await api.put<Job>(`/jobs/${id}`, jobData);
+    return response;
   },
 
   deleteJob: async (id: string): Promise<void> => {
-    await axios.delete(`${API_URL}/jobs/${id}`, getAuthHeaders());
+    await api.delete(`/jobs/${id}`);
   },
 
   submitForApproval: async (id: string): Promise<Job> => {
-    const response = await axios.put(`${API_URL}/jobs/${id}/submit-for-approval`, {}, getAuthHeaders());
-    return response.data;
+    const response = await api.put<Job>(`/jobs/${id}/submit-for-approval`, {});
+    return response;
   },
 
   approveJob: async (id: string): Promise<Job> => {
-    const response = await axios.put(`${API_URL}/jobs/${id}/approve`, {}, getAuthHeaders());
-    return response.data;
+    const response = await api.put<Job>(`/jobs/${id}/approve`, {});
+    return response;
   },
 
   rejectJob: async (id: string, rejectionReason: string): Promise<Job> => {
-    const response = await axios.put(`${API_URL}/jobs/${id}/reject`, { rejectionReason }, getAuthHeaders());
-    return response.data;
+    const response = await api.put<Job>(`/jobs/${id}/reject`, { rejectionReason });
+    return response;
   },
 
   publishJob: async (id: string): Promise<Job> => {
-    const response = await axios.put(`${API_URL}/jobs/${id}/publish`, {}, getAuthHeaders());
-    return response.data;
+    const response = await api.put<Job>(`/jobs/${id}/publish`, {});
+    return response;
   },
 
   archiveJob: async (id: string): Promise<Job> => {
-    const response = await axios.put(`${API_URL}/jobs/${id}/archive`, {}, getAuthHeaders());
-    return response.data;
+    const response = await api.put<Job>(`/jobs/${id}/archive`, {});
+    return response;
   },
 
   getJobsByDepartment: async (departmentId: string): Promise<Job[]> => {
-    const response = await axios.get(`${API_URL}/jobs/department/${departmentId}`, getAuthHeaders());
-    return response.data;
+    const response = await api.get<Job[]>(`/jobs/department/${departmentId}`);
+    return response;
   },
 
   getJobsByOffice: async (officeId: string): Promise<Job[]> => {
-    const response = await axios.get(`${API_URL}/jobs/office/${officeId}`, getAuthHeaders());
-    return response.data;
+    const response = await api.get<Job[]>(`/jobs/office/${officeId}`);
+    return response;
   },
 
   getJobsByJobBoard: async (jobBoardId: string): Promise<Job[]> => {
-    const response = await axios.get(`${API_URL}/jobs/job-board/${jobBoardId}`, getAuthHeaders());
-    return response.data;
+    const response = await api.get<Job[]>(`/jobs/job-board/${jobBoardId}`);
+    return response;
   },
 
   getPendingApprovalJobs: async (): Promise<Job[]> => {
-    const response = await axios.get(`${API_URL}/jobs/pending-approval`, getAuthHeaders());
-    return response.data;
+    const response = await api.get<Job[]>('/jobs/pending-approval');
+    return response;
   },
 
   getJobsForApproval: async (): Promise<Job[]> => {
-    const response = await axios.get(`${API_URL}/jobs/for-approval`, getAuthHeaders());
-    return response.data;
+    const response = await api.get<Job[]>('/jobs/for-approval');
+    return response;
   }
 };
 

@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { sanitizeHtmlContent } from '../utils/html-sanitizer';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Job, JobDocument } from './job.entity';
@@ -69,9 +70,13 @@ export class JobService {
     const departmentObjectIds = departmentIds.map(id => new Types.ObjectId(id));
     const officeObjectIds = officeIds.map(id => new Types.ObjectId(id));
 
+    // Sanitize HTML content to prevent script injection
+    const sanitizedContent = sanitizeHtmlContent(jobData.content);
+    
     // Create new job - always set status to DRAFT regardless of what's in the DTO
     const newJob = new this.jobModel({
       ...jobData,
+      content: sanitizedContent,
       status: JobStatus.DRAFT, // Always enforce DRAFT status for new jobs
       company: company._id,
       departments: departmentObjectIds,
@@ -87,6 +92,11 @@ export class JobService {
     const job = await this.findOne(id);
     const { companyId, departmentIds, officeIds, ...jobData } = jobUpdateDto;
 
+    // Sanitize HTML content if provided
+    if (jobData.content) {
+      jobData.content = sanitizeHtmlContent(jobData.content);
+    }
+    
     // Update simple fields
     Object.assign(job, jobData);
 

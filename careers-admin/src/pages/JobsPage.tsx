@@ -180,7 +180,7 @@ const JobsPage: React.FC = () => {
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-      ) : jobs.length === 0 ? (
+      ) : !jobs || jobs.length === 0 ? (
         <div className="bg-white p-6 rounded shadow text-center">
           <p className="text-gray-500">
             {viewMode === 'pending' 
@@ -223,7 +223,7 @@ const JobsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {jobs.map((job) => (
+              {jobs?.map((job) => (
                 <tr key={job.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <Link to={`/jobs/${job.id}`} className="block">

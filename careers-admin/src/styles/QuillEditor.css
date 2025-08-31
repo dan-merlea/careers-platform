@@ -1,0 +1,8 @@
+/* Custom styles for ReactQuill editor */
+.quill-editor .ql-container {
+  min-height: 200px;
+}
+
+.quill-editor .ql-editor {
+  min-height: 200px;
+}
