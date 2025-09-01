@@ -60,13 +60,14 @@ const Sidebar: React.FC = () => {
   // Define links with role requirements
   const allLinks = [
     { path: '/', text: 'Dashboard', icon: <HomeIcon />, roles: ['admin', 'manager', 'recruiter', 'user'] },
-    { path: '/setup', text: 'Setup', icon: <Cog6ToothIcon />, roles: ['admin'] },
-    { path: '/company-details', text: 'Company Details', icon: <BuildingOfficeIcon />, roles: ['admin'] },
+    { path: '/company-details', text: 'Company', icon: <BuildingOfficeIcon />, roles: ['admin'] },
     { path: '/users', text: 'Users', icon: <UsersIcon />, roles: ['admin'] },
     { path: '/job-boards', text: 'Job boards', icon: <BriefcaseIcon />, roles: ['admin', 'manager', 'recruiter'] },
     { path: '/jobs', text: 'Openings', icon: <BriefcaseIcon />, roles: ['admin', 'director', 'manager'] },
+    { path: '/headcount', text: 'Headcount', icon: <UsersIcon />, roles: ['admin', 'director', 'manager'] },
     { path: '/analytics', text: 'Analytics', icon: <ChartBarIcon />, roles: ['admin', 'manager'] },
     { path: '/reports', text: 'Reports', icon: <DocumentTextIcon />, roles: ['admin', 'manager', 'recruiter'] },
+    { path: '/setup', text: 'Integrations', icon: <Cog6ToothIcon />, roles: ['admin'] },
   ];
 
   // Filter links based on user role

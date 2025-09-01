@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  ValidateNested,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SocialLinksDto {
@@ -26,6 +32,11 @@ export class CompanyValueDto {
   @IsString()
   @IsOptional()
   icon: string;
+}
+
+export class CompanySettingsDto {
+  @IsEnum(['headcount', 'job-opening'])
+  approvalType: 'headcount' | 'job-opening';
 }
 
 export class CompanyDto {
@@ -77,4 +88,9 @@ export class CompanyDto {
   @Type(() => CompanyValueDto)
   @IsOptional()
   values: CompanyValueDto[];
+
+  @ValidateNested()
+  @Type(() => CompanySettingsDto)
+  @IsOptional()
+  settings: CompanySettingsDto;
 }

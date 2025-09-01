@@ -12,6 +12,10 @@ export interface CompanyValue {
   icon?: string;
 }
 
+export interface CompanySettings {
+  approvalType: 'headcount' | 'job-opening';
+}
+
 export interface CompanyDetails {
   _id?: string;
   id?: string;
@@ -26,6 +30,7 @@ export interface CompanyDetails {
   mission: string;
   vision: string;
   values: CompanyValue[];
+  settings?: CompanySettings;
 }
 
 export const companyService = {
@@ -68,5 +73,21 @@ export const companyService = {
   async saveCompanyDetails(data: CompanyDetails): Promise<CompanyDetails> {
     const response = await api.post<CompanyDetails>('/company', data);
     return response;
+  },
+
+  /**
+   * Get company (alias for getCompanyDetails for consistency with backend naming)
+   */
+  async getCompany(): Promise<CompanyDetails> {
+    return this.getCompanyDetails();
+  },
+
+  /**
+   * Save company settings
+   */
+  async saveCompanySettings(settings: CompanySettings): Promise<CompanyDetails> {
+    const company = await this.getCompanyDetails();
+    company.settings = settings;
+    return this.saveCompanyDetails(company);
   },
 };

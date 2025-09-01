@@ -17,6 +17,9 @@ import JobsPage from './pages/JobsPage';
 import JobCreatePage from './pages/JobCreatePage';
 import JobEditPage from './pages/JobEditPage';
 import JobDetailPage from './pages/JobDetailPage';
+import HeadcountListPage from './pages/HeadcountListPage';
+import HeadcountRequestForm from './pages/HeadcountRequestForm';
+import CompanySettingsPage from './pages/CompanySettingsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import RoleGuard from './components/guards/RoleGuard';
 import SessionExpiredNotification from './components/notifications/SessionExpiredNotification';
@@ -117,6 +120,14 @@ const AppRoutes: React.FC = () => {
                 }
               />
               <Route
+                path="/company-settings"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <CompanySettingsPage />
+                  </RoleGuard>
+                }
+              />
+              <Route
                 path="/users"
                 element={
                   <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
@@ -204,6 +215,40 @@ const AppRoutes: React.FC = () => {
               />
               
               {/* Job approval functionality has been merged into the Jobs page */}
+              
+              {/* Headcount routes */}
+              <Route
+                path="/headcount"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'manager']} showUnauthorized>
+                    <HeadcountListPage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/headcount/new"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'manager']} showUnauthorized>
+                    <HeadcountRequestForm />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/headcount/:id"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'manager']} showUnauthorized>
+                    <HeadcountRequestForm />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/headcount/edit/:id"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'manager']} showUnauthorized>
+                    <HeadcountRequestForm />
+                  </RoleGuard>
+                }
+              />
               
               {/* Access control pages */}
               <Route path="/unauthorized" element={<UnauthorizedPage />} />

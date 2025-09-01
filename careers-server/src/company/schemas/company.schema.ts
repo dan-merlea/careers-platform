@@ -37,6 +37,11 @@ export class Company {
     instagram?: string;
   };
 
+  @Prop({ type: Object, default: { approvalType: 'headcount' } })
+  settings: {
+    approvalType: 'headcount' | 'job-opening';
+  };
+
   // Virtual field for jobs - will be populated when needed
   // Mongoose will handle this relationship differently than TypeORM
 

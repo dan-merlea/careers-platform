@@ -34,6 +34,12 @@ const DEPARTMENT_API = '/company/departments';
 // Service methods
 export const departmentService = {
   /**
+   * Get job roles for a specific department
+   */
+  getJobRoles: (departmentId: string) => {
+    return api.get<string[]>(`${DEPARTMENT_API}/${departmentId}/job-roles`);
+  },
+  /**
    * Get all departments
    */
   getAll: () => {

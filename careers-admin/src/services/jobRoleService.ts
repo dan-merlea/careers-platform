@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { API_URL } from '../config';
+import { api } from '../utils/api';
 import { JobFunction } from './jobFunctionService';
 
 export interface JobRole {
@@ -21,44 +20,45 @@ export interface UpdateJobRoleDto {
   jobFunction?: string;
 }
 
-const getToken = () => {
-  return localStorage.getItem('token');
-};
-
-const getAuthHeaders = () => {
-  const token = getToken();
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  };
-};
+// API endpoints
+const JOB_ROLES_API = '/job-roles';
 
 export const jobRoleService = {
-  getAll: async (jobFunctionId?: string): Promise<JobRole[]> => {
-    const url = jobFunctionId 
-      ? `${API_URL}/job-roles?jobFunctionId=${jobFunctionId}` 
-      : `${API_URL}/job-roles`;
-    const response = await axios.get(url, getAuthHeaders());
-    return response.data;
+  /**
+   * Get all job roles, optionally filtered by job function
+   */
+  getAll: (jobFunctionId?: string): Promise<JobRole[]> => {
+    const endpoint = jobFunctionId 
+      ? `${JOB_ROLES_API}?jobFunctionId=${jobFunctionId}` 
+      : JOB_ROLES_API;
+    return api.get<JobRole[]>(endpoint);
   },
 
-  get: async (id: string): Promise<JobRole> => {
-    const response = await axios.get(`${API_URL}/job-roles/${id}`, getAuthHeaders());
-    return response.data;
+  /**
+   * Get a single job role by ID
+   */
+  get: (id: string): Promise<JobRole> => {
+    return api.get<JobRole>(`${JOB_ROLES_API}/${id}`);
   },
 
-  create: async (jobRoleData: CreateJobRoleDto): Promise<JobRole> => {
-    const response = await axios.post(`${API_URL}/job-roles`, jobRoleData, getAuthHeaders());
-    return response.data;
+  /**
+   * Create a new job role
+   */
+  create: (jobRoleData: CreateJobRoleDto): Promise<JobRole> => {
+    return api.post<JobRole>(JOB_ROLES_API, jobRoleData);
   },
 
-  update: async (id: string, jobRoleData: UpdateJobRoleDto): Promise<JobRole> => {
-    const response = await axios.patch(`${API_URL}/job-roles/${id}`, jobRoleData, getAuthHeaders());
-    return response.data;
+  /**
+   * Update an existing job role
+   */
+  update: (id: string, jobRoleData: UpdateJobRoleDto): Promise<JobRole> => {
+    return api.patch<JobRole>(`${JOB_ROLES_API}/${id}`, jobRoleData);
   },
 
-  delete: async (id: string): Promise<void> => {
-    await axios.delete(`${API_URL}/job-roles/${id}`, getAuthHeaders());
+  /**
+   * Delete a job role
+   */
+  delete: (id: string): Promise<void> => {
+    return api.delete(`${JOB_ROLES_API}/${id}`);
   }
 };

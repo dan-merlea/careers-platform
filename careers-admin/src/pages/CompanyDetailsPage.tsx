@@ -601,9 +601,15 @@ const CompanyDetailsPage: React.FC = () => {
         </button>
         <button
           onClick={() => handleSectionChange('job-roles')}
-          className={`py-2 px-4 ${activeSection === 'job-roles' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`py-2 px-4 mr-2 ${activeSection === 'job-roles' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
         >
           Job Roles
+        </button>
+        <button
+          onClick={() => navigate('/company-settings')}
+          className={`py-2 px-4 text-gray-500 hover:text-gray-700`}
+        >
+          Settings
         </button>
       </div>
       
