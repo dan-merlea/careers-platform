@@ -39,6 +39,7 @@ export class JobTemplateService {
   }
 
   async findByRole(role: string): Promise<JobTemplateDocument[]> {
+    // Role is expected to be an ID
     return this.jobTemplateModel.find({ role }).populate('department').exec();
   }
 

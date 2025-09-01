@@ -8,7 +8,9 @@ import { companyService, CompanyDetails } from '../../services/company.service';
 import { officesService, Office } from '../../services/officesService';
 import { departmentService, Department } from '../../services/departmentService';
 import { jobRoleService, JobRole } from '../../services/jobRoleService';
+import jobTemplateService, { JobTemplate } from '../../services/jobTemplateService';
 import SaveTemplateModal from './SaveTemplateModal';
+import { format } from 'date-fns';
 
 interface JobFormProps {
   initialData?: JobCreateDto | JobUpdateDto;
@@ -49,6 +51,36 @@ const JobForm: React.FC<JobFormProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const [templates, setTemplates] = useState<JobTemplate[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+
+  // Function to fetch templates for a job role
+  const fetchTemplatesForRole = useCallback(async (roleId: string) => {
+    if (!roleId) {
+      setTemplates([]);
+      return;
+    }
+    
+    console.log('Fetching templates for role ID:', roleId);
+    setIsLoadingTemplates(true);
+    try {
+      const roleTemplates = await jobTemplateService.getByRole(roleId);
+      console.log('Templates received:', roleTemplates);
+      setTemplates(roleTemplates);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    } finally {
+      setIsLoadingTemplates(false);
+    }
+  }, []);
+
+  // Function to load a template content
+  const loadTemplate = (template: JobTemplate) => {
+    setFormData(prev => ({
+      ...prev,
+      content: template.content
+    }));
+  };
 
   // Function to fetch job roles for a department
   const fetchJobRolesForDepartment = useCallback(async (department: Department) => {
@@ -170,20 +202,15 @@ const JobForm: React.FC<JobFormProps> = ({
     fetchData();
   }, [formData.companyId, isEdit, initialData, workArrangement, fetchJobRolesForDepartment]);
   
-  
-  // Handle department selection
+  // Effect to fetch job roles when department changes
   useEffect(() => {
     if (selectedDepartment) {
       const department = departments.find(d => d._id === selectedDepartment);
       if (department) {
         fetchJobRolesForDepartment(department);
-        
-        // Update departmentIds in formData
-        setFormData(prev => ({
-          ...prev,
-          departmentIds: [selectedDepartment]
-        }));
       }
+    } else {
+      setJobRoles([]);
     }
   }, [selectedDepartment, departments, fetchJobRolesForDepartment]);
   
@@ -197,9 +224,16 @@ const JobForm: React.FC<JobFormProps> = ({
           ...prev,
           title: role.title
         }));
+        
+        // Fetch templates for this role using the ID
+        fetchTemplatesForRole(selectedJobRole);
       }
+    } else {
+      // No need to call fetchTemplatesForRole with empty ID
+      // as it will just set templates to empty array
+      setTemplates([]);
     }
-  }, [selectedJobRole, jobRoles]);
+  }, [selectedJobRole, jobRoles, fetchTemplatesForRole]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -460,9 +494,41 @@ const JobForm: React.FC<JobFormProps> = ({
           </div>
 
           <div>
-            <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">
-              Job Description *
-            </label>
+            <div className="flex justify-between items-center mb-2">
+              <label htmlFor="content" className="block text-sm font-medium text-gray-700">
+                Job Description *
+              </label>
+              {selectedJobRole && (
+                <div className="relative">
+                  {isLoadingTemplates ? (
+                    <span className="text-sm text-gray-500">Loading templates...</span>
+                  ) : templates.length > 0 ? (
+                    <select
+                      className="p-1 text-sm border border-gray-300 rounded bg-white text-gray-700"
+                      onChange={(e) => {
+                        const templateId = e.target.value;
+                        if (templateId) {
+                          const template = templates.find(t => t.id === templateId);
+                          if (template) loadTemplate(template);
+                        }
+                        // Reset select after selection
+                        e.target.value = '';
+                      }}
+                      defaultValue=""
+                    >
+                      <option value="" disabled>Load template...</option>
+                      {templates.map(template => (
+                        <option key={template.id} value={template.id}>
+                          {template.name} ({format(new Date(template.createdAt), 'MMM d, yyyy')})
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-sm text-gray-500">No templates available</span>
+                  )}
+                </div>
+              )}
+            </div>
             <ReactQuill
               theme="snow"
               value={formData.content || ''}
@@ -530,6 +596,7 @@ const JobForm: React.FC<JobFormProps> = ({
       onClose={() => setIsTemplateModalOpen(false)}
       content={formData.content || ''}
       role={selectedJobRole || ''}
+      roleTitle={jobRoles.find(r => r._id === selectedJobRole)?.title}
       departmentId={selectedDepartment || undefined}
       onSaveSuccess={() => {}}
     />

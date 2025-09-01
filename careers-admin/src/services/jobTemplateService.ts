@@ -34,7 +34,8 @@ const jobTemplateService = {
   },
 
   getByRole: async (role: string): Promise<JobTemplate[]> => {
-    const response = await api.get<JobTemplate[]>(`/job-templates/role/${role}`);
+    const encodedRole = encodeURIComponent(role);
+    const response = await api.get<JobTemplate[]>(`/job-templates/role/${encodedRole}`);
     return response;
   },
 

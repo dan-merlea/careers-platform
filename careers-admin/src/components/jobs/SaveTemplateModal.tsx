@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import jobTemplateService, { JobTemplate, CreateJobTemplateRequest } from '../../services/jobTemplateService';
+import { format } from 'date-fns';
 
 interface SaveTemplateModalProps {
   isOpen: boolean;
   onClose: () => void;
   content: string;
-  role: string;
+  role: string; // This is the role ID
+  roleTitle?: string; // Optional role title for display purposes
   departmentId?: string;
   onSaveSuccess: () => void;
 }
@@ -122,7 +124,7 @@ const SaveTemplateModal: React.FC<SaveTemplateModalProps> = ({
               <option value="">Select a template</option>
               {templates?.map((template) => (
                 <option key={template.id} value={template.id}>
-                  {template.name}
+                  {template.name} ({format(new Date(template.createdAt), 'MMM d, yyyy')})
                 </option>
               ))}
             </select>
