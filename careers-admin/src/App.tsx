@@ -19,7 +19,6 @@ import JobEditPage from './pages/JobEditPage';
 import JobDetailPage from './pages/JobDetailPage';
 import HeadcountListPage from './pages/HeadcountListPage';
 import HeadcountRequestForm from './pages/HeadcountRequestForm';
-import CompanySettingsPage from './pages/CompanySettingsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import RoleGuard from './components/guards/RoleGuard';
 import SessionExpiredNotification from './components/notifications/SessionExpiredNotification';
@@ -116,14 +115,6 @@ const AppRoutes: React.FC = () => {
                 element={
                   <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
                     <CompanyDetailsPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/company-settings"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <CompanySettingsPage />
                   </RoleGuard>
                 }
               />

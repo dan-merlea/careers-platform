@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import CompanySettingsPage from './CompanySettingsPage';
 import { companyService, CompanyDetails } from '../services/company.service';
 import { officesService, Office, CreateOfficeDto, UpdateOfficeDto } from '../services/officesService';
 import { departmentService, Department, CreateDepartmentDto, UpdateDepartmentDto } from '../services/departmentService';
@@ -63,7 +64,9 @@ const CompanyDetailsPage: React.FC = () => {
         ? 'job-functions'
         : path.includes('/job-roles')
           ? 'job-roles'
-          : 'profile';
+          : path.includes('/settings')
+            ? 'settings'
+            : 'profile';
       
   // State for offices section
   const [offices, setOffices] = useState<Office[]>([]);
@@ -606,8 +609,8 @@ const CompanyDetailsPage: React.FC = () => {
           Job Roles
         </button>
         <button
-          onClick={() => navigate('/company-settings')}
-          className={`py-2 px-4 text-gray-500 hover:text-gray-700`}
+          onClick={() => handleSectionChange('settings')}
+          className={`py-2 px-4 ${activeSection === 'settings' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
         >
           Settings
         </button>
@@ -616,6 +619,7 @@ const CompanyDetailsPage: React.FC = () => {
       {/* Content Area with React Router */}
       <Routes>
         <Route path="/" element={renderProfileSection()} />
+        <Route path="/settings" element={<CompanySettingsPage />} />
         <Route path="/offices" element={
           <OfficesSection
             offices={offices}
