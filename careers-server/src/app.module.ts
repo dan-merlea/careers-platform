@@ -8,6 +8,7 @@ import { CompanyModule } from './company/company.module';
 import { JobBoardsModule } from './job-boards/job-boards.module';
 import { JobModule } from './job/job.module';
 import { HeadcountModule } from './headcount/headcount.module';
+import { JobApplicationsModule } from './job-applications/job-applications.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { HeadcountModule } from './headcount/headcount.module';
     JobBoardsModule,
     JobModule,
     HeadcountModule,
+    JobApplicationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCompany } from '../../context/CompanyContext';
 import { departmentService } from '../../services/departmentService';
+import { IS_DEVELOPMENT } from '../../config';
 import { 
   HomeIcon, 
   Cog6ToothIcon,
@@ -11,7 +12,8 @@ import {
   ChartBarIcon,
   DocumentTextIcon,
   ArrowLeftOnRectangleIcon,
-  BuildingOfficeIcon
+  BuildingOfficeIcon,
+  BugAntIcon
 } from '@heroicons/react/24/outline';
 
 interface SidebarLinkProps {
@@ -97,6 +99,8 @@ const Sidebar: React.FC = () => {
     { path: '/analytics', text: 'Analytics', icon: <ChartBarIcon />, roles: ['admin', 'manager'] },
     { path: '/reports', text: 'Reports', icon: <DocumentTextIcon />, roles: ['admin', 'manager', 'recruiter'] },
     { path: '/setup', text: 'Integrations', icon: <Cog6ToothIcon />, roles: ['admin'] },
+    // Debug menu item - only visible in development mode
+    { path: '/debug/job-applications', text: 'Debug Applications', icon: <BugAntIcon />, roles: ['admin'], devOnly: true },
   ];
 
   // Filter links based on user role and approval workflow settings
@@ -109,6 +113,9 @@ const Sidebar: React.FC = () => {
     
     // If this is the Headcount link and job approval workflow is active, hide it
     if (link.path === '/headcount' && company?.settings?.approvalType === 'job-opening') return false;
+    
+    // Hide debug menu items in production
+    if (link.devOnly && !IS_DEVELOPMENT) return false;
     
     return true;
   });

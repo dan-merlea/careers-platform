@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api, clearAuth, getAuthToken, SESSION_EXPIRED_EVENT } from '../utils/api';
 
+// Define company type
+interface Company {
+  id: string;
+  name: string;
+}
+
 // Define the shape of our auth context
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -8,9 +14,12 @@ interface AuthContextType {
   isAdmin: boolean;
   userRole: string | null;
   userDepartment: string | null;
+  companyId: string | null;
+  company: Company | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
+  companySignup: (companyName: string, email: string, password: string, name: string) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
   hasPermission: (requiredRoles: string[]) => boolean;
@@ -23,9 +32,12 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   userRole: null,
   userDepartment: null,
+  companyId: null,
+  company: null,
   token: null,
   login: async () => {},
   signup: async () => {},
+  companySignup: async () => {},
   logout: async () => {},
   loading: true,
   hasPermission: () => false,
@@ -48,7 +60,12 @@ interface AuthResponse {
     role: string;
     name?: string;
     departmentId?: string;
+    companyId?: string;
   };
+  company?: {
+    id: string;
+    name: string;
+  } | null;
 }
 
 // Provider component that wraps the app and makes auth object available
@@ -58,6 +75,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userDepartment, setUserDepartment] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [company, setCompany] = useState<Company | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   
@@ -72,6 +91,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedIsAdmin = localStorage.getItem('isAdmin') === 'true';
       const storedRole = localStorage.getItem('userRole');
       const storedDepartment = localStorage.getItem('userDepartment');
+      const storedCompanyId = localStorage.getItem('companyId');
+      const storedCompanyName = localStorage.getItem('companyName');
 
       if (storedToken) {
         // Validate token with the backend
@@ -86,6 +107,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsAdmin(storedIsAdmin);
           setUserRole(storedRole);
           setUserDepartment(storedDepartment);
+          setCompanyId(storedCompanyId);
+          
+          // Set company if we have both id and name
+          if (storedCompanyId && storedCompanyName) {
+            setCompany({
+              id: storedCompanyId,
+              name: storedCompanyName
+            });
+          }
         } catch {
           // Token is invalid, clear auth data
           clearAuth();
@@ -95,6 +125,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsAdmin(false);
           setUserRole(null);
           setUserDepartment(null);
+          setCompanyId(null);
+          setCompany(null);
         }
       } else {
         setIsAuthenticated(false);
@@ -103,6 +135,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAdmin(false);
         setUserRole(null);
         setUserDepartment(null);
+        setCompanyId(null);
+        setCompany(null);
       }
 
       setLoading(false);
@@ -120,6 +154,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAdmin(false);
       setUserRole(null);
       setUserDepartment(null);
+      setCompanyId(null);
+      setCompany(null);
       
       // We can't use navigate here, so we'll redirect manually
       window.location.href = '/login';
@@ -159,6 +195,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('userRole', data.user.role);
       localStorage.setItem('userDepartment', data.user.departmentId || '');
       
+      // Store company data if available
+      if (data.user.companyId) {
+        localStorage.setItem('companyId', data.user.companyId);
+      }
+      
+      if (data.company) {
+        localStorage.setItem('companyName', data.company.name);
+      }
+      
       // Update state
       setIsAuthenticated(true);
       setToken(data.token);
@@ -166,6 +211,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAdmin(data.user.isAdmin);
       setUserRole(data.user.role);
       setUserDepartment(data.user.departmentId || null);
+      setCompanyId(data.user.companyId || null);
+      setCompany(data.company || null);
     } finally {
       setLoading(false);
     }
@@ -185,6 +232,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('userRole', data.user.role);
       localStorage.setItem('userDepartment', data.user.departmentId || '');
       
+      // Store company data if available
+      if (data.user.companyId) {
+        localStorage.setItem('companyId', data.user.companyId);
+      }
+      
+      if (data.company) {
+        localStorage.setItem('companyName', data.company.name);
+      }
+      
       // Update state
       setIsAuthenticated(true);
       setToken(data.token);
@@ -192,6 +248,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAdmin(data.user.isAdmin);
       setUserRole(data.user.role);
       setUserDepartment(data.user.departmentId || null);
+      setCompanyId(data.user.companyId || null);
+      setCompany(data.company || null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Company signup function
+  const companySignup = async (companyName: string, email: string, password: string, name: string) => {
+    setLoading(true);
+    
+    try {
+      const data = await api.post<AuthResponse>('/users/company-signup', { 
+        companyName, 
+        email, 
+        password, 
+        name 
+      });
+      
+      // Store auth data
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userEmail', email);
+      localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
+      localStorage.setItem('userRole', data.user.role);
+      localStorage.setItem('userDepartment', data.user.departmentId || '');
+      
+      // Store company data
+      if (data.user.companyId) {
+        localStorage.setItem('companyId', data.user.companyId);
+      }
+      
+      if (data.company) {
+        localStorage.setItem('companyName', data.company.name);
+      }
+      
+      // Update state
+      setIsAuthenticated(true);
+      setToken(data.token);
+      setUserEmail(email);
+      setIsAdmin(data.user.isAdmin);
+      setUserRole(data.user.role);
+      setUserDepartment(data.user.departmentId || null);
+      setCompanyId(data.user.companyId || null);
+      setCompany(data.company || null);
     } finally {
       setLoading(false);
     }
@@ -213,6 +313,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       clearAuth();
       localStorage.removeItem('userRole');
       localStorage.removeItem('userDepartment');
+      localStorage.removeItem('companyId');
+      localStorage.removeItem('companyName');
       
       // Update state
       setIsAuthenticated(false);
@@ -221,6 +323,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsAdmin(false);
       setUserRole(null);
       setUserDepartment(null);
+      setCompanyId(null);
+      setCompany(null);
     } finally {
       setLoading(false);
     }
@@ -233,9 +337,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isAdmin,
     userRole,
     userDepartment,
+    companyId,
+    company,
     token,
     login,
     signup,
+    companySignup,
     logout,
     loading,
     hasPermission,

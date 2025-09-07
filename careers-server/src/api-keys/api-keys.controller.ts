@@ -22,21 +22,21 @@ export class ApiKeysController {
 
   @Post()
   create(@Req() req, @Body() createApiKeyDto: CreateApiKeyDto) {
-    return this.apiKeysService.create(req.user.userId, createApiKeyDto);
+    return this.apiKeysService.create(req.user.userId, req.user.companyId, createApiKeyDto);
   }
 
   @Get()
   findAll(@Req() req) {
-    return this.apiKeysService.findAllForUser(req.user.userId);
+    return this.apiKeysService.findAllForUser(req.user.userId, req.user.companyId);
   }
 
   @Get(':type')
   findOne(@Req() req, @Param('type') type: IntegrationType) {
-    return this.apiKeysService.findOneByType(req.user.userId, type);
+    return this.apiKeysService.findOneByType(req.user.userId, req.user.companyId, type);
   }
 
   @Delete(':id')
   remove(@Req() req, @Param('id') id: string) {
-    return this.apiKeysService.remove(req.user.userId, id);
+    return this.apiKeysService.remove(req.user.userId, req.user.companyId, id);
   }
 }

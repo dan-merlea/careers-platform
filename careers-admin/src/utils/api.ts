@@ -18,6 +18,20 @@ export const getAuthToken = (): string | null => {
 };
 
 /**
+ * Get the company ID from localStorage
+ */
+export const getCompanyId = (): string | null => {
+  return localStorage.getItem('companyId');
+};
+
+/**
+ * Get the company name from localStorage
+ */
+export const getCompanyName = (): string | null => {
+  return localStorage.getItem('companyName');
+};
+
+/**
  * Check if the user is authenticated
  */
 export const isAuthenticated = (): boolean => {
@@ -32,6 +46,9 @@ export const clearAuth = (): void => {
   localStorage.removeItem('isAdmin');
   localStorage.removeItem('userEmail');
   localStorage.removeItem('userRole');
+  localStorage.removeItem('userDepartment');
+  localStorage.removeItem('companyId');
+  localStorage.removeItem('companyName');
 };
 
 /**

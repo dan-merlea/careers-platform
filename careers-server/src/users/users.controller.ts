@@ -17,6 +17,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { CompanySignupDto } from './dto/company-signup.dto';
 
 @Controller('users')
 export class UsersController {
@@ -77,6 +78,18 @@ export class UsersController {
   async signup(@Body() createUserDto: CreateUserDto) {
     try {
       return await this.usersService.create(createUserDto);
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('An error occurred', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @Post('company-signup')
+  async companySignup(@Body() companySignupDto: CompanySignupDto) {
+    try {
+      return await this.usersService.companySignup(companySignupDto);
     } catch (error) {
       if (error instanceof Error) {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

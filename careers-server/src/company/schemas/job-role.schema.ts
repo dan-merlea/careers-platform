@@ -11,6 +11,13 @@ export class JobRole {
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,
+    ref: 'Company',
+    required: true,
+  })
+  companyId: string;
+
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
     ref: 'JobFunction',
     required: true,
   })

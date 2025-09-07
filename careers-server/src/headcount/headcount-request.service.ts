@@ -10,31 +10,34 @@ export class HeadcountRequestService {
     private headcountRequestModel: Model<HeadcountRequest>,
   ) {}
 
-  async create(createHeadcountRequestDto: any, userId: string): Promise<HeadcountRequest> {
+  async create(createHeadcountRequestDto: any, userId: string, companyId: string): Promise<HeadcountRequest> {
     const newHeadcountRequest = new this.headcountRequestModel({
       ...createHeadcountRequestDto,
       requestedBy: userId,
+      companyId,
       status: HeadcountStatus.PENDING,
     });
     return newHeadcountRequest.save();
   }
 
-  async findAll(filters: any = {}): Promise<HeadcountRequest[]> {
+  async findAll(filters: any = {}, companyId?: string): Promise<HeadcountRequest[]> {
+    const query = companyId ? { ...filters, companyId } : filters;
     return this.headcountRequestModel
-      .find(filters)
+      .find(query)
       .populate('requestedBy', 'name email')
       .populate('reviewedBy', 'name email')
       .sort({ createdAt: -1 })
       .exec();
   }
 
-  async findByUser(userId: string): Promise<HeadcountRequest[]> {
-    return this.findAll({ requestedBy: userId });
+  async findByUser(userId: string, companyId?: string): Promise<HeadcountRequest[]> {
+    return this.findAll({ requestedBy: userId }, companyId);
   }
 
-  async findOne(id: string): Promise<HeadcountRequest> {
+  async findOne(id: string, companyId?: string): Promise<HeadcountRequest> {
+    const query = companyId ? { _id: id, companyId } : { _id: id };
     const headcountRequest = await this.headcountRequestModel
-      .findById(id)
+      .findOne(query)
       .populate('requestedBy', 'name email')
       .populate('reviewedBy', 'name email')
       .exec();
@@ -46,9 +49,10 @@ export class HeadcountRequestService {
     return headcountRequest;
   }
 
-  async update(id: string, updateHeadcountRequestDto: any): Promise<HeadcountRequest> {
+  async update(id: string, updateHeadcountRequestDto: any, companyId?: string): Promise<HeadcountRequest> {
+    const query = companyId ? { _id: id, companyId } : { _id: id };
     const updatedHeadcountRequest = await this.headcountRequestModel
-      .findByIdAndUpdate(id, updateHeadcountRequestDto, { new: true })
+      .findOneAndUpdate(query, updateHeadcountRequestDto, { new: true })
       .exec();
     
     if (!updatedHeadcountRequest) {
@@ -58,8 +62,8 @@ export class HeadcountRequestService {
     return updatedHeadcountRequest;
   }
 
-  async approve(id: string, userId: string, reviewNotes?: string): Promise<HeadcountRequest> {
-    const headcountRequest = await this.findOne(id);
+  async approve(id: string, userId: string, companyId: string, reviewNotes?: string): Promise<HeadcountRequest> {
+    const headcountRequest = await this.findOne(id, companyId);
     
     if (headcountRequest.status !== HeadcountStatus.PENDING) {
       throw new ForbiddenException('This headcount request has already been reviewed');
@@ -70,11 +74,11 @@ export class HeadcountRequestService {
       reviewedBy: userId,
       reviewNotes,
       reviewedAt: new Date(),
-    });
+    }, companyId);
   }
 
-  async reject(id: string, userId: string, reviewNotes?: string): Promise<HeadcountRequest> {
-    const headcountRequest = await this.findOne(id);
+  async reject(id: string, userId: string, companyId: string, reviewNotes?: string): Promise<HeadcountRequest> {
+    const headcountRequest = await this.findOne(id, companyId);
     
     if (headcountRequest.status !== HeadcountStatus.PENDING) {
       throw new ForbiddenException('This headcount request has already been reviewed');
@@ -85,11 +89,12 @@ export class HeadcountRequestService {
       reviewedBy: userId,
       reviewNotes,
       reviewedAt: new Date(),
-    });
+    }, companyId);
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.headcountRequestModel.deleteOne({ _id: id }).exec();
+  async remove(id: string, companyId?: string): Promise<void> {
+    const query = companyId ? { _id: id, companyId } : { _id: id };
+    const result = await this.headcountRequestModel.deleteOne(query).exec();
     
     if (result.deletedCount === 0) {
       throw new NotFoundException(`Headcount request with ID ${id} not found`);

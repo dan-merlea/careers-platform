@@ -12,7 +12,6 @@ import OfficesSection from '../components/company/details/OfficesSection';
 import DepartmentsSection from '../components/company/details/DepartmentsSection';
 import JobFunctionsSection from '../components/company/details/JobFunctionsSection';
 import JobRolesSection from '../components/company/details/JobRolesSection';
-import CompanyContextTest from '../components/company/CompanyContextTest';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const CompanyDetailsPage: React.FC = () => {
@@ -587,9 +586,6 @@ const CompanyDetailsPage: React.FC = () => {
         handleAddValue={handleAddValue}
         handleRemoveValue={handleRemoveValue}
       />
-      <div className="mt-4">
-        <CompanyContextTest />
-      </div>
     </>
   );
 

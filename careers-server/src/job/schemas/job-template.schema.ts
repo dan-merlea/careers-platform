@@ -14,6 +14,13 @@ export class JobTemplate {
   @Prop({ required: true })
   role: string;
 
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Company',
+    required: true,
+  })
+  companyId: string;
+
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Department' })
   department: MongooseSchema.Types.ObjectId;
 

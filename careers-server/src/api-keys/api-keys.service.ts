@@ -16,11 +16,13 @@ export class ApiKeysService {
 
   async create(
     userId: string,
+    companyId: string,
     createApiKeyDto: CreateApiKeyDto,
   ): Promise<ApiKey> {
-    // Check if an API key for this integration type already exists for this user
+    // Check if an API key for this integration type already exists for this user and company
     const existingKey = await this.apiKeyModel.findOne({
       userId: new Types.ObjectId(userId),
+      companyId: new Types.ObjectId(companyId),
       type: createApiKeyDto.type,
     });
 
@@ -28,6 +30,7 @@ export class ApiKeysService {
     if (existingKey) {
       return this.update(
         userId,
+        companyId,
         existingKey._id?.toString() || '',
         createApiKeyDto,
       );
@@ -36,19 +39,24 @@ export class ApiKeysService {
     // Create a new API key
     const createdApiKey = new this.apiKeyModel({
       userId: new Types.ObjectId(userId),
+      companyId: new Types.ObjectId(companyId),
       ...createApiKeyDto,
     });
 
     return createdApiKey.save();
   }
 
-  async findAllForUser(userId: string): Promise<ApiKey[]> {
-    return this.apiKeyModel.find({ userId: new Types.ObjectId(userId) }).exec();
+  async findAllForUser(userId: string, companyId: string): Promise<ApiKey[]> {
+    return this.apiKeyModel.find({
+      userId: new Types.ObjectId(userId),
+      companyId: new Types.ObjectId(companyId),
+    }).exec();
   }
 
-  async findOneByType(userId: string, type: IntegrationType): Promise<ApiKey> {
+  async findOneByType(userId: string, companyId: string, type: IntegrationType): Promise<ApiKey> {
     const apiKey = await this.apiKeyModel.findOne({
       userId: new Types.ObjectId(userId),
+      companyId: new Types.ObjectId(companyId),
       type,
     });
 
@@ -61,6 +69,7 @@ export class ApiKeysService {
 
   async update(
     userId: string,
+    companyId: string,
     id: string,
     updateApiKeyDto: CreateApiKeyDto,
   ): Promise<ApiKey> {
@@ -70,8 +79,8 @@ export class ApiKeysService {
       throw new NotFoundException('API key not found');
     }
 
-    // Ensure the API key belongs to the user
-    if (apiKey.userId.toString() !== userId) {
+    // Ensure the API key belongs to the user and company
+    if (apiKey.userId.toString() !== userId || apiKey.companyId.toString() !== companyId) {
       throw new UnauthorizedException(
         'You do not have permission to update this API key',
       );
@@ -82,15 +91,15 @@ export class ApiKeysService {
     return apiKey.save();
   }
 
-  async remove(userId: string, id: string): Promise<void> {
+  async remove(userId: string, companyId: string, id: string): Promise<void> {
     const apiKey = await this.apiKeyModel.findById(id);
 
     if (!apiKey) {
       throw new NotFoundException('API key not found');
     }
 
-    // Ensure the API key belongs to the user
-    if (apiKey.userId.toString() !== userId) {
+    // Ensure the API key belongs to the user and company
+    if (apiKey.userId.toString() !== userId || apiKey.companyId.toString() !== companyId) {
       throw new UnauthorizedException(
         'You do not have permission to delete this API key',
       );

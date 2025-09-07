@@ -28,6 +28,9 @@ export class HeadcountRequest extends Document {
   })
   status: HeadcountStatus;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Company', required: true })
+  companyId: string;
+
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   requestedBy: string;
 

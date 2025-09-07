@@ -5,17 +5,20 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { CompanySignupDto } from './dto/company-signup.dto';
 import { User, UserDocument, UserRole } from './schemas/user.schema';
 import { AuthService } from '../auth/auth.service';
+import { Company } from '../company/company.schema';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectModel(Company.name) private companyModel: Model<Company>,
     private authService: AuthService,
   ) {}
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto, companyId?: string) {
     // Check if user already exists
     const existingUser = await this.userModel
       .findOne({ email: createUserDto.email })
@@ -34,11 +37,16 @@ export class UsersService {
     const userCount = await this.userModel.countDocuments().exec();
     const isFirstUser = userCount === 0;
 
+    if (!companyId && !isFirstUser) {
+      throw new Error('Company ID is required for non-admin users');
+    }
+
     // Create new user with hashed password
     const newUser = new this.userModel({
       ...createUserDto,
       password: hashedPassword,
       role: isFirstUser ? UserRole.ADMIN : UserRole.USER,
+      companyId: companyId || null, // For the first admin user, companyId might be null initially
     });
 
     // Save the user to the database
@@ -50,6 +58,59 @@ export class UsersService {
       email: savedUser.email,
       role: savedUser.role,
       departmentId: savedUser.departmentId,
+      companyId: savedUser.companyId,
+    };
+  }
+
+  async companySignup(companySignupDto: CompanySignupDto) {
+    // First, create the company
+    const newCompany = new this.companyModel({
+      name: companySignupDto.companyName,
+    });
+
+    const savedCompany = await newCompany.save();
+
+    // Then create the user with admin role for this company
+    // Create a CreateUserDto manually from the CompanySignupDto fields
+    const createUserDto = {
+      email: companySignupDto.email,
+      password: companySignupDto.password,
+      firstName: companySignupDto.name.split(' ')[0],
+      lastName: companySignupDto.name.split(' ').slice(1).join(' ') || '',
+      name: companySignupDto.name, // Add the full name for the User schema
+    };
+
+    // Create the user with the company ID
+    // Ensure we have a valid string ID
+    const companyId = savedCompany._id ? String(savedCompany._id) : '';
+    const user = await this.create(createUserDto, companyId);
+
+    // Update the user to be an admin
+    if (user && user.id) {
+      await this.updateRole(String(user.id), UserRole.ADMIN);
+    }
+
+    // Generate JWT token with role information and company ID
+    const token = this.authService.generateToken({
+      sub: user.id,
+      email: user.email,
+      role: UserRole.ADMIN,
+      companyId: String(savedCompany._id),
+    });
+
+    return {
+      token,
+      company: {
+        id: String(savedCompany._id),
+        name: savedCompany.name,
+      },
+      user: {
+        id: String(user.id),
+        name: user.name,
+        email: user.email,
+        role: UserRole.ADMIN,
+        companyId: String(savedCompany._id),
+      },
     };
   }
 
@@ -73,11 +134,24 @@ export class UsersService {
       throw new Error('Invalid credentials');
     }
 
-    // Generate JWT token with role information
+    // Get company information if available
+    let companyData: { id: string; name: string } | null = null;
+    if (user.companyId) {
+      const company = await this.companyModel.findById(user.companyId).exec();
+      if (company) {
+        companyData = {
+          id: String(company._id),
+          name: company.name,
+        };
+      }
+    }
+
+    // Generate JWT token with role information and company ID
     const token = this.authService.generateToken({
       sub: user._id,
       email: user.email,
       role: user.role,
+      companyId: user.companyId,
     });
 
     return {
@@ -88,7 +162,9 @@ export class UsersService {
         name: user.name,
         role: user.role,
         departmentId: user.departmentId,
+        companyId: user.companyId,
       },
+      company: companyData,
     };
   }
 

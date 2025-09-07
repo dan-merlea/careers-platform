@@ -43,13 +43,18 @@ export class DepartmentService {
     return savedDepartment;
   }
 
-  async findAll(): Promise<Department[]> {
-    return this.departmentModel.find().populate('parentDepartment').exec();
+  async findAll(companyId?: string): Promise<Department[]> {
+    const query = companyId ? { companyId } : {};
+    return this.departmentModel.find(query).populate('parentDepartment').exec();
   }
 
-  async findOne(id: string): Promise<Department> {
+  async findOne(id: string, companyId?: string): Promise<Department> {
+    const query = { _id: id };
+    if (companyId) {
+      query['companyId'] = companyId;
+    }
     const department = await this.departmentModel
-      .findById(id)
+      .findOne(query)
       .populate('parentDepartment')
       .exec();
 
@@ -149,11 +154,13 @@ export class DepartmentService {
     }
   }
 
-  async getHierarchy(): Promise<Department[]> {
+  async getHierarchy(companyId?: string): Promise<Department[]> {
     // Get all top-level departments (those without a parent)
-    const topLevelDepartments = await this.departmentModel
-      .find({ parentDepartment: null })
-      .exec();
+    const query = { parentDepartment: null };
+    if (companyId) {
+      query['companyId'] = companyId;
+    }
+    const topLevelDepartments = await this.departmentModel.find(query).exec();
 
     // For each top-level department, recursively get its children
     const result: Department[] = [];

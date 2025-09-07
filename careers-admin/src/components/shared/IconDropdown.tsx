@@ -54,8 +54,7 @@ const IconDropdown: React.FC<IconDropdownProps> = ({ selectedIcon, onSelectIcon 
   }, []);
   
   return (
-    <div className="mb-2" ref={dropdownRef}>
-      <label className="block text-gray-700 mb-1">Select an icon:</label>
+    <div className="min-w-36 mr-2" ref={dropdownRef}>
       <div className="relative">
         {isDropdownOpen && (
           <div className="absolute z-10 bottom-full mb-1 w-full bg-slate-50 border rounded-md shadow-xl max-h-64 overflow-auto">

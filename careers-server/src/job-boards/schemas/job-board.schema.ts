@@ -8,6 +8,13 @@ export class JobBoard {
   @Prop({ required: true })
   title: string;
 
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Company',
+    required: true,
+  })
+  companyId: string;
+
   @Prop()
   description: string;
 

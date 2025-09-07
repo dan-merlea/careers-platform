@@ -8,6 +8,7 @@ import CompanyDetailsPage from './pages/CompanyDetailsPage';
 import UsersPage from './pages/UsersPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import CompanySignupPage from './pages/CompanySignupPage';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ProfilePage from './pages/ProfilePage';
 import JobBoardsPage from './pages/JobBoardsPage';
@@ -19,6 +20,7 @@ import JobEditPage from './pages/JobEditPage';
 import JobDetailPage from './pages/JobDetailPage';
 import HeadcountListPage from './pages/HeadcountListPage';
 import HeadcountRequestForm from './pages/HeadcountRequestForm';
+import DebugJobApplications from './pages/DebugJobApplications';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CompanyProvider } from './context/CompanyContext';
 import RoleGuard from './components/guards/RoleGuard';
@@ -92,6 +94,13 @@ const AppRoutes: React.FC = () => {
       <Route path="/signup" element={
         <LoginRoute>
           <SignupPage />
+        </LoginRoute>
+      } />
+      
+      {/* Public route for company signup - redirects to dashboard if already logged in */}
+      <Route path="/company-signup" element={
+        <LoginRoute>
+          <CompanySignupPage />
         </LoginRoute>
       } />
       
@@ -239,6 +248,16 @@ const AppRoutes: React.FC = () => {
                 element={
                   <RoleGuard requiredRoles={['admin', 'manager']} showUnauthorized>
                     <HeadcountRequestForm />
+                  </RoleGuard>
+                }
+              />
+              
+              {/* Debug routes - only visible in development mode */}
+              <Route
+                path="/debug/job-applications"
+                element={
+                  <RoleGuard requiredRoles={['admin']} showUnauthorized>
+                    <DebugJobApplications />
                   </RoleGuard>
                 }
               />

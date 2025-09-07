@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Request,
 } from '@nestjs/common';
 import { DepartmentService } from './department.service';
 import { CreateDepartmentDto } from './dto/create-department.dto';
@@ -23,26 +24,37 @@ export class DepartmentController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  create(@Body() createDepartmentDto: CreateDepartmentDto) {
-    return this.departmentService.create(createDepartmentDto);
+  create(
+    @Body() createDepartmentDto: CreateDepartmentDto,
+    @Request() req: { user: { companyId: string } },
+  ) {
+    // Add company ID to the department data
+    const departmentWithCompany = {
+      ...createDepartmentDto,
+      companyId: req.user.companyId,
+    };
+    return this.departmentService.create(departmentWithCompany);
   }
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.RECRUITER)
-  findAll() {
-    return this.departmentService.findAll();
+  findAll(@Request() req: { user: { companyId: string } }) {
+    return this.departmentService.findAll(req.user.companyId);
   }
 
   @Get('hierarchy')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.RECRUITER, UserRole.USER)
-  getHierarchy() {
-    return this.departmentService.getHierarchy();
+  getHierarchy(@Request() req: { user: { companyId: string } }) {
+    return this.departmentService.getHierarchy(req.user.companyId);
   }
 
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.RECRUITER)
-  findOne(@Param('id') id: string) {
-    return this.departmentService.findOne(id);
+  findOne(
+    @Param('id') id: string,
+    @Request() req: { user: { companyId: string } },
+  ) {
+    return this.departmentService.findOne(id, req.user.companyId);
   }
 
   @Patch(':id')
@@ -50,13 +62,28 @@ export class DepartmentController {
   update(
     @Param('id') id: string,
     @Body() updateDepartmentDto: UpdateDepartmentDto,
+    @Request() req: { user: { companyId: string } },
   ) {
-    return this.departmentService.update(id, updateDepartmentDto);
+    // First verify the department belongs to this company
+    return this.departmentService.findOne(id, req.user.companyId)
+      .then(() => {
+        // Add company ID to ensure it doesn't change
+        const updateData = {
+          ...updateDepartmentDto,
+          companyId: req.user.companyId,
+        };
+        return this.departmentService.update(id, updateData);
+      });
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  async remove(@Param('id') id: string) {
+  async remove(
+    @Param('id') id: string,
+    @Request() req: { user: { companyId: string } },
+  ) {
+    // First verify the department belongs to this company
+    await this.departmentService.findOne(id, req.user.companyId);
     await this.departmentService.remove(id);
     return { success: true, message: 'Department deleted successfully' };
   }

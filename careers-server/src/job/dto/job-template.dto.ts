@@ -1,5 +1,4 @@
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
-import { Types } from 'mongoose';
 
 export class CreateJobTemplateDto {
   @IsString()
@@ -17,6 +16,10 @@ export class CreateJobTemplateDto {
   @IsOptional()
   @IsString()
   departmentId?: string;
+
+  @IsOptional()
+  @IsString()
+  companyId?: string;
 }
 
 export class UpdateJobTemplateDto {
@@ -35,6 +38,10 @@ export class UpdateJobTemplateDto {
   @IsOptional()
   @IsString()
   departmentId?: string;
+
+  @IsOptional()
+  @IsString()
+  companyId?: string;
 }
 
 export class JobTemplateResponseDto {
@@ -42,6 +49,7 @@ export class JobTemplateResponseDto {
   name: string;
   content: string;
   role: string;
+  companyId: string;
   department?: {
     id: string;
     name: string;

@@ -225,7 +225,11 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
             <div>
               <label className="block text-gray-700 mb-2">Values</label>
               <div className="flex flex-col mb-2">
-                <div className="flex items-center mb-2">
+                <div className="flex items-center">
+                  <IconDropdown 
+                    selectedIcon={valueIcon} 
+                    onSelectIcon={(icon) => setValueIcon(icon)} 
+                  />
                   <input
                     type="text"
                     value={valueInput}
@@ -249,11 +253,6 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
                     Add
                   </button>
                 </div>
-                
-                <IconDropdown 
-                  selectedIcon={valueIcon} 
-                  onSelectIcon={(icon) => setValueIcon(icon)} 
-                />
               </div>
               
               <div className="mt-2">

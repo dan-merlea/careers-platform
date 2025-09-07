@@ -33,19 +33,20 @@ export class HeadcountRequestController {
     return this.headcountRequestService.create(
       createHeadcountRequestDto,
       req.user.userId,
+      req.user.companyId,
     );
   }
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.MANAGER)
   async findAll(@Req() req): Promise<HeadcountRequest[]> {
-    // Admin and directors can see all requests
+    // Admin and directors can see all requests for their company
     if (req.user.role === UserRole.ADMIN || req.user.role === UserRole.DIRECTOR) {
-      return this.headcountRequestService.findAll();
+      return this.headcountRequestService.findAll({}, req.user.companyId);
     }
 
     // Managers can only see their own requests
-    return this.headcountRequestService.findByUser(req.user.userId);
+    return this.headcountRequestService.findByUser(req.user.userId, req.user.companyId);
   }
 
   @Get(':id')
@@ -54,7 +55,7 @@ export class HeadcountRequestController {
     @Param('id') id: string,
     @Req() req,
   ): Promise<HeadcountRequest> {
-    const headcountRequest = await this.headcountRequestService.findOne(id);
+    const headcountRequest = await this.headcountRequestService.findOne(id, req.user.companyId);
 
     // Check if user has permission to view this request
     if (req.user.role !== UserRole.ADMIN && 
@@ -75,7 +76,7 @@ export class HeadcountRequestController {
     @Body() updateHeadcountRequestDto: any,
     @Req() req,
   ): Promise<HeadcountRequest> {
-    const headcountRequest = await this.headcountRequestService.findOne(id);
+    const headcountRequest = await this.headcountRequestService.findOne(id, req.user.companyId);
 
     // Only the creator or admin can update a request
     if (req.user.role !== UserRole.ADMIN && 
@@ -92,7 +93,7 @@ export class HeadcountRequestController {
       );
     }
 
-    return this.headcountRequestService.update(id, updateHeadcountRequestDto);
+    return this.headcountRequestService.update(id, updateHeadcountRequestDto, req.user.companyId);
   }
 
   @Post(':id/approve')
@@ -105,6 +106,7 @@ export class HeadcountRequestController {
     return this.headcountRequestService.approve(
       id,
       req.user.userId,
+      req.user.companyId,
       reviewNotes,
     );
   }
@@ -119,13 +121,17 @@ export class HeadcountRequestController {
     return this.headcountRequestService.reject(
       id,
       req.user.userId,
+      req.user.companyId,
       reviewNotes,
     );
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  async remove(@Param('id') id: string): Promise<void> {
-    return this.headcountRequestService.remove(id);
+  async remove(
+    @Param('id') id: string,
+    @Req() req,
+  ): Promise<void> {
+    return this.headcountRequestService.remove(id, req.user.companyId);
   }
 }

@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type UserDocument = User & Document;
 
@@ -28,8 +28,19 @@ export class User {
   @Prop({ default: false })
   isVerified: boolean;
 
-  @Prop({ type: String, ref: 'Department', default: null })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Department',
+    default: null,
+  })
   departmentId: string | null;
+
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Company',
+    required: true,
+  })
+  companyId: string;
 
   @Prop({ default: Date.now })
   createdAt: Date;

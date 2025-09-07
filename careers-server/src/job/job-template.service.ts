@@ -11,11 +11,14 @@ export class JobTemplateService {
     @InjectModel(JobTemplate.name) private jobTemplateModel: Model<JobTemplateDocument>,
   ) {}
 
-  async create(createJobTemplateDto: CreateJobTemplateDto): Promise<JobTemplateDocument> {
+  async create(createJobTemplateDto: CreateJobTemplateDto, companyId: string): Promise<JobTemplateDocument> {
     const templateData = { ...createJobTemplateDto };
     
     // Sanitize HTML content
     templateData.content = sanitizeHtmlContent(templateData.content);
+    
+    // Add company ID
+    const companyObjectId = new Types.ObjectId(companyId);
     
     // Convert department ID to ObjectId if provided
     if (templateData.departmentId) {
@@ -25,26 +28,40 @@ export class JobTemplateService {
       const newTemplate = new this.jobTemplateModel({
         ...templateData,
         department,
+        companyId: companyObjectId,
       });
       
       return newTemplate.save();
     }
     
-    const newTemplate = new this.jobTemplateModel(templateData);
+    const newTemplate = new this.jobTemplateModel({
+      ...templateData,
+      companyId: companyObjectId,
+    });
     return newTemplate.save();
   }
 
-  async findAll(): Promise<JobTemplateDocument[]> {
-    return this.jobTemplateModel.find().populate('department').exec();
+  async findAll(companyId?: string): Promise<JobTemplateDocument[]> {
+    const query = companyId ? { companyId: new Types.ObjectId(companyId) } : {};
+    return this.jobTemplateModel.find(query).populate('department').exec();
   }
 
-  async findByRole(role: string): Promise<JobTemplateDocument[]> {
+  async findByRole(role: string, companyId?: string): Promise<JobTemplateDocument[]> {
     // Role is expected to be an ID
-    return this.jobTemplateModel.find({ role }).populate('department').exec();
+    const query: any = { role };
+    if (companyId) {
+      query.companyId = new Types.ObjectId(companyId);
+    }
+    return this.jobTemplateModel.find(query).populate('department').exec();
   }
 
-  async findOne(id: string): Promise<JobTemplateDocument> {
-    const template = await this.jobTemplateModel.findById(id).populate('department').exec();
+  async findOne(id: string, companyId?: string): Promise<JobTemplateDocument> {
+    const query: any = { _id: id };
+    if (companyId) {
+      query.companyId = new Types.ObjectId(companyId);
+    }
+    
+    const template = await this.jobTemplateModel.findOne(query).populate('department').exec();
     
     if (!template) {
       throw new NotFoundException(`Job template with ID ${id} not found`);
@@ -53,7 +70,7 @@ export class JobTemplateService {
     return template;
   }
 
-  async update(id: string, updateJobTemplateDto: UpdateJobTemplateDto): Promise<JobTemplateDocument> {
+  async update(id: string, updateJobTemplateDto: UpdateJobTemplateDto, companyId?: string): Promise<JobTemplateDocument> {
     const templateData = { ...updateJobTemplateDto };
     
     // Sanitize HTML content if provided
@@ -68,8 +85,14 @@ export class JobTemplateService {
       templateData['department'] = department;
     }
     
+    // Create query with company ID if provided
+    const query: any = { _id: id };
+    if (companyId) {
+      query.companyId = new Types.ObjectId(companyId);
+    }
+    
     const updatedTemplate = await this.jobTemplateModel
-      .findByIdAndUpdate(id, templateData, { new: true })
+      .findOneAndUpdate(query, templateData, { new: true })
       .populate('department')
       .exec();
       
@@ -80,8 +103,13 @@ export class JobTemplateService {
     return updatedTemplate;
   }
 
-  async remove(id: string): Promise<void> {
-    const result = await this.jobTemplateModel.deleteOne({ _id: id }).exec();
+  async remove(id: string, companyId?: string): Promise<void> {
+    const query: any = { _id: id };
+    if (companyId) {
+      query.companyId = new Types.ObjectId(companyId);
+    }
+    
+    const result = await this.jobTemplateModel.deleteOne(query).exec();
     
     if (result.deletedCount === 0) {
       throw new NotFoundException(`Job template with ID ${id} not found`);
@@ -94,6 +122,7 @@ export class JobTemplateService {
       name: template.name,
       content: template.content,
       role: template.role,
+      companyId: String(template.companyId),
       createdAt: template.createdAt,
       updatedAt: template.updatedAt,
     };
