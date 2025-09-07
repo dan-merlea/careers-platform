@@ -14,7 +14,7 @@ export class JobFunction {
     ref: 'Company',
     required: true,
   })
-  company: Company;
+  companyId: Company;
 }
 
 export const JobFunctionSchema = SchemaFactory.createForClass(JobFunction);

@@ -5,6 +5,7 @@ import { UsersService } from './users.service';
 import { User, UserSchema } from './schemas/user.schema';
 import { AuthModule } from '../auth/auth.module';
 import { Company, CompanySchema } from '../company/company.schema';
+import { CompanyModule } from '../company/company.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { Company, CompanySchema } from '../company/company.schema';
       { name: Company.name, schema: CompanySchema },
     ]),
     AuthModule,
+    CompanyModule,
   ],
   controllers: [UsersController],
   providers: [UsersService],

@@ -11,5 +11,5 @@ export class CreateJobFunctionDto {
 
   @IsNotEmpty()
   @IsString()
-  company: string;
+  companyId: string;
 }

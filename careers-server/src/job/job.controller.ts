@@ -177,7 +177,7 @@ export class JobController {
 
   private mapJobToResponseDto(job: JobDocument): JobResponseDto {
     // Handle populated company document
-    const company = job.company as CompanyDocument;
+    const company = job.companyId as CompanyDocument;
     const jobId = job._id as { toString(): string };
 
     // Handle jobBoardId - convert to string if it exists

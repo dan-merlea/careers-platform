@@ -6,7 +6,7 @@ export interface Job {
   id: string;
   internalId: string;
   title: string;
-  company: string; // Company ID reference
+  companyId: string; // Company ID reference
   location: string;
   publishedDate: Date;
   updatedAt: Date;

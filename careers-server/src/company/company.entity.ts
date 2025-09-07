@@ -42,7 +42,7 @@ export class Company {
     instagram?: string;
   };
 
-  @OneToMany(() => Job, (job) => job.company)
+  @OneToMany(() => Job, (job) => job.companyId)
   jobs: Job[];
 
   @CreateDateColumn({ name: 'created_at' })

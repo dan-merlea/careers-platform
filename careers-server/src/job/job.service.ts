@@ -35,7 +35,7 @@ export class JobService {
   async findAll(): Promise<JobDocument[]> {
     return this.jobModel
       .find()
-      .populate('company')
+      .populate('companyId')
       .populate('departments')
       .populate('offices')
       .exec();
@@ -43,8 +43,8 @@ export class JobService {
 
   async findByCompany(companyId: string): Promise<JobDocument[]> {
     return this.jobModel
-      .find({ company: new Types.ObjectId(companyId) })
-      .populate('company')
+      .find({ companyId: new Types.ObjectId(companyId) })
+      .populate('companyId')
       .populate('departments')
       .populate('offices')
       .exec();
@@ -53,7 +53,7 @@ export class JobService {
   async findOne(id: string): Promise<JobDocument> {
     const job = await this.jobModel
       .findById(id)
-      .populate('company')
+      .populate('companyId')
       .populate('departments')
       .populate('offices')
       .exec();
@@ -196,7 +196,7 @@ export class JobService {
         throw new NotFoundException(`Company with ID ${companyId} not found`);
       }
       // Set company ID properly with type safety
-      job.company = company._id;
+      job.companyId = company._id;
     }
 
     // Update departments if provided
@@ -226,7 +226,7 @@ export class JobService {
   async findByDepartment(departmentId: string): Promise<JobDocument[]> {
     return this.jobModel
       .find({ departments: { $in: [new Types.ObjectId(departmentId)] } })
-      .populate('company')
+      .populate('companyId')
       .populate('departments')
       .populate('offices')
       .exec();
@@ -235,7 +235,7 @@ export class JobService {
   async findByOffice(officeId: string): Promise<JobDocument[]> {
     return this.jobModel
       .find({ offices: { $in: [new Types.ObjectId(officeId)] } })
-      .populate('company')
+      .populate('companyId')
       .populate('departments')
       .populate('offices')
       .exec();
@@ -245,7 +245,7 @@ export class JobService {
     const objectIds = ids.map((id) => new Types.ObjectId(id));
     return this.jobModel
       .find({ _id: { $in: objectIds } })
-      .populate('company')
+      .populate('companyId')
       .populate('departments')
       .populate('offices')
       .exec();
@@ -318,7 +318,7 @@ export class JobService {
   async findByJobBoard(jobBoardId: string): Promise<JobDocument[]> {
     return this.jobModel
       .find({ jobBoardId })
-      .populate('company')
+      .populate('companyId')
       .populate('departments')
       .populate('offices')
       .exec();
@@ -327,7 +327,7 @@ export class JobService {
   async findByStatus(status: JobStatus): Promise<JobDocument[]> {
     return this.jobModel
       .find({ status })
-      .populate('company')
+      .populate('companyId')
       .populate('departments')
       .populate('offices')
       .exec();

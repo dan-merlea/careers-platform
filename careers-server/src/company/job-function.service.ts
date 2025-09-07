@@ -28,7 +28,7 @@ export class JobFunctionService {
 
   async findByCompany(companyId: string): Promise<JobFunction[]> {
     const jobFunctions = await this.jobFunctionModel
-      .find({ company: companyId })
+      .find({ companyId })
       .exec();
     return jobFunctions.map((jf) => this.toJobFunction(jf));
   }
@@ -67,14 +67,14 @@ export class JobFunctionService {
     // Convert string ID to ObjectId
     const companyObjectId = new Types.ObjectId(companyId);
     const defaultJobFunctions = [
-      { title: 'Engineering', company: companyObjectId },
-      { title: 'Marketing', company: companyObjectId },
-      { title: 'Sales', company: companyObjectId },
-      { title: 'Product', company: companyObjectId },
-      { title: 'Design', company: companyObjectId },
-      { title: 'Operations', company: companyObjectId },
-      { title: 'Human Resources', company: companyObjectId },
-      { title: 'Finance', company: companyObjectId },
+      { title: 'Engineering', companyId: companyObjectId },
+      { title: 'Marketing', companyId: companyObjectId },
+      { title: 'Sales', companyId: companyObjectId },
+      { title: 'Product', companyId: companyObjectId },
+      { title: 'Design', companyId: companyObjectId },
+      { title: 'Operations', companyId: companyObjectId },
+      { title: 'Human Resources', companyId: companyObjectId },
+      { title: 'Finance', companyId: companyObjectId },
     ];
 
     const createdFunctions =

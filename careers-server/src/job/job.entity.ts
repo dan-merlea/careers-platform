@@ -14,7 +14,7 @@ export class Job {
   title: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Company', required: true })
-  company: any; // Reference to Company
+  companyId: any; // Reference to Company
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'HeadcountRequest' })
   headcountRequestId?: MongooseSchema.Types.ObjectId;

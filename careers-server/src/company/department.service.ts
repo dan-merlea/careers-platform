@@ -341,4 +341,38 @@ export class DepartmentService {
       await parent.save();
     }
   }
+
+  /**
+   * Creates default departments for a new company
+   * @param companyId - The ID of the company to create departments for
+   * @returns Array of created departments
+   */
+  async createDefaultDepartments(companyId: string): Promise<Department[]> {
+    // Convert string ID to ObjectId
+    const companyObjectId = new Types.ObjectId(companyId);
+    
+    // Define default departments for a tech company
+    const defaultDepartments = [
+      // Top-level departments
+      { title: 'Engineering', companyId: companyObjectId },
+      { title: 'Product', companyId: companyObjectId },
+      { title: 'Marketing', companyId: companyObjectId },
+      { title: 'Sales', companyId: companyObjectId },
+      { title: 'Operations', companyId: companyObjectId },
+      { title: 'People', companyId: companyObjectId },
+      { title: 'Finance', companyId: companyObjectId },
+      { title: 'Legal', companyId: companyObjectId },
+    ];
+
+    // Create all departments
+    const createdDepartments: Department[] = [];
+    
+    for (const deptData of defaultDepartments) {
+      const department = new this.departmentModel(deptData);
+      const savedDepartment = await department.save();
+      createdDepartments.push(savedDepartment);
+    }
+
+    return createdDepartments;
+  }
 }

@@ -9,6 +9,8 @@ import { CompanySignupDto } from './dto/company-signup.dto';
 import { User, UserDocument, UserRole } from './schemas/user.schema';
 import { AuthService } from '../auth/auth.service';
 import { Company } from '../company/company.schema';
+import { JobFunctionService } from '../company/job-function.service';
+import { DepartmentService } from '../company/department.service';
 
 @Injectable()
 export class UsersService {
@@ -16,6 +18,8 @@ export class UsersService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Company.name) private companyModel: Model<Company>,
     private authService: AuthService,
+    private jobFunctionService: JobFunctionService,
+    private departmentService: DepartmentService,
   ) {}
 
   async create(createUserDto: CreateUserDto, companyId?: string) {
@@ -88,6 +92,16 @@ export class UsersService {
     // Update the user to be an admin
     if (user && user.id) {
       await this.updateRole(String(user.id), UserRole.ADMIN);
+    }
+    
+    // Create default job functions and departments for the company
+    try {
+      await this.jobFunctionService.createDefaultJobFunctions(companyId);
+      await this.departmentService.createDefaultDepartments(companyId);
+    } catch (error) {
+      console.error('Error creating default company data:', error);
+      // We don't throw here to avoid failing the signup process
+      // The user can still create these manually if needed
     }
 
     // Generate JWT token with role information and company ID
