@@ -39,6 +39,12 @@ export class HeadcountRequest extends Document {
 
   @Prop()
   reviewedAt: Date;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Job' })
+  jobId: string;
+
+  @Prop({ type: Boolean, default: false })
+  hasJobCreated: boolean;
 }
 
 export const HeadcountRequestSchema = SchemaFactory.createForClass(HeadcountRequest);

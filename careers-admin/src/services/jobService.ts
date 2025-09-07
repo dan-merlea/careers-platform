@@ -58,6 +58,9 @@ export interface JobCreateDto {
   officeIds: string[];
   status?: JobStatus;
   jobBoardId?: string;
+  headcountRequestId?: string; // Reference to the headcount request this job is created from
+  skipApproval?: boolean; // Flag to skip approval process for jobs created from headcount requests
+  roleTitle?: string; // Used for matching with job roles when creating from headcount requests
 }
 
 export interface JobUpdateDto {
@@ -70,6 +73,7 @@ export interface JobUpdateDto {
   officeIds?: string[];
   status?: JobStatus;
   jobBoardId?: string;
+  roleTitle?: string; // Used for matching with job roles when creating from headcount requests
 }
 
 const jobService = {
@@ -147,8 +151,16 @@ const jobService = {
     return response;
   },
 
-  getJobsForApproval: async (): Promise<Job[]> => {
-    const response = await api.get<Job[]>('/jobs/for-approval');
+  
+  // Create a job from a headcount request
+  createJobFromHeadcount: async (headcountRequestId: string, jobData: Partial<JobCreateDto>): Promise<Job> => {
+    const data = {
+      ...jobData,
+      headcountRequestId
+      // Let the backend determine if approval should be skipped based on company settings
+    };
+    // Use the standard jobs endpoint instead of a special endpoint
+    const response = await api.post<Job>('/jobs', data);
     return response;
   }
 };

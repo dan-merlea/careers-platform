@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { API_URL } from '../config';
+import { api } from '../utils/api';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -14,6 +13,7 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  departmentId?: string;
 }
 
 export interface LoginCredentials {
@@ -51,54 +51,41 @@ export interface ChangePasswordResponse {
 }
 
 const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  const response = await axios.post(`${API_URL}/users/login`, credentials);
-  return response.data;
+  return api.post<AuthResponse>('/users/login', credentials);
 };
 
 const signup = async (credentials: SignupCredentials): Promise<User> => {
-  const response = await axios.post(`${API_URL}/users/signup`, credentials);
-  return response.data;
+  return api.post<User>('/users/signup', credentials);
 };
 
 const getAllUsers = async (token: string): Promise<User[]> => {
-  const response = await axios.get(`${API_URL}/users`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return response.data;
+  // token is handled automatically by the api utility
+  return api.get<User[]>('/users');
 };
 
 const updateUserRole = async (userId: string, role: UserRole, token: string): Promise<User> => {
-  const response = await axios.patch(
-    `${API_URL}/users/${userId}/role`,
-    { role },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return response.data;
+  // token is handled automatically by the api utility
+  return api.patch<User>(`/users/${userId}/role`, { role });
+};
+
+const updateUserDepartment = async (userId: string, departmentId: string | null, token: string): Promise<User> => {
+  // token is handled automatically by the api utility
+  return api.patch<User>(`/users/${userId}/department`, { departmentId });
 };
 
 const getProfile = async (token: string): Promise<ProfileResponse> => {
-  const response = await axios.get(`${API_URL}/users/profile`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-  return response.data;
+  // token is handled automatically by the api utility
+  return api.get<ProfileResponse>('/users/profile');
 };
 
 const updateProfile = async (data: UpdateProfileRequest, token: string): Promise<ProfileResponse> => {
-  const response = await axios.patch(
-    `${API_URL}/users/profile`,
-    data,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return response.data;
+  // token is handled automatically by the api utility
+  return api.patch<ProfileResponse>('/users/profile', data);
 };
 
 const changePassword = async (data: ChangePasswordRequest, token: string): Promise<ChangePasswordResponse> => {
-  const response = await axios.patch(
-    `${API_URL}/users/change-password`,
-    data,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return response.data;
+  // token is handled automatically by the api utility
+  return api.patch<ChangePasswordResponse>('/users/change-password', data);
 };
 
 export const authService = {
@@ -106,6 +93,7 @@ export const authService = {
   signup,
   getAllUsers,
   updateUserRole,
+  updateUserDepartment,
   getProfile,
   updateProfile,
   changePassword

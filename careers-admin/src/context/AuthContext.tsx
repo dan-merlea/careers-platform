@@ -7,6 +7,7 @@ interface AuthContextType {
   userEmail: string | null;
   isAdmin: boolean;
   userRole: string | null;
+  userDepartment: string | null;
   token: string | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string, name: string) => Promise<void>;
@@ -21,6 +22,7 @@ const AuthContext = createContext<AuthContextType>({
   userEmail: null,
   isAdmin: false,
   userRole: null,
+  userDepartment: null,
   token: null,
   login: async () => {},
   signup: async () => {},
@@ -45,6 +47,7 @@ interface AuthResponse {
     isAdmin: boolean;
     role: string;
     name?: string;
+    departmentId?: string;
   };
 }
 
@@ -54,6 +57,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userDepartment, setUserDepartment] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   
@@ -67,6 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedEmail = localStorage.getItem('userEmail');
       const storedIsAdmin = localStorage.getItem('isAdmin') === 'true';
       const storedRole = localStorage.getItem('userRole');
+      const storedDepartment = localStorage.getItem('userDepartment');
 
       if (storedToken) {
         // Validate token with the backend
@@ -80,6 +85,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUserEmail(storedEmail);
           setIsAdmin(storedIsAdmin);
           setUserRole(storedRole);
+          setUserDepartment(storedDepartment);
         } catch {
           // Token is invalid, clear auth data
           clearAuth();
@@ -88,6 +94,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUserEmail(null);
           setIsAdmin(false);
           setUserRole(null);
+          setUserDepartment(null);
         }
       } else {
         setIsAuthenticated(false);
@@ -95,6 +102,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserEmail(null);
         setIsAdmin(false);
         setUserRole(null);
+        setUserDepartment(null);
       }
 
       setLoading(false);
@@ -111,6 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserEmail(null);
       setIsAdmin(false);
       setUserRole(null);
+      setUserDepartment(null);
       
       // We can't use navigate here, so we'll redirect manually
       window.location.href = '/login';
@@ -148,6 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('userEmail', email);
       localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
       localStorage.setItem('userRole', data.user.role);
+      localStorage.setItem('userDepartment', data.user.departmentId || '');
       
       // Update state
       setIsAuthenticated(true);
@@ -155,6 +165,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserEmail(email);
       setIsAdmin(data.user.isAdmin);
       setUserRole(data.user.role);
+      setUserDepartment(data.user.departmentId || null);
     } finally {
       setLoading(false);
     }
@@ -172,6 +183,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('userEmail', email);
       localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
       localStorage.setItem('userRole', data.user.role);
+      localStorage.setItem('userDepartment', data.user.departmentId || '');
       
       // Update state
       setIsAuthenticated(true);
@@ -179,6 +191,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserEmail(email);
       setIsAdmin(data.user.isAdmin);
       setUserRole(data.user.role);
+      setUserDepartment(data.user.departmentId || null);
     } finally {
       setLoading(false);
     }
@@ -199,6 +212,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Clear auth data
       clearAuth();
       localStorage.removeItem('userRole');
+      localStorage.removeItem('userDepartment');
       
       // Update state
       setIsAuthenticated(false);
@@ -206,6 +220,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserEmail(null);
       setIsAdmin(false);
       setUserRole(null);
+      setUserDepartment(null);
     } finally {
       setLoading(false);
     }
@@ -217,6 +232,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     userEmail,
     isAdmin,
     userRole,
+    userDepartment,
     token,
     login,
     signup,

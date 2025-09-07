@@ -53,6 +53,26 @@ export class UsersController {
     }
   }
 
+  @Patch(':id/department')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async updateUserDepartment(
+    @Param('id') id: string,
+    @Body() updateDepartmentDto: { departmentId: string | null },
+  ) {
+    try {
+      return await this.usersService.updateDepartment(
+        id,
+        updateDepartmentDto.departmentId,
+      );
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('An error occurred', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   @Post('signup')
   async signup(@Body() createUserDto: CreateUserDto) {
     try {

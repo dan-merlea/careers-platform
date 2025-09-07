@@ -97,8 +97,11 @@ const JobBoardJobCreatePage: React.FC = () => {
 
       <div className="bg-white p-6 rounded shadow">
         <JobForm
+          initialData={{ jobBoardId }}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
+          isFromJobBoard={true}
+          jobBoardId={jobBoardId}
         />
       </div>
     </div>

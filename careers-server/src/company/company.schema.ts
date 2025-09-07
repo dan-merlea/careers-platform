@@ -25,6 +25,12 @@ class CompanyValue {
   icon: string;
 }
 
+@Schema()
+export class CompanySettings {
+  @Prop({ default: 'headcount' })
+  approvalType: 'headcount' | 'job-opening';
+}
+
 @Schema({ timestamps: true })
 export class Company extends Document {
   @Prop({ required: true })
@@ -59,6 +65,9 @@ export class Company extends Document {
 
   @Prop([{ type: Object }])
   values: CompanyValue[];
+
+  @Prop({ type: CompanySettings, default: { approvalType: 'headcount' } })
+  settings: CompanySettings;
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);

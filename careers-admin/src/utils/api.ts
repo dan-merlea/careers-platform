@@ -74,10 +74,18 @@ export const apiRequest = async <T>(
     throw new Error(errorData.message || `API error: ${response.status}`);
   }
 
-  // Return parsed JSON or empty object if no content
-  return response.status !== 204 
-    ? await response.json() 
-    : {} as T;
+  // For 204 No Content responses, return an empty object
+  if (response.status === 204) {
+    return {} as T;
+  }
+  
+  // For all other successful responses, try to parse JSON
+  try {
+    return await response.json();
+  } catch (error) {
+    // If parsing fails (e.g., empty body), return empty object
+    return {} as T;
+  }
 };
 
 /**

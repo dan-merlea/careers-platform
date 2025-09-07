@@ -27,11 +27,18 @@ export const jobRoleService = {
   /**
    * Get all job roles, optionally filtered by job function
    */
-  getAll: (jobFunctionId?: string): Promise<JobRole[]> => {
-    const endpoint = jobFunctionId 
-      ? `${JOB_ROLES_API}?jobFunctionId=${jobFunctionId}` 
-      : JOB_ROLES_API;
-    return api.get<JobRole[]>(endpoint);
+  getAll: async (jobFunctionId?: string): Promise<JobRole[]> => {
+    const url = jobFunctionId ? `/job-roles?jobFunctionId=${jobFunctionId}` : '/job-roles';
+    return api.get<JobRole[]>(url);
+  },
+  
+  // Get job roles by department ID
+  getByDepartment: async (departmentId: string): Promise<JobRole[]> => {
+    // Since there's no direct endpoint, we'll filter from all roles
+    const allRoles = await jobRoleService.getAll();
+    // Return all roles for now since we don't have a direct way to filter by department
+    // In a real implementation, you would filter by department
+    return allRoles;
   },
 
   /**

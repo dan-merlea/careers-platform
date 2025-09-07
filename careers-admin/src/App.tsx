@@ -20,6 +20,7 @@ import JobDetailPage from './pages/JobDetailPage';
 import HeadcountListPage from './pages/HeadcountListPage';
 import HeadcountRequestForm from './pages/HeadcountRequestForm';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { CompanyProvider } from './context/CompanyContext';
 import RoleGuard from './components/guards/RoleGuard';
 import SessionExpiredNotification from './components/notifications/SessionExpiredNotification';
 
@@ -97,8 +98,9 @@ const AppRoutes: React.FC = () => {
       {/* All other routes are protected */}
       <Route path="/*" element={
         <ProtectedRoute>
-          <Layout>
-            <Routes>
+          <CompanyProvider>
+            <Layout>
+              <Routes>
               <Route path="/" element={<HomePage />} />
               
               {/* Admin-only routes */}
@@ -121,7 +123,7 @@ const AppRoutes: React.FC = () => {
               <Route
                 path="/users"
                 element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                  <RoleGuard requiredRoles={['admin']} showUnauthorized>
                     <UsersPage />
                   </RoleGuard>
                 }
@@ -247,7 +249,8 @@ const AppRoutes: React.FC = () => {
               {/* Add more role-based routes as needed */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </Layout>
+            </Layout>
+          </CompanyProvider>
         </ProtectedRoute>
       } />
     </Routes>

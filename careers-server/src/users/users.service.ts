@@ -49,6 +49,7 @@ export class UsersService {
       name: savedUser.name,
       email: savedUser.email,
       role: savedUser.role,
+      departmentId: savedUser.departmentId,
     };
   }
 
@@ -86,6 +87,7 @@ export class UsersService {
         email: user.email,
         name: user.name,
         role: user.role,
+        departmentId: user.departmentId,
       },
     };
   }
@@ -119,6 +121,7 @@ export class UsersService {
       name: user.name,
       email: user.email,
       role: user.role,
+      departmentId: user.departmentId,
     }));
   }
 
@@ -142,6 +145,7 @@ export class UsersService {
       name: updatedUser.name,
       email: updatedUser.email,
       role: updatedUser.role,
+      departmentId: updatedUser.departmentId,
     };
   }
 
@@ -157,6 +161,7 @@ export class UsersService {
       name: user.name,
       email: user.email,
       role: user.role,
+      departmentId: user.departmentId,
       createdAt: user.createdAt,
     };
   }
@@ -194,6 +199,7 @@ export class UsersService {
       name: updatedUser.name,
       email: updatedUser.email,
       role: updatedUser.role,
+      departmentId: updatedUser.departmentId,
       createdAt: updatedUser.createdAt,
     };
   }
@@ -225,5 +231,25 @@ export class UsersService {
     await user.save();
 
     return { message: 'Password updated successfully' };
+  }
+
+  async updateDepartment(userId: string, departmentId: string | null) {
+    const user = await this.userModel.findById(userId).exec();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Update department
+    user.departmentId = departmentId;
+    const updatedUser = await user.save();
+
+    return {
+      id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      departmentId: updatedUser.departmentId,
+    };
   }
 }

@@ -1,17 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import headcountService, { HeadcountRequest, CreateHeadcountRequest } from '../services/headcountService';
+import jobService, { Job } from '../services/jobService';
 import { useAuth } from '../context/AuthContext';
+import { useCompany } from '../context/CompanyContext';
 import { jobRoleService, JobRole } from '../services/jobRoleService';
 import { departmentService, Department } from '../services/departmentService';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 
 const HeadcountRequestForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   // We only need userRole for permission checks
   const { userRole } = useAuth();
+  const { company } = useCompany();
   const isEditing = !!id;
+  
+  // Check if approval workflow is set to headcount
+  const isHeadcountApprovalWorkflow = company?.settings?.approvalType === 'headcount';
   
   const [formData, setFormData] = useState<CreateHeadcountRequest>({
     role: '',
@@ -24,17 +31,25 @@ const HeadcountRequestForm: React.FC = () => {
   const [headcountRequest, setHeadcountRequest] = useState<HeadcountRequest | null>(null);
   const [isReviewing, setIsReviewing] = useState<boolean>(false);
   const [reviewNotes, setReviewNotes] = useState<string>('');
+  const [isCreatingJob, setIsCreatingJob] = useState<boolean>(false);
   
   // State for dropdown options
   const [allJobRoles, setAllJobRoles] = useState<JobRole[]>([]);
   const [filteredJobRoles, setFilteredJobRoles] = useState<JobRole[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState<boolean>(false);
+  const [jobDetails, setJobDetails] = useState<Job | null>(null);
+  const [isLoadingJob, setIsLoadingJob] = useState<boolean>(false);
   
   // Check if user is a director or admin (can approve/reject)
   const canApprove = userRole === 'director' || userRole === 'admin';
   // Check if user is a manager (can create/edit)
-  const canEdit = userRole === 'manager' || userRole === 'admin';
+  const canEdit = userRole === 'recruiter' || userRole === 'admin';
+  // Check if user can create a job from this headcount request
+  const canCreateJob = (userRole === 'admin' || userRole === 'recruiter') && 
+                      isHeadcountApprovalWorkflow && 
+                      headcountRequest?.status === 'approved' && 
+                      !headcountRequest?.hasJobCreated;
 
   // Fetch job roles and departments
   useEffect(() => {
@@ -89,16 +104,63 @@ const HeadcountRequestForm: React.FC = () => {
     }
   };
 
+  // Function to fetch job details
+  const fetchJobDetails = useCallback(async (jobId: string) => {
+    if (!jobId) return;
+    
+    setIsLoadingJob(true);
+    try {
+      const jobData = await jobService.getJob(jobId);
+      setJobDetails(jobData);
+      console.log('Fetched job details:', jobData);
+    } catch (error) {
+      console.error('Error fetching job details:', error);
+      toast.error('Failed to load job details');
+    } finally {
+      setIsLoadingJob(false);
+    }
+  }, []);
+
+  // Function to refresh headcount request data
+  const refreshHeadcountRequest = useCallback(async () => {
+    if (!id) return;
+    
+    try {
+      const data = await headcountService.getById(id);
+      setHeadcountRequest(data);
+      console.log('Refreshed headcount request data:', data);
+      
+      // If the headcount request has a job created, fetch the job details
+      if (data.hasJobCreated && data.jobId) {
+        fetchJobDetails(data.jobId);
+      }
+    } catch (error) {
+      console.error('Error refreshing headcount request:', error);
+    }
+  }, [id, fetchJobDetails]);
+
+  // Initial fetch of headcount request data
   useEffect(() => {
-    const fetchHeadcountRequest = async () => {
+    const fetchInitialData = async () => {
       if (id) {
         setIsLoading(true);
         try {
           const data = await headcountService.getById(id);
           setHeadcountRequest(data);
           
-          // Only populate form data if user can edit
-          if (canEdit && data.status === 'pending') {
+          // If the headcount request has a job created, fetch the job details
+          if (data.hasJobCreated && data.jobId) {
+            fetchJobDetails(data.jobId);
+          }
+          
+          // If user doesn't have permission to view this request, redirect
+          if (!canEdit && data.requestedBy._id !== userRole) {
+            navigate('/headcount');
+            return;
+          }
+          
+          if (!isEditing) {
+            // If editing, populate form with existing data
             setFormData({
               role: data.role,
               department: data.department,
@@ -115,11 +177,37 @@ const HeadcountRequestForm: React.FC = () => {
         }
       }
     };
-
+    
     if (isEditing) {
-      fetchHeadcountRequest();
+      fetchInitialData();
     }
-  }, [id, navigate, canEdit, isEditing]);
+  }, [id, navigate, canEdit, isEditing, userRole, fetchJobDetails]);
+  
+  // Effect to refresh data when returning to the page
+  useEffect(() => {
+    // Add a listener for when the component becomes visible again after navigation
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isEditing && id) {
+        refreshHeadcountRequest();
+      }
+    };
+    
+    // Add a listener for focus events to refresh data when the window regains focus
+    const handleFocus = () => {
+      if (isEditing && id) {
+        refreshHeadcountRequest();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    // Clean up the event listeners when the component unmounts
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, [isEditing, id, refreshHeadcountRequest]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -190,6 +278,23 @@ const HeadcountRequestForm: React.FC = () => {
       setIsReviewing(false);
     }
   };
+  
+  // This duplicate function has been removed
+
+  // Handle creating a job from an approved headcount request
+  const handleCreateJob = async () => {
+    if (!id || !headcountRequest) return;
+    
+    setIsCreatingJob(true);
+    try {
+      // Navigate to job creation form with headcount request ID
+      navigate(`/jobs/create?headcountRequestId=${id}&role=${encodeURIComponent(headcountRequest.role)}&department=${encodeURIComponent(headcountRequest.department)}`);
+    } catch (error) {
+      console.error('Error navigating to job creation:', error);
+      toast.error('Failed to create job from headcount request');
+      setIsCreatingJob(false);
+    }
+  };
 
   if (isLoading && isEditing) {
     return (
@@ -205,13 +310,16 @@ const HeadcountRequestForm: React.FC = () => {
     
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
+        <div className="flex items-center mb-6">
           <button 
-            onClick={() => navigate('/headcount')}
-            className="text-blue-600 hover:text-blue-800"
+            onClick={() => navigate(-1)}
+            className="mr-4 p-2 hover:bg-gray-100 rounded-full"
           >
-            &larr; Back to Headcount Requests
+            <ArrowLeftIcon className="w-5 h-5" />
           </button>
+          <h1 className="text-2xl font-bold text-gray-800">
+            Headcount Requests
+          </h1>
         </div>
         
         <div className="bg-white shadow-md rounded-lg p-6">
@@ -238,6 +346,29 @@ const HeadcountRequestForm: React.FC = () => {
                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
                 >
                   Review Request
+                </button>
+              </div>
+            )}
+            
+            {/* Add Create Job button for approved headcount requests */}
+            {canCreateJob && (
+              <div>
+                <button
+                  onClick={handleCreateJob}
+                  disabled={isCreatingJob}
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2 flex items-center"
+                >
+                  {isCreatingJob ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Creating...
+                    </>
+                  ) : (
+                    <>Create Job Opening</>
+                  )}
                 </button>
               </div>
             )}
@@ -327,6 +458,39 @@ const HeadcountRequestForm: React.FC = () => {
                   <p className="text-gray-900">{new Date(headcountRequest.createdAt).toLocaleDateString()}</p>
                 </div>
                 
+                {/* Job Details Section */}
+                {headcountRequest.hasJobCreated && headcountRequest.jobId && (
+                  <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <h3 className="text-md font-semibold text-green-800 mb-2">Job Opening Created</h3>
+                    {isLoadingJob ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin h-4 w-4 border-t-2 border-b-2 border-green-500 rounded-full"></div>
+                        <p className="text-sm text-gray-600">Loading job details...</p>
+                      </div>
+                    ) : jobDetails ? (
+                      <div>
+                        <p className="text-sm mb-2"><span className="font-medium">Title:</span> {jobDetails.title}</p>
+                        <p className="text-sm mb-2"><span className="font-medium">Status:</span> {jobDetails.status.toUpperCase()}</p>
+                        {jobDetails.publishedDate && (
+                          <p className="text-sm mb-2"><span className="font-medium">Published:</span> {new Date(jobDetails.publishedDate).toLocaleDateString()}</p>
+                        )}
+                        <div className="mt-3">
+                          <Link 
+                            to={`/job-boards/${jobDetails.jobBoardId}/jobs/${jobDetails.id}`}
+                            className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            View full job details
+                          </Link>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-600">Job details not available</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}

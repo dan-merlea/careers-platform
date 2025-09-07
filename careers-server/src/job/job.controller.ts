@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { JobService } from './job.service';
 import type { JobDocument } from './job.entity';
-import type { JobCreateDto, JobResponseDto, JobUpdateDto } from './job.model';
+import type { JobCreateDto, JobResponseDto, JobUpdateDto, JobCreateFromHeadcountDto } from './job.model';
 import { JobStatus } from './job.model';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -78,9 +78,17 @@ export class JobController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  async create(@Body() jobCreateDto: JobCreateDto): Promise<JobResponseDto> {
-    const job = await this.jobService.create(jobCreateDto);
-    return this.mapJobToResponseDto(job);
+  async create(@Body() jobCreateDto: JobCreateDto | JobCreateFromHeadcountDto): Promise<JobResponseDto> {
+    // Check if this is a job created from a headcount request
+    if ('headcountRequestId' in jobCreateDto && jobCreateDto.headcountRequestId) {
+      // Create job with special handling for headcount requests
+      const job = await this.jobService.createFromHeadcount(jobCreateDto);
+      return this.mapJobToResponseDto(job);
+    } else {
+      // Regular job creation
+      const job = await this.jobService.create(jobCreateDto as JobCreateDto);
+      return this.mapJobToResponseDto(job);
+    }
   }
 
   @Put(':id')
@@ -173,7 +181,7 @@ export class JobController {
     const jobId = job._id as { toString(): string };
 
     // Handle jobBoardId - convert to string if it exists
-    const jobBoardIdStr: string = job.jobBoardId.toString();
+    const jobBoardIdStr: string = job.jobBoardId ? job.jobBoardId.toString() : '';
 
     return {
       id: jobId.toString(),

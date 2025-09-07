@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { PencilIcon, TrashIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, ArchiveBoxIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import jobService, { Job, JobStatus } from '../services/jobService';
 
 const JobDetailPage: React.FC = () => {
@@ -110,9 +110,12 @@ const JobDetailPage: React.FC = () => {
           {error || 'Job not found'}
         </div>
         <div className="mt-4">
-          <Link to="/jobs" className="text-blue-600 hover:underline">
-            Back to Jobs
-          </Link>
+          <button 
+            onClick={() => navigate(-1)}
+            className="mr-4 p-2 hover:bg-gray-100 rounded-full"
+          >
+            Back
+          </button>
         </div>
       </div>
     );
@@ -121,7 +124,15 @@ const JobDetailPage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">{job.title}</h1>
+        <div className="flex items-center">
+          <button 
+            onClick={() => navigate(-1)}
+            className="mr-4 p-2 hover:bg-gray-100 rounded-full"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl font-bold text-gray-800">{job.title}</h1>
+        </div>
         <div className="flex space-x-2">
           <Link
             to={`/jobs/${job.id}/edit`}
@@ -231,12 +242,6 @@ const JobDetailPage: React.FC = () => {
             <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: job.content }} />
           </div>
         </div>
-      </div>
-
-      <div className="mt-4">
-        <Link to="/jobs" className="text-blue-600 hover:underline">
-          Back to Jobs
-        </Link>
       </div>
 
       {/* Delete Confirmation Modal */}

@@ -28,7 +28,7 @@ export enum JobStatus {
 }
 
 export interface JobCreateDto {
-  internalId: string;
+  internalId?: string;
   title: string;
   companyId: string;
   location: string;
@@ -37,6 +37,11 @@ export interface JobCreateDto {
   officeIds: string[];
   status?: JobStatus;
   jobBoardId?: string;
+}
+
+export interface JobCreateFromHeadcountDto extends JobCreateDto {
+  headcountRequestId: string;
+  skipApproval?: boolean;
 }
 
 export interface JobUpdateDto {

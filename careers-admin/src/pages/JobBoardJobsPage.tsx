@@ -4,6 +4,9 @@ import { PlusIcon, EyeIcon, PencilIcon, TrashIcon, ArrowLeftIcon } from '@heroic
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
 import jobService, { Job, JobStatus } from '../services/jobService';
 import { getStatusBadgeClass } from '../utils/jobStatusUtils';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import ScrollableTable from '../components/common/ScrollableTable';
 
 const JobBoardJobsPage: React.FC = () => {
   const { jobBoardId } = useParams<{ jobBoardId: string }>();
@@ -88,10 +91,22 @@ const JobBoardJobsPage: React.FC = () => {
     }
   };
 
+  const handleSubmitForApproval = async (jobId: string) => {
+    try {
+      await jobService.submitForApproval(jobId);
+      await fetchJobs();
+      toast.success('Job submitted for approval');
+    } catch (err) {
+      console.error('Error submitting job for approval:', err);
+      setError('Failed to submit job for approval. Please try again.');
+    }
+  };
+
   const handlePublishJob = async (jobId: string) => {
     try {
       await jobService.publishJob(jobId);
       await fetchJobs();
+      toast.success('Job published successfully');
     } catch (err) {
       console.error('Error publishing job:', err);
       setError('Failed to publish job. Please try again.');
@@ -189,8 +204,7 @@ const JobBoardJobsPage: React.FC = () => {
           )}
         </div>
       ) : (
-        <div className="bg-white rounded shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
+        <ScrollableTable>
             <thead className="bg-gray-50">
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -247,6 +261,17 @@ const JobBoardJobsPage: React.FC = () => {
                       </button>
                       {job.status === 'draft' && (
                         <button
+                          onClick={() => handleSubmitForApproval(job.id)}
+                          className="text-blue-600 hover:text-blue-900"
+                          title="Submit for Approval"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </button>
+                      )}
+                      {job.status === 'approved' && (
+                        <button
                           onClick={() => handlePublishJob(job.id)}
                           className="text-green-600 hover:text-green-900"
                           title="Publish"
@@ -278,8 +303,7 @@ const JobBoardJobsPage: React.FC = () => {
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
+        </ScrollableTable>
       )}
 
       {/* Delete Confirmation Modal */}

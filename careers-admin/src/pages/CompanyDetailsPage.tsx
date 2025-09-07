@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import CompanySettingsPage from './CompanySettingsPage';
-import { companyService, CompanyDetails } from '../services/company.service';
+import { CompanyDetails } from '../services/company.service';
+import { useCompany } from '../context/CompanyContext';
 import { officesService, Office, CreateOfficeDto, UpdateOfficeDto } from '../services/officesService';
 import { departmentService, Department, CreateDepartmentDto, UpdateDepartmentDto } from '../services/departmentService';
 import { jobFunctionService, JobFunction, CreateJobFunctionDto, UpdateJobFunctionDto } from '../services/jobFunctionService';
@@ -11,12 +12,16 @@ import OfficesSection from '../components/company/details/OfficesSection';
 import DepartmentsSection from '../components/company/details/DepartmentsSection';
 import JobFunctionsSection from '../components/company/details/JobFunctionsSection';
 import JobRolesSection from '../components/company/details/JobRolesSection';
+import CompanyContextTest from '../components/company/CompanyContextTest';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const CompanyDetailsPage: React.FC = () => {
   // React Router hooks
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Use CompanyContext
+  const { company, loading: companyLoading, updateCompany, refreshCompany } = useCompany();
   
   // Navigation handler
   const handleSectionChange = (section: string) => {
@@ -27,8 +32,8 @@ const CompanyDetailsPage: React.FC = () => {
     }
   };
   
-  // State for company profile section
-  const [companyDetails, setCompanyDetails] = useState<CompanyDetails>({
+  // Initialize with empty company details
+  const emptyCompanyDetails: CompanyDetails = {
     name: '',
     logo: '',
     website: '',
@@ -45,9 +50,13 @@ const CompanyDetailsPage: React.FC = () => {
     mission: '',
     vision: '',
     values: []
-  });
+  };
   
-  const [loading, setLoading] = useState<boolean>(true);
+  // State for company profile section
+  const [companyDetails, setCompanyDetails] = useState<CompanyDetails>(company || emptyCompanyDetails);
+  
+  // Use context loading state directly
+  const loading = companyLoading;
   const [saving, setSaving] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -104,13 +113,33 @@ const CompanyDetailsPage: React.FC = () => {
   const [jobRoleError, setJobRoleError] = useState<string | null>(null);
   const [jobRoleSuccess, setJobRoleSuccess] = useState<string | null>(null);
 
+  // Define loadCompanyDetails with useCallback to prevent unnecessary re-renders
+  const loadCompanyDetails = useCallback(async () => {
+    try {
+      // Use refreshCompany from context to refresh company data
+      await refreshCompany();
+      setError(null);
+    } catch (err) {
+      console.error('Error loading company details:', err);
+      setError('Failed to load company details. Please try again.');
+    }
+  }, [refreshCompany]);
+  
+  // Initial data loading
   useEffect(() => {
     loadCompanyDetails();
     loadOffices();
     loadDepartments();
     loadJobFunctions();
     loadJobRoles();
-  }, []);
+  }, [loadCompanyDetails]);
+  
+  // Sync local state with context whenever company changes
+  useEffect(() => {
+    if (company) {
+      setCompanyDetails(company);
+    }
+  }, [company]);
   
   // Load offices data
   const loadOffices = async () => {
@@ -240,21 +269,7 @@ const CompanyDetailsPage: React.FC = () => {
     }
   };
 
-  const loadCompanyDetails = async () => {
-    try {
-      setLoading(true);
-      const details = await companyService.getCompanyDetails();
-      if (details) {
-        setCompanyDetails(details);
-      }
-      setError(null);
-    } catch (err) {
-      console.error('Error loading company details:', err);
-      setError('Failed to load company details. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // loadCompanyDetails is now defined with useCallback above
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -320,7 +335,8 @@ const CompanyDetailsPage: React.FC = () => {
     setSaving(true);
     
     try {
-      await companyService.saveCompanyDetails(companyDetails);
+      // Use updateCompany from context to update company details
+      await updateCompany(companyDetails);
       setSuccess('Company details updated successfully');
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
@@ -553,23 +569,28 @@ const CompanyDetailsPage: React.FC = () => {
 
   // Render the profile section with all required props
   const renderProfileSection = () => (
-    <CompanyProfileSection
-      companyDetails={companyDetails}
-      loading={loading}
-      saving={saving}
-      error={error}
-      success={success}
-      handleInputChange={handleInputChange}
-      handleSocialLinkChange={handleSocialLinkChange}
-      handleSubmit={handleSubmit}
-      loadCompanyDetails={loadCompanyDetails}
-      valueInput={valueInput}
-      setValueInput={setValueInput}
-      valueIcon={valueIcon}
-      setValueIcon={setValueIcon}
-      handleAddValue={handleAddValue}
-      handleRemoveValue={handleRemoveValue}
-    />
+    <>
+      <CompanyProfileSection
+        companyDetails={companyDetails}
+        loading={loading}
+        saving={saving}
+        error={error}
+        success={success}
+        handleInputChange={handleInputChange}
+        handleSocialLinkChange={handleSocialLinkChange}
+        handleSubmit={handleSubmit}
+        loadCompanyDetails={loadCompanyDetails}
+        valueInput={valueInput}
+        setValueInput={setValueInput}
+        valueIcon={valueIcon}
+        setValueIcon={setValueIcon}
+        handleAddValue={handleAddValue}
+        handleRemoveValue={handleRemoveValue}
+      />
+      <div className="mt-4">
+        <CompanyContextTest />
+      </div>
+    </>
   );
 
   return (

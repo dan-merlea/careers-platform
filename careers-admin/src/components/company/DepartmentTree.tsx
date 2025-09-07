@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Department } from '../../services/departmentService';
 
 interface DepartmentTreeProps {
@@ -36,7 +37,7 @@ const DepartmentNode: React.FC<{
             onClick={() => onEdit(department)}
             className="text-blue-600 hover:text-blue-900"
           >
-            <i className="bi bi-pencil-square me-1"></i> Edit
+            <i className="bi bi-pencil-square me-1"></i>Edit
           </button>
           <button
             onClick={() => onDelete(department.id!)}

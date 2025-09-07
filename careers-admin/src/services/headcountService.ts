@@ -6,6 +6,7 @@ export interface HeadcountRequest {
   department: string;
   teamName: string;
   reason: string;
+  location?: string;
   status: 'pending' | 'approved' | 'rejected';
   requestedBy: {
     _id: string;
@@ -21,6 +22,8 @@ export interface HeadcountRequest {
   reviewedAt?: string;
   createdAt: string;
   updatedAt: string;
+  jobId?: string; // Reference to the job created from this headcount request
+  hasJobCreated?: boolean; // Flag to indicate if a job has been created from this request
 }
 
 export interface CreateHeadcountRequest {
@@ -64,6 +67,21 @@ const headcountService = {
   // Delete a headcount request
   delete: async (id: string): Promise<void> => {
     await api.delete<void>(`/headcount-requests/${id}`);
+  },
+  
+  // Create a job from an approved headcount request
+  createJobFromHeadcount: async (headcountId: string): Promise<{ jobId: string }> => {
+    return api.post<{ jobId: string }>(`/headcount-requests/${headcountId}/create-job`, {});
+  },
+  
+  // Mark a headcount request as having a job created
+  markJobCreated: async (headcountId: string, jobId: string): Promise<HeadcountRequest> => {
+    return api.patch<HeadcountRequest>(`/headcount-requests/${headcountId}`, { jobId, hasJobCreated: true });
+  },
+  
+  // Get all approved headcount requests that don't have jobs created yet
+  getApprovedWithoutJobs: async (): Promise<HeadcountRequest[]> => {
+    return api.get<HeadcountRequest[]>('/headcount-requests/approved-without-jobs');
   },
 };
 

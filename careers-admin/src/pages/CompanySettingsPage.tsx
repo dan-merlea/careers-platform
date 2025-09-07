@@ -1,29 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { companyService, CompanySettings } from '../services/company.service';
+import { CompanySettings } from '../services/company.service';
+import { useCompany } from '../context/CompanyContext';
 
 const CompanySettingsPage: React.FC = () => {
+  const { company, loading: companyLoading, updateCompany } = useCompany();
   const [settings, setSettings] = useState<CompanySettings>({ approvalType: 'headcount' });
-  const [loading, setLoading] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
 
+  // Use company data from context
   useEffect(() => {
-    const fetchCompanySettings = async () => {
-      try {
-        const companyData = await companyService.getCompany();
-        if (companyData && companyData.settings) {
-          setSettings(companyData.settings);
-        }
-      } catch (error) {
-        console.error('Error fetching company settings:', error);
-        toast.error('Failed to load company settings');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCompanySettings();
-  }, []);
+    if (company && company.settings) {
+      setSettings(company.settings);
+    }
+  }, [company]);
 
   const handleApprovalTypeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSettings({
@@ -35,8 +25,12 @@ const CompanySettingsPage: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await companyService.saveCompanySettings(settings);
-      toast.success('Settings saved successfully');
+      // Update company with new settings
+      if (company) {
+        const updatedCompany = { ...company, settings };
+        await updateCompany(updatedCompany);
+        toast.success('Settings saved successfully');
+      }
     } catch (error) {
       console.error('Error saving company settings:', error);
       toast.error('Failed to save settings');
@@ -45,7 +39,7 @@ const CompanySettingsPage: React.FC = () => {
     }
   };
 
-  if (loading) {
+  if (companyLoading) {
     return (
       <div className="p-6">
         <div className="flex justify-center items-center h-64">

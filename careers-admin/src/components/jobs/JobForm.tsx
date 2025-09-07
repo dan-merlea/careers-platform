@@ -9,6 +9,7 @@ import { officesService, Office } from '../../services/officesService';
 import { departmentService, Department } from '../../services/departmentService';
 import { jobRoleService, JobRole } from '../../services/jobRoleService';
 import jobTemplateService, { JobTemplate } from '../../services/jobTemplateService';
+import jobBoardsService, { JobBoard } from '../../services/jobBoardsService';
 import SaveTemplateModal from './SaveTemplateModal';
 import { format } from 'date-fns';
 
@@ -17,13 +18,21 @@ interface JobFormProps {
   onSubmit: (data: JobCreateDto | JobUpdateDto) => void;
   onCancel: () => void;
   isEdit?: boolean;
+  isFromHeadcount?: boolean;
+  headcountRequestId?: string;
+  isFromJobBoard?: boolean;
+  jobBoardId?: string;
 }
 
 const JobForm: React.FC<JobFormProps> = ({
   initialData,
   onSubmit,
   onCancel,
-  isEdit = false
+  isEdit = false,
+  isFromHeadcount = false,
+  headcountRequestId,
+  isFromJobBoard = false,
+  jobBoardId
 }) => {
   const [formData, setFormData] = useState<JobCreateDto | JobUpdateDto>({
     internalId: '',
@@ -45,6 +54,8 @@ const JobForm: React.FC<JobFormProps> = ({
   const [offices, setOffices] = useState<Office[]>([]);
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
+  // Track if fields should be locked (for headcount-based jobs)
+  const [lockedFields, setLockedFields] = useState<{[key: string]: boolean}>({});
   const [jobRoles, setJobRoles] = useState<JobRole[]>([]);
   const [selectedJobRole, setSelectedJobRole] = useState<string>('');
   const [isLoadingJobRoles, setIsLoadingJobRoles] = useState<boolean>(false);
@@ -53,6 +64,8 @@ const JobForm: React.FC<JobFormProps> = ({
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [templates, setTemplates] = useState<JobTemplate[]>([]);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [jobBoards, setJobBoards] = useState<JobBoard[]>([]);
+  const [isLoadingJobBoards, setIsLoadingJobBoards] = useState(false);
 
   // Function to fetch templates for a job role
   const fetchTemplatesForRole = useCallback(async (roleId: string) => {
@@ -113,6 +126,23 @@ const JobForm: React.FC<JobFormProps> = ({
     }
   }, [isEdit, initialData, setJobRoles, setSelectedJobRole, setIsLoadingJobRoles]);
 
+  // Set up locked fields for headcount-based jobs and job board-based jobs
+  useEffect(() => {
+    // Create a new object instead of spreading the existing one to avoid dependency loop
+    const newLockedFields: {[key: string]: boolean} = {};
+    
+    if (isFromHeadcount) {
+      newLockedFields.department = true;
+      newLockedFields.jobRole = true;
+    }
+    
+    if (isFromJobBoard) {
+      newLockedFields.jobBoard = true;
+    }
+    
+    setLockedFields(newLockedFields);
+  }, [isFromHeadcount, isFromJobBoard]); // Remove lockedFields from dependencies
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -121,6 +151,21 @@ const JobForm: React.FC<JobFormProps> = ({
         // Fetch company details
         const company = await companyService.getCompanyDetails();
         setCompanyDetails(company);
+        
+        // Fetch job boards
+        setIsLoadingJobBoards(true);
+        const jobBoardsData = await jobBoardsService.getAllJobBoards();
+        setJobBoards(jobBoardsData);
+        
+        // Set initial job board selection to first board in the list if creating from headcount
+        if (isFromHeadcount && jobBoardsData.length > 0 && !formData.jobBoardId) {
+          setFormData(prev => ({
+            ...prev,
+            jobBoardId: jobBoardsData[0]._id
+          }));
+        }
+        
+        setIsLoadingJobBoards(false);
         
         if (company && company._id) {
           // Set company ID if not already set
@@ -152,8 +197,8 @@ const JobForm: React.FC<JobFormProps> = ({
           const departmentsData = await departmentService.getAll();
           setDepartments(departmentsData);
           
-          // If editing and department is selected, set the department and fetch job roles
-          if (isEdit && initialData?.departmentIds && initialData.departmentIds.length > 0) {
+          // If editing or from headcount and department is selected, set the department and fetch job roles
+          if ((isEdit || isFromHeadcount) && initialData?.departmentIds && initialData.departmentIds.length > 0) {
             const deptId = initialData.departmentIds[0]; // Use the first department
             setSelectedDepartment(deptId);
             
@@ -161,11 +206,40 @@ const JobForm: React.FC<JobFormProps> = ({
             const dept = departmentsData.find(d => d._id === deptId);
             if (dept && dept.jobRoles && dept.jobRoles.length > 0) {
               await fetchJobRolesForDepartment(dept);
+              
+              // If we have a roleTitle from headcount request, try to find matching job role
+              if (isFromHeadcount && initialData?.roleTitle) {
+                // Wait a bit for jobRoles to be populated
+                setTimeout(async () => {
+                  try {
+                    // Fetch all job roles for the department to find a match
+                    const allRoles = await jobRoleService.getByDepartment(deptId);
+                    console.log('All roles for department:', allRoles);
+                    
+                    // Find role that matches the title from headcount request
+                    const matchingRole = allRoles.find((role: JobRole) => 
+                      role.title.toLowerCase() === initialData.roleTitle?.toLowerCase());
+                    
+                    if (matchingRole) {
+                      console.log('Found matching role:', matchingRole);
+                      setSelectedJobRole(matchingRole._id);
+                      
+                      // Also fetch templates for this role
+                      await fetchTemplatesForRole(matchingRole._id);
+                    }
+                  } catch (error) {
+                    console.error('Error finding matching job role:', error);
+                  }
+                }, 500);
+              }
             }
           }
           
-          // Initialize location-related state for edit mode
-          if (isEdit && initialData?.location) {
+          // Log initialData for debugging
+          console.log('Initial data received:', initialData);
+          
+          // Initialize location-related state for edit mode or headcount requests
+          if ((isEdit || isFromHeadcount) && initialData?.location) {
             // Check if the location matches any office address
             const locationLower = initialData.location.toLowerCase();
             let matchFound = false;
@@ -200,7 +274,7 @@ const JobForm: React.FC<JobFormProps> = ({
     };
     
     fetchData();
-  }, [formData.companyId, isEdit, initialData, workArrangement, fetchJobRolesForDepartment]);
+  }, [formData.companyId, isEdit, isFromHeadcount, initialData, workArrangement, fetchJobRolesForDepartment]);
   
   // Effect to fetch job roles when department changes
   useEffect(() => {
@@ -212,7 +286,7 @@ const JobForm: React.FC<JobFormProps> = ({
     } else {
       setJobRoles([]);
     }
-  }, [selectedDepartment, departments, fetchJobRolesForDepartment]);
+  }, [selectedDepartment, departments, fetchJobRolesForDepartment, fetchTemplatesForRole]);
   
   // Handle job role selection
   useEffect(() => {
@@ -290,8 +364,9 @@ const JobForm: React.FC<JobFormProps> = ({
               setSelectedDepartment(e.target.value);
               setSelectedJobRole(''); // Reset job role when department changes
             }}
-            className="w-full p-2 border border-gray-300 rounded"
+            className={`w-full p-2 border border-gray-300 rounded ${lockedFields.department ? 'bg-gray-100' : ''}`}
             required
+            disabled={lockedFields.department}
           >
             <option value="">Select a department</option>
             {departments.map(department => (
@@ -310,8 +385,8 @@ const JobForm: React.FC<JobFormProps> = ({
             id="jobRole"
             value={selectedJobRole}
             onChange={(e) => setSelectedJobRole(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-            disabled={!selectedDepartment || isLoadingJobRoles}
+            className={`w-full p-2 border border-gray-300 rounded ${lockedFields.jobRole ? 'bg-gray-100' : ''}`}
+            disabled={!selectedDepartment || isLoadingJobRoles || lockedFields.jobRole}
           >
             <option value="">Select a job role (optional)</option>
             {isLoadingJobRoles ? (
@@ -361,6 +436,32 @@ const JobForm: React.FC<JobFormProps> = ({
                 required
               />
             </div>
+          </div>
+
+          {/* Job Board Selector */}
+          <div className="mb-4">
+            <label htmlFor="jobBoardId" className="block text-sm font-medium text-gray-700 mb-1">
+              Job Board *
+            </label>
+            <select
+              id="jobBoardId"
+              name="jobBoardId"
+              value={formData.jobBoardId || ''}
+              onChange={handleInputChange}
+              className="w-full p-2 border border-gray-300 rounded"
+              required
+              disabled={isLoadingJobBoards || lockedFields.jobBoard}
+            >
+              <option value="">Select a job board...</option>
+              {jobBoards.map(board => (
+                <option key={board._id} value={board._id}>
+                  {board.title}
+                </option>
+              ))}
+            </select>
+            {isLoadingJobBoards && (
+              <p className="text-sm text-gray-500 mt-1">Loading job boards...</p>
+            )}
           </div>
 
           <div>
@@ -583,7 +684,7 @@ const JobForm: React.FC<JobFormProps> = ({
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 disabled={isLoading || !selectedDepartment}
               >
-                {isLoading ? 'Saving...' : isEdit ? 'Update Job' : 'Create Job'}
+                {isLoading ? 'Saving...' : isEdit ? 'Update Job' : isFromHeadcount ? 'Create Job from Headcount' : 'Create Job'}
               </button>
             </div>
           </div>

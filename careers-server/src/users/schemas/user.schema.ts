@@ -28,6 +28,9 @@ export class User {
   @Prop({ default: false })
   isVerified: boolean;
 
+  @Prop({ type: String, ref: 'Department', default: null })
+  departmentId: string | null;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 
