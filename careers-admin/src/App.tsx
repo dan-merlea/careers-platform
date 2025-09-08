@@ -243,14 +243,7 @@ const AppRoutes: React.FC = () => {
                   </RoleGuard>
                 }
               />
-              <Route
-                path="/headcount/edit/:id"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'manager']} showUnauthorized>
-                    <HeadcountRequestForm />
-                  </RoleGuard>
-                }
-              />
+              {/* Edit route removed as per requirements */}
               
               {/* Debug routes - only visible in development mode */}
               <Route

@@ -37,7 +37,6 @@ const JobForm: React.FC<JobFormProps> = ({
   const [formData, setFormData] = useState<JobCreateDto | JobUpdateDto>({
     internalId: '',
     title: '',
-    companyId: '',
     location: '',
     content: '',
     departmentIds: [],
@@ -97,25 +96,45 @@ const JobForm: React.FC<JobFormProps> = ({
 
   // Function to fetch job roles for a department
   const fetchJobRolesForDepartment = useCallback(async (department: Department) => {
-    if (!department || !department.jobRoles || department.jobRoles.length === 0) {
+    if (!department || !department._id) {
       setJobRoles([]);
       return;
     }
     
     setIsLoadingJobRoles(true);
     try {
-      const jobRolePromises = department.jobRoles.map(roleId => 
-        jobRoleService.get(roleId)
-      );
+      // Use jobRoleService.getByDepartment to get all job roles for this department
+      const fetchedRoles = await jobRoleService.getByDepartment(department._id);
+      console.log('Fetched job roles for department:', fetchedRoles);
       
-      const fetchedRoles = await Promise.all(jobRolePromises);
       setJobRoles(fetchedRoles);
       
-      // If editing and we have a title that matches a job role, select that role
-      if (isEdit && initialData?.title) {
-        const matchingRole = fetchedRoles.find(role => role.title === initialData.title);
+      // If from headcount and we have a roleTitle, try to find matching job role
+      if ((isEdit || isFromHeadcount) && initialData?.roleTitle) {
+        console.log('Looking for matching role with title:', initialData.roleTitle);
+        
+        // Try exact match first
+        let matchingRole = fetchedRoles.find(role => role.title === initialData.roleTitle);
+        
+        // If no exact match, try case-insensitive match
+        if (!matchingRole) {
+          matchingRole = fetchedRoles.find(role => 
+            role.title.toLowerCase() === initialData.roleTitle?.toLowerCase());
+        }
+        
+        // If still no match, try partial match
+        if (!matchingRole) {
+          matchingRole = fetchedRoles.find(role => 
+            role.title.toLowerCase().includes(initialData.roleTitle?.toLowerCase() || '') || 
+            (initialData.roleTitle?.toLowerCase() || '').includes(role.title.toLowerCase())
+          );
+        }
+        
         if (matchingRole) {
+          console.log('Found matching role:', matchingRole);
           setSelectedJobRole(matchingRole._id);
+        } else {
+          console.warn('No matching role found for:', initialData.roleTitle);
         }
       }
     } catch (err) {
@@ -124,7 +143,7 @@ const JobForm: React.FC<JobFormProps> = ({
     } finally {
       setIsLoadingJobRoles(false);
     }
-  }, [isEdit, initialData, setJobRoles, setSelectedJobRole, setIsLoadingJobRoles]);
+  }, [isEdit, isFromHeadcount, initialData, setJobRoles, setSelectedJobRole, setIsLoadingJobRoles]);
 
   // Set up locked fields for headcount-based jobs and job board-based jobs
   useEffect(() => {
@@ -167,102 +186,115 @@ const JobForm: React.FC<JobFormProps> = ({
         
         setIsLoadingJobBoards(false);
         
-        if (company && company._id) {
-          // Set company ID if not already set
-          if (!formData.companyId) {
-            setFormData(prev => ({
-              ...prev,
-              companyId: company._id
-            }));
-          }
+        // Fetch offices
+        const officesData = await officesService.getAll();
+        setOffices(officesData);
+        
+        // Set initial office and update location if not in edit mode
+        if (officesData.length > 0 && !isEdit) {
+          const firstOffice = officesData[0];
+          setSelectedOffice(firstOffice._id);
           
-          // Fetch offices
-          const officesData = await officesService.getAll();
-          setOffices(officesData);
+          // Update location based on selected office and work arrangement
+          const newLocation = `${firstOffice.address} (${workArrangement})`;
+          setFormData(prev => ({
+            ...prev,
+            location: newLocation
+          }));
+        }
           
-          // Set initial office and update location if not in edit mode
-          if (officesData.length > 0 && !isEdit) {
-            const firstOffice = officesData[0];
-            setSelectedOffice(firstOffice._id);
+        // Fetch departments
+        const departmentsData = await departmentService.getAll();
+        setDepartments(departmentsData);
+        
+        // If editing or from headcount and department is selected, set the department and fetch job roles
+        if ((isEdit || isFromHeadcount) && initialData?.departmentIds && initialData.departmentIds.length > 0) {
+          const deptId = initialData.departmentIds[0]; // Use the first department
+          console.log('Setting selected department ID:', deptId);
+          setSelectedDepartment(deptId);
+          
+          // Fetch job roles for this department
+          const dept = departmentsData.find(d => d._id === deptId);
+          console.log('Found department:', dept);
+          
+          if (dept && dept.jobRoles && dept.jobRoles.length > 0) {
+            await fetchJobRolesForDepartment(dept);
             
-            // Update location based on selected office and work arrangement
-            const newLocation = `${firstOffice.address} (${workArrangement})`;
-            setFormData(prev => ({
-              ...prev,
-              location: newLocation
-            }));
-          }
-          
-          // Fetch departments
-          const departmentsData = await departmentService.getAll();
-          setDepartments(departmentsData);
-          
-          // If editing or from headcount and department is selected, set the department and fetch job roles
-          if ((isEdit || isFromHeadcount) && initialData?.departmentIds && initialData.departmentIds.length > 0) {
-            const deptId = initialData.departmentIds[0]; // Use the first department
-            setSelectedDepartment(deptId);
-            
-            // Fetch job roles for this department
-            const dept = departmentsData.find(d => d._id === deptId);
-            if (dept && dept.jobRoles && dept.jobRoles.length > 0) {
-              await fetchJobRolesForDepartment(dept);
+            // If we have a roleTitle from headcount request, try to find matching job role
+            if (isFromHeadcount && initialData?.roleTitle) {
+              console.log('Looking for matching role with title:', initialData.roleTitle);
               
-              // If we have a roleTitle from headcount request, try to find matching job role
-              if (isFromHeadcount && initialData?.roleTitle) {
-                // Wait a bit for jobRoles to be populated
-                setTimeout(async () => {
-                  try {
-                    // Fetch all job roles for the department to find a match
-                    const allRoles = await jobRoleService.getByDepartment(deptId);
-                    console.log('All roles for department:', allRoles);
-                    
-                    // Find role that matches the title from headcount request
-                    const matchingRole = allRoles.find((role: JobRole) => 
-                      role.title.toLowerCase() === initialData.roleTitle?.toLowerCase());
-                    
-                    if (matchingRole) {
-                      console.log('Found matching role:', matchingRole);
-                      setSelectedJobRole(matchingRole._id);
-                      
-                      // Also fetch templates for this role
-                      await fetchTemplatesForRole(matchingRole._id);
-                    }
-                  } catch (error) {
-                    console.error('Error finding matching job role:', error);
-                  }
-                }, 500);
+              try {
+                // Fetch all job roles for the department to find a match
+                const allRoles = await jobRoleService.getByDepartment(deptId);
+                console.log('All roles for department:', allRoles);
+                
+                // Find role that matches the title from headcount request
+                // Try exact match first
+                let matchingRole = allRoles.find((role: JobRole) => 
+                  role.title === initialData.roleTitle);
+                
+                // If no exact match, try case-insensitive match
+                if (!matchingRole) {
+                  matchingRole = allRoles.find((role: JobRole) => 
+                    role.title.toLowerCase() === initialData.roleTitle?.toLowerCase());
+                }
+                
+                // If still no match, try partial match
+                if (!matchingRole) {
+                  matchingRole = allRoles.find((role: JobRole) => 
+                    role.title.toLowerCase().includes(initialData.roleTitle?.toLowerCase() || '') || 
+                    (initialData.roleTitle?.toLowerCase() || '').includes(role.title.toLowerCase())
+                  );
+                }
+                
+                if (matchingRole) {
+                  console.log('Found matching role:', matchingRole);
+                  setSelectedJobRole(matchingRole._id);
+                  
+                  // Also fetch templates for this role
+                  await fetchTemplatesForRole(matchingRole._id);
+                } else {
+                  console.warn('No matching role found for:', initialData.roleTitle);
+                }
+              } catch (error) {
+                console.error('Error finding matching job role:', error);
               }
+            }
+          } else {
+            console.warn('Department has no job roles or department not found');
+          }
+        } else {
+          console.log('No department IDs in initialData or not from headcount/edit');
+        }
+        
+        // Log initialData for debugging
+        console.log('Initial data received:', initialData);
+        
+        // Initialize location-related state for edit mode or headcount requests
+        if ((isEdit || isFromHeadcount) && initialData?.location) {
+          // Check if the location matches any office address
+          const locationLower = initialData.location.toLowerCase();
+          let matchFound = false;
+          
+          for (const office of officesData) {
+            if (locationLower.includes(office.address.toLowerCase())) {
+              // Extract work arrangement from location if present
+              let arrangement = 'onsite';
+              if (locationLower.includes('hybrid')) arrangement = 'hybrid';
+              if (locationLower.includes('remote')) arrangement = 'remote';
+              
+              setSelectedOffice(office._id);
+              setWorkArrangement(arrangement);
+              setUseCustomLocation(false);
+              matchFound = true;
+              break;
             }
           }
           
-          // Log initialData for debugging
-          console.log('Initial data received:', initialData);
-          
-          // Initialize location-related state for edit mode or headcount requests
-          if ((isEdit || isFromHeadcount) && initialData?.location) {
-            // Check if the location matches any office address
-            const locationLower = initialData.location.toLowerCase();
-            let matchFound = false;
-            
-            for (const office of officesData) {
-              if (locationLower.includes(office.address.toLowerCase())) {
-                // Extract work arrangement from location if present
-                let arrangement = 'onsite';
-                if (locationLower.includes('hybrid')) arrangement = 'hybrid';
-                if (locationLower.includes('remote')) arrangement = 'remote';
-                
-                setSelectedOffice(office._id);
-                setWorkArrangement(arrangement);
-                setUseCustomLocation(false);
-                matchFound = true;
-                break;
-              }
-            }
-            
-            // If no match found, use custom location
-            if (!matchFound) {
-              setUseCustomLocation(true);
-            }
+          // If no match found, use custom location
+          if (!matchFound) {
+            setUseCustomLocation(true);
           }
         }
       } catch (err) {
@@ -404,7 +436,7 @@ const JobForm: React.FC<JobFormProps> = ({
         </div>
       </div>
       
-      {selectedDepartment && selectedJobRole && (
+      {selectedDepartment && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -665,26 +697,42 @@ const JobForm: React.FC<JobFormProps> = ({
               <button
                 type="button"
                 onClick={() => setIsTemplateModalOpen(true)}
-                className="px-4 py-2 text-sm border border-blue-500 text-blue-600 rounded hover:bg-blue-50"
+                className="px-4 py-2 text-sm border border-blue-500 text-blue-600 rounded hover:bg-blue-50 flex items-center"
                 disabled={!selectedJobRole || !formData.content}
               >
-                Save as Template
+                <i className="bi bi-save me-2"></i> Save as Template
               </button>
             </div>
             <div className="flex space-x-4">
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 flex items-center"
               >
-                Cancel
+                <i className="bi bi-x-circle me-2"></i> Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center"
                 disabled={isLoading || !selectedDepartment}
               >
-                {isLoading ? 'Saving...' : isEdit ? 'Update Job' : isFromHeadcount ? 'Create Job from Headcount' : 'Create Job'}
+                {isLoading ? (
+                  <>
+                    <i className="bi bi-arrow-repeat me-2 animate-spin"></i> Saving...
+                  </>
+                ) : isEdit ? (
+                  <>
+                    <i className="bi bi-pencil-square me-2"></i> Update Job
+                  </>
+                ) : isFromHeadcount ? (
+                  <>
+                    <i className="bi bi-briefcase me-2"></i> Create Job from Headcount
+                  </>
+                ) : (
+                  <>
+                    <i className="bi bi-plus-circle me-2"></i> Create Job
+                  </>
+                )}
               </button>
             </div>
           </div>

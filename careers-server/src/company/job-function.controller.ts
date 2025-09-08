@@ -7,7 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
-  Query,
+  Req,
 } from '@nestjs/common';
 import { JobFunctionService } from './job-function.service';
 import { CreateJobFunctionDto } from './dto/create-job-function.dto';
@@ -23,18 +23,21 @@ export class JobFunctionController {
   @Post()
   async create(
     @Body() createJobFunctionDto: CreateJobFunctionDto,
+    @Req() req: { user: { companyId: string } },
   ): Promise<JobFunction> {
-    return this.jobFunctionService.create(createJobFunctionDto);
+    // Add company ID from authenticated user
+    return this.jobFunctionService.create({
+      ...createJobFunctionDto,
+      companyId: req.user.companyId
+    } as any);
   }
 
   @Get()
   async findAll(
-    @Query('companyId') companyId?: string,
+    @Req() req: { user: { companyId: string } },
   ): Promise<JobFunction[]> {
-    if (companyId) {
-      return this.jobFunctionService.findByCompany(companyId);
-    }
-    return this.jobFunctionService.findAll();
+    // Always filter by the authenticated user's company
+    return this.jobFunctionService.findByCompany(req.user.companyId);
   }
 
   @Get(':id')

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from './Sidebar';
@@ -9,18 +9,66 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Function to check if the screen is mobile/tablet size
+  const checkIsMobile = () => {
+    setIsMobile(window.innerWidth < 1024); // 1024px is typically lg breakpoint in Tailwind
+  };
+
+  // Set up event listener for window resize
+  useEffect(() => {
+    // Check initial screen size
+    checkIsMobile();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkIsMobile);
+    
+    // Clean up event listener
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
+
+  // Toggle sidebar
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  // Close sidebar
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Toast Container */}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       
-      {/* Sidebar */}
-      <Sidebar />
+      {/* Overlay for mobile when sidebar is open */}
+      {isMobile && isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-30"
+          onClick={closeSidebar}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Sidebar - always render but conditionally show based on screen size */}
+      <Sidebar 
+        isOpen={isMobile ? isSidebarOpen : true} 
+        onClose={closeSidebar}
+        isMobile={isMobile}
+      />
       
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className={`flex-1 flex flex-col overflow-hidden ${isMobile ? 'w-full' : ''}`}>
         {/* Navbar */}
-        <Navbar />
+        <Navbar 
+          onMenuClick={toggleSidebar}
+          isMobile={isMobile}
+        />
         
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-6">

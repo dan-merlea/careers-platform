@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { JobBoardsService } from './job-boards.service';
 import { CreateJobBoardDto } from './dto/create-job-board.dto';
@@ -23,20 +24,32 @@ export class JobBoardsController {
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  create(@Body() createJobBoardDto: CreateJobBoardDto) {
-    return this.jobBoardsService.create(createJobBoardDto);
+  create(
+    @Body() createJobBoardDto: CreateJobBoardDto,
+    @Req() req: { user: { companyId: string } },
+  ) {
+    // Add company ID from authenticated user
+    return this.jobBoardsService.create({
+      ...createJobBoardDto,
+      companyId: req.user.companyId,
+    });
   }
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.RECRUITER)
-  findAll() {
-    return this.jobBoardsService.findAll();
+  findAll(@Req() req: { user: { companyId: string } }) {
+    // Filter by company ID
+    return this.jobBoardsService.findAll(req.user.companyId);
   }
 
   @Get(':id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.RECRUITER)
-  findOne(@Param('id') id: string) {
-    return this.jobBoardsService.findOne(id);
+  findOne(
+    @Param('id') id: string,
+    @Req() req: { user: { companyId: string } },
+  ) {
+    // Verify job board belongs to company
+    return this.jobBoardsService.findOne(id, req.user.companyId);
   }
 
   @Patch(':id')
@@ -44,19 +57,29 @@ export class JobBoardsController {
   update(
     @Param('id') id: string,
     @Body() updateJobBoardDto: UpdateJobBoardDto,
+    @Req() req: { user: { companyId: string } },
   ) {
-    return this.jobBoardsService.update(id, updateJobBoardDto);
+    // Verify job board belongs to company
+    return this.jobBoardsService.update(id, updateJobBoardDto, req.user.companyId);
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  remove(@Param('id') id: string) {
-    return this.jobBoardsService.remove(id);
+  remove(
+    @Param('id') id: string,
+    @Req() req: { user: { companyId: string } },
+  ) {
+    // Verify job board belongs to company
+    return this.jobBoardsService.remove(id, req.user.companyId);
   }
 
   @Post('external/:source')
   @Roles(UserRole.ADMIN)
-  createExternalJobBoard(@Param('source') source: 'greenhouse' | 'ashby') {
-    return this.jobBoardsService.createExternalJobBoard(source);
+  createExternalJobBoard(
+    @Param('source') source: 'greenhouse' | 'ashby',
+    @Req() req: { user: { companyId: string } },
+  ) {
+    // Add company ID from authenticated user
+    return this.jobBoardsService.createExternalJobBoard(source, req.user.companyId);
   }
 }

@@ -11,17 +11,17 @@ export class JobBoardsService {
     @InjectModel(JobBoard.name) private jobBoardModel: Model<JobBoardDocument>,
   ) {}
 
-  async create(createJobBoardDto: CreateJobBoardDto): Promise<JobBoard> {
+  async create(createJobBoardDto: any): Promise<JobBoard> {
     const createdJobBoard = new this.jobBoardModel(createJobBoardDto);
     return createdJobBoard.save();
   }
 
-  async findAll(): Promise<JobBoard[]> {
-    return this.jobBoardModel.find().exec();
+  async findAll(companyId: string): Promise<JobBoard[]> {
+    return this.jobBoardModel.find({ companyId }).exec();
   }
 
-  async findOne(id: string): Promise<JobBoard> {
-    const jobBoard = await this.jobBoardModel.findById(id).exec();
+  async findOne(id: string, companyId: string): Promise<JobBoard> {
+    const jobBoard = await this.jobBoardModel.findOne({ _id: id, companyId }).exec();
     if (!jobBoard) {
       throw new NotFoundException(`Job board with ID ${id} not found`);
     }
@@ -31,7 +31,11 @@ export class JobBoardsService {
   async update(
     id: string,
     updateJobBoardDto: UpdateJobBoardDto,
+    companyId: string,
   ): Promise<JobBoard> {
+    // First verify the job board belongs to this company
+    await this.findOne(id, companyId);
+    
     const updatedJobBoard = await this.jobBoardModel
       .findByIdAndUpdate(id, updateJobBoardDto, { new: true })
       .exec();
@@ -43,7 +47,10 @@ export class JobBoardsService {
     return updatedJobBoard;
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string, companyId: string): Promise<void> {
+    // First verify the job board belongs to this company
+    await this.findOne(id, companyId);
+    
     const result = await this.jobBoardModel.deleteOne({ _id: id }).exec();
 
     if (result.deletedCount === 0) {
@@ -53,13 +60,15 @@ export class JobBoardsService {
 
   async createExternalJobBoard(
     source: 'greenhouse' | 'ashby',
+    companyId: string,
   ): Promise<JobBoard> {
     const title = source === 'greenhouse' ? 'Greenhouse' : 'Ashby';
-    // Check if this external job board already exists
+    // Check if this external job board already exists for this company
     const existingJobBoard = await this.jobBoardModel
       .findOne({
         source,
         isExternal: true,
+        companyId,
       })
       .exec();
 
@@ -74,6 +83,7 @@ export class JobBoardsService {
       isExternal: true,
       source,
       settings: {},
+      companyId,
     });
 
     return jobBoard.save();

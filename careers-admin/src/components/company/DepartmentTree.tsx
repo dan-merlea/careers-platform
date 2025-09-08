@@ -45,7 +45,7 @@ const DepartmentNode: React.FC<{
             disabled={hasChildren}
             title={hasChildren ? "Cannot delete department with sub-departments" : ""}
           >
-            <i className="bi bi-trash me-1"></i> Delete
+            <i className="bi bi-trash me-1"></i>Delete
           </button>
         </div>
       </div>

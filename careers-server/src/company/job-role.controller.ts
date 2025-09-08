@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   Query,
+  Req,
 } from '@nestjs/common';
 import { JobRoleService } from './job-role.service';
 import { CreateJobRoleDto } from './dto/create-job-role.dto';
@@ -21,18 +22,27 @@ export class JobRoleController {
   constructor(private readonly jobRoleService: JobRoleService) {}
 
   @Post()
-  async create(@Body() createJobRoleDto: CreateJobRoleDto): Promise<JobRole> {
-    return this.jobRoleService.create(createJobRoleDto);
+  async create(
+    @Body() createJobRoleDto: CreateJobRoleDto,
+    @Req() req: { user: { companyId: string } }
+  ): Promise<JobRole> {
+    // Add company ID from authenticated user
+    return this.jobRoleService.create({
+      ...createJobRoleDto,
+      companyId: req.user.companyId
+    } as any);
   }
 
   @Get()
   async findAll(
+    @Req() req: { user: { companyId: string } },
     @Query('jobFunctionId') jobFunctionId?: string,
   ): Promise<JobRole[]> {
+    // Always filter by company ID
     if (jobFunctionId) {
-      return this.jobRoleService.findByJobFunction(jobFunctionId);
+      return this.jobRoleService.findByJobFunction(jobFunctionId, req.user.companyId);
     }
-    return this.jobRoleService.findAll();
+    return this.jobRoleService.findByCompany(req.user.companyId);
   }
 
   @Get(':id')

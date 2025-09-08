@@ -88,6 +88,21 @@ const HeadcountListPage: React.FC = () => {
     }
   };
 
+  const handleRemove = async (id: string) => {
+    if (window.confirm('Are you sure you want to remove this headcount request? This action cannot be undone.')) {
+      try {
+        await headcountService.delete(id);
+        toast.success('Headcount request removed successfully');
+        
+        // Update the local state by removing the deleted request
+        setHeadcountRequests(prev => prev.filter(request => request._id !== id));
+      } catch (error) {
+        console.error('Error removing request:', error);
+        toast.error('Failed to remove request');
+      }
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -197,7 +212,7 @@ const HeadcountListPage: React.FC = () => {
                     to={`/headcount/${request._id}`} 
                     className="text-blue-600 hover:text-blue-900 mr-4"
                   >
-                    View
+                    <i className="bi bi-eye me-1"></i> View
                   </Link>
                   
                   {canApprove && request.status === 'pending' && (
@@ -209,19 +224,30 @@ const HeadcountListPage: React.FC = () => {
                         }}
                         className="text-green-600 hover:text-green-900 mr-4"
                       >
-                        Approve
+                        <i className="bi bi-check-circle me-1"></i> Approve
                       </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleReject(request._id);
                         }}
-                        className="text-red-600 hover:text-red-900"
+                        className="text-red-600 hover:text-red-900 mr-4"
                       >
-                        Reject
+                        <i className="bi bi-x-circle me-1"></i> Reject
                       </button>
                     </>
                   )}
+                  
+                  {/* Remove button - available for all requests */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemove(request._id);
+                    }}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    <i className="bi bi-trash me-1"></i> Remove
+                  </button>
                 </td>
               </tr>
             ))}  

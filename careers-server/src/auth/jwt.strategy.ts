@@ -7,6 +7,7 @@ interface JwtPayload {
   sub: string;
   email: string;
   role: UserRole;
+  companyId?: string;
   iat?: number;
   exp?: number;
 }
@@ -25,12 +26,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     userId: string;
     email: string;
     role: UserRole;
+    companyId?: string;
   } {
     // Return user information from JWT payload
     return {
       userId: payload.sub,
       email: payload.email,
       role: payload.role,
+      companyId: payload.companyId,
     };
   }
 }

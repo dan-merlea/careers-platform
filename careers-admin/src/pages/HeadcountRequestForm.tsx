@@ -15,7 +15,10 @@ const HeadcountRequestForm: React.FC = () => {
   // We only need userRole for permission checks
   const { userRole } = useAuth();
   const { company } = useCompany();
-  const isEditing = !!id;
+  // Check if we're viewing an existing request (has ID)
+  const isViewingExisting = !!id;
+  // No longer supporting editing
+  const isEditing = false;
   
   // Check if approval workflow is set to headcount
   const isHeadcountApprovalWorkflow = company?.settings?.approvalType === 'headcount';
@@ -159,15 +162,13 @@ const HeadcountRequestForm: React.FC = () => {
             return;
           }
           
-          if (!isEditing) {
-            // If editing, populate form with existing data
-            setFormData({
-              role: data.role,
-              department: data.department,
-              teamName: data.teamName,
-              reason: data.reason,
-            });
-          }
+          // Always populate form with existing data when viewing
+          setFormData({
+            role: data.role,
+            department: data.department,
+            teamName: data.teamName,
+            reason: data.reason,
+          });
         } catch (error) {
           console.error('Error fetching headcount request:', error);
           toast.error('Failed to load headcount request');
@@ -178,10 +179,11 @@ const HeadcountRequestForm: React.FC = () => {
       }
     };
     
-    if (isEditing) {
+    // Fetch data if we're viewing an existing request
+    if (isViewingExisting) {
       fetchInitialData();
     }
-  }, [id, navigate, canEdit, isEditing, userRole, fetchJobDetails]);
+  }, [id, navigate, canEdit, userRole, fetchJobDetails]);
   
   // Effect to refresh data when returning to the page
   useEffect(() => {
@@ -229,13 +231,9 @@ const HeadcountRequestForm: React.FC = () => {
     setIsLoading(true);
     
     try {
-      if (isEditing) {
-        await headcountService.update(id!, formData);
-        toast.success('Headcount request updated successfully');
-      } else {
-        await headcountService.create(formData);
-        toast.success('Headcount request submitted successfully');
-      }
+      // Only create new requests, editing is no longer supported
+      await headcountService.create(formData);
+      toast.success('Headcount request submitted successfully');
       navigate('/headcount');
     } catch (error) {
       console.error('Error saving headcount request:', error);
@@ -305,7 +303,7 @@ const HeadcountRequestForm: React.FC = () => {
   }
 
   // If viewing an existing request
-  if (isEditing && headcountRequest) {
+  if (isViewingExisting && headcountRequest) {
     const isPending = headcountRequest.status === 'pending';
     
     return (
@@ -343,9 +341,9 @@ const HeadcountRequestForm: React.FC = () => {
               <div>
                 <button
                   onClick={() => setIsReviewing(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2 flex items-center"
                 >
-                  Review Request
+                  <i className="bi bi-clipboard-check me-2"></i> Review Request
                 </button>
               </div>
             )}
@@ -367,7 +365,7 @@ const HeadcountRequestForm: React.FC = () => {
                       Creating...
                     </>
                   ) : (
-                    <>Create Job Opening</>
+                    <><i className="bi bi-briefcase me-2"></i> Create Job Opening</>
                   )}
                 </button>
               </div>
@@ -395,24 +393,24 @@ const HeadcountRequestForm: React.FC = () => {
               <div className="flex justify-end">
                 <button
                   onClick={() => setIsReviewing(false)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2"
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2 flex items-center"
                   disabled={isLoading}
                 >
-                  Cancel
+                  <i className="bi bi-x-circle me-2"></i> Cancel
                 </button>
                 <button
                   onClick={handleReject}
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2"
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2 flex items-center"
                   disabled={isLoading}
                 >
-                  Reject
+                  <i className="bi bi-x-circle me-2"></i> Reject
                 </button>
                 <button
                   onClick={handleApprove}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center"
                   disabled={isLoading}
                 >
-                  Approve
+                  <i className="bi bi-check-circle me-2"></i> Approve
                 </button>
               </div>
             </div>
@@ -528,16 +526,7 @@ const HeadcountRequestForm: React.FC = () => {
             </>
           )}
           
-          {canEdit && isPending && !isReviewing && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <button
-                onClick={() => navigate(`/headcount/edit/${id}`)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              >
-                Edit Request
-              </button>
-            </div>
-          )}
+          {/* Edit button removed as per requirements */}
         </div>
       </div>
     );
@@ -549,9 +538,9 @@ const HeadcountRequestForm: React.FC = () => {
       <div className="mb-6">
         <button 
           onClick={() => navigate('/headcount')}
-          className="text-blue-600 hover:text-blue-800"
+          className="text-blue-600 hover:text-blue-800 flex items-center"
         >
-          &larr; Back to Headcount Requests
+          <i className="bi bi-arrow-left me-2"></i> Back to Headcount Requests
         </button>
       </div>
       
@@ -650,10 +639,22 @@ const HeadcountRequestForm: React.FC = () => {
           <div className="flex items-center justify-between">
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center"
               disabled={isLoading}
             >
-              {isLoading ? 'Saving...' : isEditing ? 'Update Request' : 'Submit Request'}
+              {isLoading ? (
+                <>
+                  <i className="bi bi-arrow-repeat me-2 animate-spin"></i> Saving...
+                </>
+              ) : isEditing ? (
+                <>
+                  <i className="bi bi-save me-2"></i> Update Request
+                </>
+              ) : (
+                <>
+                  <i className="bi bi-send me-2"></i> Submit Request
+                </>
+              )}
             </button>
           </div>
         </form>

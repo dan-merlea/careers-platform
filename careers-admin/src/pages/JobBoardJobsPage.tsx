@@ -7,10 +7,12 @@ import { getStatusBadgeClass } from '../utils/jobStatusUtils';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ScrollableTable from '../components/common/ScrollableTable';
+import { useCompany } from '../context/CompanyContext';
 
 const JobBoardJobsPage: React.FC = () => {
   const { jobBoardId } = useParams<{ jobBoardId: string }>();
   const navigate = useNavigate();
+  const { company } = useCompany();
   
   const [jobBoard, setJobBoard] = useState<JobBoard | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -18,6 +20,9 @@ const JobBoardJobsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
+  
+  // Check if approval workflow is set to headcount
+  const isHeadcountApprovalWorkflow = company?.settings?.approvalType === 'headcount';
 
   const fetchJobBoardDetails = useCallback(async () => {
     try {
@@ -180,7 +185,7 @@ const JobBoardJobsPage: React.FC = () => {
           )}
         </div>
         
-        {jobBoard && !jobBoard.isExternal && (
+        {jobBoard && !jobBoard.isExternal && !isHeadcountApprovalWorkflow && (
           <button
             onClick={handleCreateJob}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"

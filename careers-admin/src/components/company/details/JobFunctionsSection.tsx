@@ -15,7 +15,6 @@ interface JobFunctionsSectionProps {
   handleJobFunctionFormSubmit: (data: CreateJobFunctionDto | UpdateJobFunctionDto) => Promise<void>;
   handleJobFunctionFormCancel: () => void;
   handleDeleteJobFunction: (id: string) => void;
-  companyId?: string;
 }
 
 const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
@@ -30,8 +29,7 @@ const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
   handleAddJobFunction,
   handleJobFunctionFormSubmit,
   handleJobFunctionFormCancel,
-  handleDeleteJobFunction,
-  companyId
+  handleDeleteJobFunction
 }) => {
   return (
     <div className="bg-white shadow-md rounded-lg p-6">
@@ -41,7 +39,6 @@ const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
           onSubmit={handleJobFunctionFormSubmit}
           onCancel={handleJobFunctionFormCancel}
           isSubmitting={savingJobFunction}
-          companyId={companyId || ''}
         />
       ) : (
         <>

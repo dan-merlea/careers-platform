@@ -13,7 +13,8 @@ import {
   DocumentTextIcon,
   ArrowLeftOnRectangleIcon,
   BuildingOfficeIcon,
-  BugAntIcon
+  BugAntIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 interface SidebarLinkProps {
@@ -21,9 +22,10 @@ interface SidebarLinkProps {
   icon: React.ReactNode;
   text: string;
   isActive?: boolean;
+  onClick?: () => void;
 }
 
-const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, text, isActive }) => {
+const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, text, isActive, onClick }) => {
   return (
     <Link 
       to={to} 
@@ -32,6 +34,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, text, isActive }) =
           ? 'bg-blue-100 text-blue-700 px-5 py-3 m-2' 
           : 'text-gray-700 hover:bg-gray-100 px-4 py-3 m-2'
       }`}
+      onClick={onClick}
     >
       <div className="w-6 h-6">{icon}</div>
       <span className="font-medium">{text}</span>
@@ -39,7 +42,13 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, text, isActive }) =
   );
 };
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose?: () => void;
+  isMobile: boolean;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout, userRole, userDepartment, hasPermission } = useAuth();
@@ -61,9 +70,17 @@ const Sidebar: React.FC = () => {
           console.log('Fetching department with ID:', userDepartment);
           const department = await departmentService.getById(userDepartment);
           console.log('Department data received:', department);
-          setDepartmentName(department.title);
+          
+          if (department && department.title) {
+            setDepartmentName(department.title);
+          } else {
+            console.warn('Department found but title is missing:', department);
+            setDepartmentName('Unknown Department');
+          }
         } catch (error) {
           console.error('Error fetching department:', error);
+          // Set a fallback name so the user sees something
+          setDepartmentName('Department Unavailable');
         }
       } else {
         console.log('No department ID available');
@@ -73,6 +90,11 @@ const Sidebar: React.FC = () => {
     
     fetchDepartmentName();
   }, [userDepartment]);
+  
+  // Log when departmentName changes
+  useEffect(() => {
+    console.log('Department name updated:', departmentName);
+  }, [departmentName]);
 
   const handleLogout = async () => {
     try {
@@ -120,18 +142,35 @@ const Sidebar: React.FC = () => {
     return true;
   });
 
+  // Determine sidebar classes based on mobile state and isOpen
+  const sidebarClasses = isMobile 
+    ? `fixed inset-y-0 left-0 z-40 bg-white border-r border-gray-200 flex flex-col w-full sm:w-80 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`
+    : 'w-64 h-full bg-white border-r border-gray-200 flex flex-col';
+
   return (
-    <div className="w-64 h-full bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-4 border-b border-gray-200">
+    <div className={sidebarClasses}>
+      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <h1 className="text-xl font-bold text-blue-600">Careers Platform</h1>
         
+        {isMobile && (
+          <button 
+            onClick={onClose} 
+            className="p-2 rounded-full hover:bg-gray-100"
+            aria-label="Close sidebar"
+          >
+            <XMarkIcon className="w-6 h-6 text-gray-600" />
+          </button>
+        )}
+      </div>
+
+      <div className="p-4">
         {departmentName && (
-          <div className="mt-1 text-xs text-gray-500 font-medium">
+          <div className="text-xs text-gray-500 font-medium">
             Department: {departmentName}
           </div>
         )}
         {userRole && (
-          <div className="mt-1 text-xs text-gray-500 font-medium">
+          <div className="text-xs text-gray-500 font-medium">
             Role: {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
           </div>
         )}
@@ -145,6 +184,7 @@ const Sidebar: React.FC = () => {
             icon={link.icon}
             text={link.text}
             isActive={activePath === link.path}
+            onClick={isMobile ? onClose : undefined}
           />
         ))}
       </div>

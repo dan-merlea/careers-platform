@@ -88,7 +88,7 @@ export class JobService {
       ...jobData,
       content: sanitizedContent,
       status: JobStatus.DRAFT, // Always enforce DRAFT status for new jobs
-      company: company._id,
+      companyId: company._id, // Use companyId instead of company
       departments: departmentObjectIds,
       offices: officeObjectIds,
     });
@@ -144,7 +144,7 @@ export class JobService {
       content: sanitizedContent,
       // If skipApproval is true, set status to APPROVED, otherwise use DRAFT
       status: skipApproval ? JobStatus.APPROVED : JobStatus.DRAFT,
-      company: company._id,
+      companyId: company._id, // Use companyId instead of company
       departments: departmentObjectIds,
       offices: officeObjectIds,
       headcountRequestId: new Types.ObjectId(headcountRequestId),

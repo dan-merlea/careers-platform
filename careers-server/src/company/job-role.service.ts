@@ -13,7 +13,7 @@ export class JobRoleService {
     private readonly jobRoleModel: Model<JobRoleDocument>,
   ) {}
 
-  async create(createJobRoleDto: CreateJobRoleDto): Promise<JobRole> {
+  async create(createJobRoleDto: any): Promise<JobRole> {
     const newJobRole = new this.jobRoleModel(createJobRoleDto);
     const savedRole = await newJobRole.save();
     return this.toJobRole(savedRole);
@@ -24,9 +24,17 @@ export class JobRoleService {
     return roles.map((role) => this.toJobRole(role));
   }
 
-  async findByJobFunction(jobFunctionId: string): Promise<JobRole[]> {
+  async findByJobFunction(jobFunctionId: string, companyId: string): Promise<JobRole[]> {
     const roles = await this.jobRoleModel
-      .find({ jobFunction: jobFunctionId })
+      .find({ jobFunction: jobFunctionId, companyId })
+      .populate('jobFunction')
+      .exec();
+    return roles.map((role) => this.toJobRole(role));
+  }
+  
+  async findByCompany(companyId: string): Promise<JobRole[]> {
+    const roles = await this.jobRoleModel
+      .find({ companyId })
       .populate('jobFunction')
       .exec();
     return roles.map((role) => this.toJobRole(role));

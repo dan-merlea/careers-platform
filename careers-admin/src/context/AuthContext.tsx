@@ -10,6 +10,7 @@ interface Company {
 // Define the shape of our auth context
 interface AuthContextType {
   isAuthenticated: boolean;
+  name: string | null;
   userEmail: string | null;
   isAdmin: boolean;
   userRole: string | null;
@@ -28,6 +29,7 @@ interface AuthContextType {
 // Create the context with a default value
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
+  name: null,
   userEmail: null,
   isAdmin: false,
   userRole: null,
@@ -79,6 +81,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [company, setCompany] = useState<Company | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [name, setName] = useState<string | null>(null);
   
   // We can't use useNavigate directly in the provider because it's not inside a Router
   // Instead, we'll handle navigation in a separate effect
@@ -93,6 +96,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedDepartment = localStorage.getItem('userDepartment');
       const storedCompanyId = localStorage.getItem('companyId');
       const storedCompanyName = localStorage.getItem('companyName');
+      const storedName = localStorage.getItem('name');
 
       if (storedToken) {
         // Validate token with the backend
@@ -104,6 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setIsAuthenticated(true);
           setToken(storedToken);
           setUserEmail(storedEmail);
+          setName(storedName);
           setIsAdmin(storedIsAdmin);
           setUserRole(storedRole);
           setUserDepartment(storedDepartment);
@@ -127,6 +132,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUserDepartment(null);
           setCompanyId(null);
           setCompany(null);
+          setName(null);
         }
       } else {
         setIsAuthenticated(false);
@@ -137,6 +143,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserDepartment(null);
         setCompanyId(null);
         setCompany(null);
+        setName(null);
       }
 
       setLoading(false);
@@ -156,6 +163,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserDepartment(null);
       setCompanyId(null);
       setCompany(null);
+      setName(null);
       
       // We can't use navigate here, so we'll redirect manually
       window.location.href = '/login';
@@ -194,6 +202,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
       localStorage.setItem('userRole', data.user.role);
       localStorage.setItem('userDepartment', data.user.departmentId || '');
+      localStorage.setItem('name', data.user.name || '');
       
       // Store company data if available
       if (data.user.companyId) {
@@ -213,6 +222,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserDepartment(data.user.departmentId || null);
       setCompanyId(data.user.companyId || null);
       setCompany(data.company || null);
+      setName(data.user.name || null);
     } finally {
       setLoading(false);
     }
@@ -231,6 +241,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
       localStorage.setItem('userRole', data.user.role);
       localStorage.setItem('userDepartment', data.user.departmentId || '');
+      localStorage.setItem('name', data.user.name || '');
       
       // Store company data if available
       if (data.user.companyId) {
@@ -250,6 +261,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserDepartment(data.user.departmentId || null);
       setCompanyId(data.user.companyId || null);
       setCompany(data.company || null);
+      setName(data.user.name || null);
     } finally {
       setLoading(false);
     }
@@ -273,6 +285,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
       localStorage.setItem('userRole', data.user.role);
       localStorage.setItem('userDepartment', data.user.departmentId || '');
+      localStorage.setItem('name', data.user.name || '');
       
       // Store company data
       if (data.user.companyId) {
@@ -292,6 +305,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUserDepartment(data.user.departmentId || null);
       setCompanyId(data.user.companyId || null);
       setCompany(data.company || null);
+      setName(data.user.name || null);
     } finally {
       setLoading(false);
     }
@@ -315,6 +329,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('userDepartment');
       localStorage.removeItem('companyId');
       localStorage.removeItem('companyName');
+      localStorage.removeItem('name');
       
       // Update state
       setIsAuthenticated(false);
@@ -334,6 +349,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value = {
     isAuthenticated,
     userEmail,
+    name,
     isAdmin,
     userRole,
     userDepartment,

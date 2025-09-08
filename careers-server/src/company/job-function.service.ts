@@ -68,13 +68,15 @@ export class JobFunctionService {
     const companyObjectId = new Types.ObjectId(companyId);
     const defaultJobFunctions = [
       { title: 'Engineering', companyId: companyObjectId },
-      { title: 'Marketing', companyId: companyObjectId },
-      { title: 'Sales', companyId: companyObjectId },
       { title: 'Product', companyId: companyObjectId },
       { title: 'Design', companyId: companyObjectId },
+      { title: 'Marketing', companyId: companyObjectId },
+      { title: 'Sales', companyId: companyObjectId },
       { title: 'Operations', companyId: companyObjectId },
-      { title: 'Human Resources', companyId: companyObjectId },
+      { title: 'People', companyId: companyObjectId },
       { title: 'Finance', companyId: companyObjectId },
+      { title: 'Legal', companyId: companyObjectId },
+      { title: 'Customer Support', companyId: companyObjectId },
     ];
 
     const createdFunctions =

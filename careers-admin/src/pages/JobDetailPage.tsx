@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { PencilIcon, TrashIcon, ArchiveBoxIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, ArchiveBoxIcon, ArrowLeftIcon, UserGroupIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import JobApplicantsList from '../components/jobs/JobApplicantsList';
 import jobService, { Job, JobStatus } from '../services/jobService';
 
 const JobDetailPage: React.FC = () => {
@@ -10,6 +11,7 @@ const JobDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'details' | 'applicants'>('details');
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -181,19 +183,48 @@ const JobDetailPage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white shadow rounded overflow-hidden mb-6">
-        <div className="p-6">
-          <div className="flex justify-between mb-4">
-            <div>
-              <span className="text-sm text-gray-500">Internal ID:</span>
-              <p className="font-medium">{job.internalId}</p>
+      {/* Tab Navigation */}
+      <div className="mb-6 border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
+          <button
+            onClick={() => setActiveTab('details')}
+            className={`${
+              activeTab === 'details'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+          >
+            <DocumentTextIcon className="-ml-0.5 mr-2 h-5 w-5" aria-hidden="true" />
+            Job Details
+          </button>
+          <button
+            onClick={() => setActiveTab('applicants')}
+            className={`${
+              activeTab === 'applicants'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+          >
+            <UserGroupIcon className="-ml-0.5 mr-2 h-5 w-5" aria-hidden="true" />
+            Applicants
+          </button>
+        </nav>
+      </div>
+
+      {activeTab === 'details' && (
+        <div className="bg-white shadow rounded overflow-hidden mb-6">
+          <div className="p-6">
+            <div className="flex justify-between mb-4">
+              <div>
+                <span className="text-sm text-gray-500">Internal ID:</span>
+                <p className="font-medium">{job.internalId}</p>
+              </div>
+              <div>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
+                  {job.status}
+                </span>
+              </div>
             </div>
-            <div>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
-                {job.status}
-              </span>
-            </div>
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
@@ -243,6 +274,16 @@ const JobDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
+
+      {activeTab === 'applicants' && (
+        <div className="bg-white shadow rounded overflow-hidden mb-6">
+          <div className="p-6">
+            <h2 className="text-lg font-semibold mb-4">Job Applicants</h2>
+            {id && <JobApplicantsList jobId={id} />}
+          </div>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {isDeleting && (

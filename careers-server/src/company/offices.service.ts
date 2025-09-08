@@ -11,13 +11,21 @@ export class OfficesService {
     @InjectModel(Office.name) private officeModel: Model<OfficeDocument>,
   ) {}
 
-  async create(createOfficeDto: CreateOfficeDto): Promise<Office> {
-    const createdOffice = new this.officeModel(createOfficeDto);
+  async create(
+    createOfficeDto: CreateOfficeDto,
+    companyId: string,
+  ): Promise<Office> {
+    const officeData = {
+      ...createOfficeDto,
+      companyId,
+    };
+    const createdOffice = new this.officeModel(officeData);
     return createdOffice.save();
   }
 
-  async findAll(): Promise<Office[]> {
-    return this.officeModel.find().exec();
+  async findAll(companyId?: string): Promise<Office[]> {
+    const query = companyId ? { companyId } : {};
+    return this.officeModel.find(query).exec();
   }
 
   async findOne(id: string): Promise<Office> {
@@ -48,8 +56,7 @@ export class OfficesService {
     }
   }
 
-  async getMainOffice(): Promise<Office | null> {
-    // Return the first office or implement another way to determine the main office
-    return this.officeModel.findOne().exec();
+  async getMainOffice(companyId: string): Promise<Office | null> {
+    return this.officeModel.findOne({ companyId }).exec();
   }
 }

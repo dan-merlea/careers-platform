@@ -7,7 +7,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { OfficesService } from './offices.service';
 import { CreateOfficeDto } from './dto/create-office.dto';
 import { UpdateOfficeDto } from './dto/update-office.dto';
@@ -23,20 +25,24 @@ export class OfficesController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  create(@Body() createOfficeDto: CreateOfficeDto) {
-    return this.officesService.create(createOfficeDto);
+  create(
+    @Body() createOfficeDto: CreateOfficeDto,
+    @Req() req: Request & { user: { companyId: string } },
+  ) {
+    // Create a new office with the company ID from the authenticated user
+    return this.officesService.create(createOfficeDto, req.user.companyId);
   }
 
   @Get()
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.RECRUITER)
-  findAll() {
-    return this.officesService.findAll();
+  findAll(@Req() req: Request & { user: { companyId: string } }) {
+    return this.officesService.findAll(req.user.companyId);
   }
 
   @Get('main')
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.RECRUITER, UserRole.USER)
-  getMainOffice() {
-    return this.officesService.getMainOffice();
+  getMainOffice(@Req() req: Request & { user: { companyId: string } }) {
+    return this.officesService.getMainOffice(req.user.companyId);
   }
 
   @Get(':id')

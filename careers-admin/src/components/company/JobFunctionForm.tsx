@@ -6,15 +6,13 @@ interface JobFunctionFormProps {
   onSubmit: (data: CreateJobFunctionDto | UpdateJobFunctionDto) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
-  companyId: string;
 }
 
 const JobFunctionForm: React.FC<JobFunctionFormProps> = ({
   jobFunction,
   onSubmit,
   onCancel,
-  isSubmitting,
-  companyId
+  isSubmitting
 }) => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -49,8 +47,7 @@ const JobFunctionForm: React.FC<JobFunctionFormProps> = ({
 
     const formData: CreateJobFunctionDto | UpdateJobFunctionDto = {
       title: name.trim(),
-      description: description.trim() || undefined,
-      company: companyId
+      description: description.trim() || undefined
     };
 
     await onSubmit(formData);

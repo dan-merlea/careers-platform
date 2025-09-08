@@ -608,12 +608,6 @@ const CompanyDetailsPage: React.FC = () => {
           Offices
         </button>
         <button
-          onClick={() => handleSectionChange('departments')}
-          className={`py-2 px-4 mr-2 ${activeSection === 'departments' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
-        >
-          Departments
-        </button>
-        <button
           onClick={() => handleSectionChange('job-functions')}
           className={`py-2 px-4 mr-2 ${activeSection === 'job-functions' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
         >
@@ -624,6 +618,12 @@ const CompanyDetailsPage: React.FC = () => {
           className={`py-2 px-4 mr-2 ${activeSection === 'job-roles' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
         >
           Job Roles
+        </button>
+        <button
+          onClick={() => handleSectionChange('departments')}
+          className={`py-2 px-4 mr-2 ${activeSection === 'departments' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          Departments
         </button>
         <button
           onClick={() => handleSectionChange('settings')}
@@ -683,7 +683,6 @@ const CompanyDetailsPage: React.FC = () => {
             handleJobFunctionFormSubmit={handleJobFunctionFormSubmit}
             handleJobFunctionFormCancel={handleJobFunctionFormCancel}
             handleDeleteJobFunction={handleDeleteJobFunction}
-            companyId={companyDetails._id}
           />
         } />
         <Route path="/job-roles" element={

@@ -355,7 +355,6 @@ export class DepartmentService {
     const defaultDepartments = [
       // Top-level departments
       { title: 'Engineering', companyId: companyObjectId },
-      { title: 'Product', companyId: companyObjectId },
       { title: 'Marketing', companyId: companyObjectId },
       { title: 'Sales', companyId: companyObjectId },
       { title: 'Operations', companyId: companyObjectId },

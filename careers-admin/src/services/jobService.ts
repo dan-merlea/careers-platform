@@ -51,7 +51,7 @@ export interface Job {
 export interface JobCreateDto {
   internalId?: string;
   title: string;
-  companyId: string;
+  companyId?: string; // Now optional as it's assigned in the backend
   location: string;
   content: string;
   departmentIds: string[];

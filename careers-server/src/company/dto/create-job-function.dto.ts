@@ -8,8 +8,4 @@ export class CreateJobFunctionDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @IsNotEmpty()
-  @IsString()
-  companyId: string;
 }

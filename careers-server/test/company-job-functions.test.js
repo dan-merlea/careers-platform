@@ -20,13 +20,15 @@ const testCompany = {
 // Expected default job functions
 const expectedDefaultJobFunctions = [
   'Engineering',
-  'Marketing',
-  'Sales',
   'Product',
   'Design',
+  'Marketing',
+  'Sales',
   'Operations',
-  'Human Resources',
-  'Finance'
+  'People',
+  'Finance',
+  'Legal',
+  'Customer Support',
 ];
 
 // Axios instance with auth headers

@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   NotFoundException,
+  Req,
 } from '@nestjs/common';
 import { JobService } from './job.service';
 import type { JobDocument } from './job.entity';
@@ -78,15 +79,24 @@ export class JobController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  async create(@Body() jobCreateDto: JobCreateDto | JobCreateFromHeadcountDto): Promise<JobResponseDto> {
+  async create(
+    @Body() jobCreateDto: JobCreateDto | JobCreateFromHeadcountDto,
+    @Req() req: { user: { companyId: string } },
+  ): Promise<JobResponseDto> {
+    // Add company ID from authenticated user
+    const jobData = {
+      ...jobCreateDto,
+      companyId: req.user.companyId,
+    };
+    
     // Check if this is a job created from a headcount request
-    if ('headcountRequestId' in jobCreateDto && jobCreateDto.headcountRequestId) {
+    if ('headcountRequestId' in jobData && jobData.headcountRequestId) {
       // Create job with special handling for headcount requests
-      const job = await this.jobService.createFromHeadcount(jobCreateDto);
+      const job = await this.jobService.createFromHeadcount(jobData as any);
       return this.mapJobToResponseDto(job);
     } else {
       // Regular job creation
-      const job = await this.jobService.create(jobCreateDto as JobCreateDto);
+      const job = await this.jobService.create(jobData as any);
       return this.mapJobToResponseDto(job);
     }
   }

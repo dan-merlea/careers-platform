@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import JobForm from '../components/jobs/JobForm';
 import jobService, { JobCreateDto, JobUpdateDto } from '../services/jobService';
-import headcountService, { HeadcountRequest } from '../services/headcountService';
+import headcountService from '../services/headcountService';
 import { departmentService } from '../services/departmentService';
 import { useCompany } from '../context/CompanyContext';
 import { toast } from 'react-toastify';
@@ -18,9 +18,7 @@ const JobCreatePage: React.FC = () => {
   const [isFromHeadcount, setIsFromHeadcount] = useState<boolean>(false);
   const [headcountRequestId, setHeadcountRequestId] = useState<string | null>(null);
   const [isFromJobBoard, setIsFromJobBoard] = useState<boolean>(false);
-  
-  // Check if approval workflow is set to headcount
-  const isHeadcountApprovalWorkflow = company?.settings?.approvalType === 'headcount';
+
 
   // Check if we're creating a job from a job board
   useEffect(() => {
@@ -49,31 +47,59 @@ const JobCreatePage: React.FC = () => {
         setIsLoading(true);
         try {
           const headcountRequest = await headcountService.getById(headcountId);
+          console.log('Fetched headcount request:', headcountRequest);
           
-          // Find department ID by name
+          // Find department ID by name with case-insensitive matching
           let departmentId = '';
           if (department) {
             // Fetch all departments to find the matching one
             const departments = await departmentService.getAll();
-            const matchingDept = departments.find((dept) => dept.title === department);
+            console.log('Available departments:', departments);
+            
+            // Try exact match first
+            let matchingDept = departments.find((dept) => dept.title === department);
+            
+            // If no exact match, try case-insensitive match
+            if (!matchingDept) {
+              matchingDept = departments.find((dept) => 
+                dept.title.toLowerCase() === department.toLowerCase()
+              );
+            }
+            
+            // If still no match, try partial match
+            if (!matchingDept) {
+              matchingDept = departments.find((dept) => 
+                dept.title.toLowerCase().includes(department.toLowerCase()) || 
+                department.toLowerCase().includes(dept.title.toLowerCase())
+              );
+            }
+            
             if (matchingDept && matchingDept._id) {
               departmentId = matchingDept._id;
+              console.log('Matched department:', matchingDept.title, 'with ID:', departmentId);
+            } else {
+              console.warn('Could not find matching department for:', department);
             }
           }
           
           // Prepare initial data for the job form
-          setInitialData({
-            title: role,
-            companyId: company?._id || '',
+          const initialFormData = {
+            title: role,  // This is the job title that should be displayed in the form
+            // companyId is now assigned in the backend
             headcountRequestId: headcountId,
             skipApproval: true,
             departmentIds: departmentId ? [departmentId] : [],
             // Set other fields from headcount request if available
             location: headcountRequest.location || '',
-            content: `<h2>Job Description</h2><p>Role requested through headcount approval process.</p><p>Department: ${department || 'Not specified'}</p><p>Location: ${headcountRequest.location || 'Not specified'}</p>`,
+            content: ``,
             // Add role title for job role matching
             roleTitle: role
-          });
+          };
+          
+          console.log('Setting job title in initialData:', role);
+          
+          console.log('Setting initial form data:', initialFormData);
+          setInitialData(initialFormData);
         } catch (err) {
           console.error('Error fetching headcount request:', err);
           setError('Failed to load headcount request data. Please try again.');
@@ -103,6 +129,13 @@ const JobCreatePage: React.FC = () => {
         await headcountService.markJobCreated(headcountRequestId, jobId);
         
         toast.success('Job created successfully from headcount request');
+        
+        // Redirect to view the job from the job board
+        if (result.jobBoardId) {
+          // Navigate to the job board view for this specific job
+          navigate(`/job-boards/${result.jobBoardId}/jobs/${jobId}`);
+          return; // Exit early to prevent the default navigation below
+        }
       } else {
         // Regular job creation
         const result = await jobService.createJob(formData as JobCreateDto);
@@ -110,6 +143,7 @@ const JobCreatePage: React.FC = () => {
         toast.success('Job created successfully');
       }
       
+      // Default navigation if not redirected to job board view
       navigate('/jobs');
     } catch (err: any) {
       console.error('Error creating job:', err);
