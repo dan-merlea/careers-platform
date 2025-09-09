@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { PencilIcon, TrashIcon, ArchiveBoxIcon, ArrowLeftIcon, UserGroupIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import JobApplicantsList from '../components/jobs/JobApplicantsList';
 import jobService, { Job, JobStatus } from '../services/jobService';
@@ -7,11 +7,25 @@ import jobService, { Job, JobStatus } from '../services/jobService';
 const JobDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<'details' | 'applicants'>('details');
+  
+  // Get the active tab from URL search params or default to 'details'
+  const getTabFromUrl = React.useCallback((): 'details' | 'applicants' => {
+    const searchParams = new URLSearchParams(location.search);
+    const tab = searchParams.get('tab');
+    return tab === 'applicants' ? 'applicants' : 'details';
+  }, [location.search]);
+  
+  const [activeTab, setActiveTab] = useState<'details' | 'applicants'>(getTabFromUrl());
+
+  // Update active tab when URL changes
+  useEffect(() => {
+    setActiveTab(getTabFromUrl());
+  }, [location.search, getTabFromUrl]);
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -187,7 +201,10 @@ const JobDetailPage: React.FC = () => {
       <div className="mb-6 border-b border-gray-200">
         <nav className="-mb-px flex space-x-8" aria-label="Tabs">
           <button
-            onClick={() => setActiveTab('details')}
+            onClick={() => {
+              setActiveTab('details');
+              navigate(`/jobs/${id}?tab=details`, { replace: true });
+            }}
             className={`${
               activeTab === 'details'
                 ? 'border-blue-500 text-blue-600'
@@ -198,7 +215,10 @@ const JobDetailPage: React.FC = () => {
             Job Details
           </button>
           <button
-            onClick={() => setActiveTab('applicants')}
+            onClick={() => {
+              setActiveTab('applicants');
+              navigate(`/jobs/${id}?tab=applicants`, { replace: true });
+            }}
             className={`${
               activeTab === 'applicants'
                 ? 'border-blue-500 text-blue-600'
@@ -256,9 +276,34 @@ const JobDetailPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="mb-6">
-            <span className="text-sm text-gray-500">Last Updated:</span>
-            <p className="font-medium">{new Date(job.updatedAt).toLocaleString()}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <span className="text-sm text-gray-500">Recruiter:</span>
+              <p className="font-medium">
+                {job.createdBy 
+                  ? `${job.createdBy.name} (${job.createdBy.email})` 
+                  : 'Not assigned'}
+              </p>
+            </div>
+            <div>
+              <span className="text-sm text-gray-500">Hiring Manager:</span>
+              <p className="font-medium">
+                {job.hiringManager 
+                  ? `${job.hiringManager.name} (${job.hiringManager.email})` 
+                  : 'Not assigned'}
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <span className="text-sm text-gray-500">Created Date:</span>
+              <p className="font-medium">{new Date(job.createdAt).toLocaleString()}</p>
+            </div>
+            <div>
+              <span className="text-sm text-gray-500">Last Updated:</span>
+              <p className="font-medium">{new Date(job.updatedAt).toLocaleString()}</p>
+            </div>
           </div>
 
           {job.publishedDate && (

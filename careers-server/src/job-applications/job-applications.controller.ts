@@ -11,12 +11,14 @@ import {
   Res,
   HttpStatus,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import type { Response } from 'express';
 import { JobApplicationsService } from './job-applications.service';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto';
+import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -117,6 +119,16 @@ export class JobApplicationsController {
 
     // Pipe the GridFS stream to the response
     resume.stream.pipe(res);
+  }
+
+  @Put(':id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
+  updateStatus(
+    @Param('id') id: string,
+    @Body() updateStatusDto: UpdateApplicationStatusDto,
+  ) {
+    return this.jobApplicationsService.updateStatus(id, updateStatusDto);
   }
 
   @Delete(':id')

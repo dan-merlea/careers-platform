@@ -10,6 +10,7 @@ import { departmentService, Department } from '../../services/departmentService'
 import { jobRoleService, JobRole } from '../../services/jobRoleService';
 import jobTemplateService, { JobTemplate } from '../../services/jobTemplateService';
 import jobBoardsService, { JobBoard } from '../../services/jobBoardsService';
+import { userService, User } from '../../services/userService';
 import SaveTemplateModal from './SaveTemplateModal';
 import { format } from 'date-fns';
 
@@ -42,6 +43,7 @@ const JobForm: React.FC<JobFormProps> = ({
     departmentIds: [],
     officeIds: [],
     status: JobStatus.DRAFT,
+    hiringManagerId: '',
     ...initialData
   });
   
@@ -65,6 +67,8 @@ const JobForm: React.FC<JobFormProps> = ({
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
   const [jobBoards, setJobBoards] = useState<JobBoard[]>([]);
   const [isLoadingJobBoards, setIsLoadingJobBoards] = useState(false);
+  const [hiringManagers, setHiringManagers] = useState<User[]>([]);
+  const [isLoadingHiringManagers, setIsLoadingHiringManagers] = useState(false);
 
   // Function to fetch templates for a job role
   const fetchTemplatesForRole = useCallback(async (roleId: string) => {
@@ -185,6 +189,12 @@ const JobForm: React.FC<JobFormProps> = ({
         }
         
         setIsLoadingJobBoards(false);
+        
+        // Fetch hiring managers (managers, directors, and admins)
+        setIsLoadingHiringManagers(true);
+        const hiringManagersData = await userService.getHiringManagers();
+        setHiringManagers(hiringManagersData);
+        setIsLoadingHiringManagers(false);
         
         // Fetch offices
         const officesData = await officesService.getAll();
@@ -318,7 +328,7 @@ const JobForm: React.FC<JobFormProps> = ({
     } else {
       setJobRoles([]);
     }
-  }, [selectedDepartment, departments, fetchJobRolesForDepartment, fetchTemplatesForRole]);
+  }, [selectedDepartment, departments, fetchJobRolesForDepartment, fetchTemplatesForRole, formData.jobBoardId]);
   
   // Handle job role selection
   useEffect(() => {
@@ -343,10 +353,19 @@ const JobForm: React.FC<JobFormProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    
+    // Special handling for hiringManagerId to prevent empty strings being sent to server
+    if (name === 'hiringManagerId' && value === '') {
+      // Remove the hiringManagerId property entirely if empty string
+      const updatedFormData = { ...formData };
+      delete updatedFormData.hiringManagerId;
+      setFormData(updatedFormData);
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
   };
 
   const handleMultiSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -467,6 +486,32 @@ const JobForm: React.FC<JobFormProps> = ({
                 className="w-full p-2 border border-gray-300 rounded"
                 required
               />
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="hiringManagerId" className="block text-sm font-medium text-gray-700 mb-1">
+                Hiring Manager <span className="text-gray-500 text-xs">(optional)</span>
+              </label>
+              <select
+                id="hiringManagerId"
+                name="hiringManagerId"
+                value={formData.hiringManagerId || ''}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded"
+                disabled={isLoadingHiringManagers}
+              >
+                <option value="">Select a hiring manager...</option>
+                {hiringManagers.map(manager => (
+                  <option key={manager.id} value={manager.id}>
+                    {manager.name} ({manager.role})
+                  </option>
+                ))}
+              </select>
+              {isLoadingHiringManagers && (
+                <p className="text-sm text-gray-500 mt-1">Loading hiring managers...</p>
+              )}
             </div>
           </div>
 

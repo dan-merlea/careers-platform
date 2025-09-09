@@ -1,6 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
+export enum ApplicationStatus {
+  NEW = 'new',
+  REVIEWED = 'reviewed',
+  CONTACTED = 'contacted',
+  INTERVIEWING = 'interviewing',
+  OFFERED = 'offered',
+  HIRED = 'hired',
+  REJECTED = 'rejected',
+}
+
 export type JobApplicationDocument = JobApplication & Document;
 
 @Schema({ timestamps: true })
@@ -40,6 +50,13 @@ export class JobApplication {
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Job', required: true })
   jobId: MongooseSchema.Types.ObjectId;
+
+  @Prop({
+    type: String,
+    enum: ApplicationStatus,
+    default: ApplicationStatus.NEW,
+  })
+  status: ApplicationStatus;
 
   @Prop({ default: Date.now })
   createdAt: Date;

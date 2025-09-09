@@ -16,6 +16,7 @@ export interface Job {
   status: JobStatus;
   createdAt: Date;
   jobBoardId?: string; // Reference to the job board
+  hiringManagerId?: string; // Reference to the hiring manager (User)
 }
 
 export enum JobStatus {
@@ -37,6 +38,8 @@ export interface JobCreateDto {
   officeIds: string[];
   status?: JobStatus;
   jobBoardId?: string;
+  createdBy?: string; // User ID of the person who created the job
+  hiringManagerId?: string; // User ID of the hiring manager for the job
 }
 
 export interface JobCreateFromHeadcountDto extends JobCreateDto {
@@ -54,6 +57,7 @@ export interface JobUpdateDto {
   officeIds?: string[];
   status?: JobStatus;
   jobBoardId?: string;
+  hiringManagerId?: string;
 }
 
 export interface JobResponseDto {
@@ -82,4 +86,14 @@ export interface JobResponseDto {
   status: JobStatus;
   rejectionReason?: string;
   jobBoardId?: string;
+  createdBy?: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  hiringManager?: {
+    id: string;
+    email: string;
+    name: string;
+  };
 }

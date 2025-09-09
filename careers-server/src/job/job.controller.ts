@@ -13,7 +13,12 @@ import {
 } from '@nestjs/common';
 import { JobService } from './job.service';
 import type { JobDocument } from './job.entity';
-import type { JobCreateDto, JobResponseDto, JobUpdateDto, JobCreateFromHeadcountDto } from './job.model';
+import type {
+  JobCreateDto,
+  JobResponseDto,
+  JobUpdateDto,
+  JobCreateFromHeadcountDto,
+} from './job.model';
 import { JobStatus } from './job.model';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -81,14 +86,15 @@ export class JobController {
   @UseGuards(AuthGuard('jwt'))
   async create(
     @Body() jobCreateDto: JobCreateDto | JobCreateFromHeadcountDto,
-    @Req() req: { user: { companyId: string } },
+    @Req() req: { user: { companyId: string; userId: string; email: string } },
   ): Promise<JobResponseDto> {
-    // Add company ID from authenticated user
+    // Add company ID and user ID from authenticated user
     const jobData = {
       ...jobCreateDto,
       companyId: req.user.companyId,
+      createdBy: req.user.userId, // Store the user ID of the creator
     };
-    
+
     // Check if this is a job created from a headcount request
     if ('headcountRequestId' in jobData && jobData.headcountRequestId) {
       // Create job with special handling for headcount requests
@@ -191,7 +197,27 @@ export class JobController {
     const jobId = job._id as { toString(): string };
 
     // Handle jobBoardId - convert to string if it exists
-    const jobBoardIdStr: string = job.jobBoardId ? job.jobBoardId.toString() : '';
+    const jobBoardIdStr: string = job.jobBoardId
+      ? job.jobBoardId.toString()
+      : '';
+
+    // Handle createdBy if it exists
+    const createdByInfo = job.createdBy
+      ? {
+          id: (job.createdBy as any)._id?.toString() || '',
+          email: (job.createdBy as any).email || '',
+          name: (job.createdBy as any).name || '',
+        }
+      : undefined;
+      
+    // Handle hiringManager if it exists
+    const hiringManagerInfo = job.hiringManagerId
+      ? {
+          id: (job.hiringManagerId as any)._id?.toString() || '',
+          email: (job.hiringManagerId as any).email || '',
+          name: (job.hiringManagerId as any).name || '',
+        }
+      : undefined;
 
     return {
       id: jobId.toString(),
@@ -225,6 +251,8 @@ export class JobController {
       status: job.status,
       rejectionReason: job.rejectionReason,
       jobBoardId: jobBoardIdStr,
+      createdBy: createdByInfo,
+      hiringManager: hiringManagerInfo,
     };
   }
 }

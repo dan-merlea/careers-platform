@@ -21,6 +21,10 @@ import JobDetailPage from './pages/JobDetailPage';
 import HeadcountListPage from './pages/HeadcountListPage';
 import HeadcountRequestForm from './pages/HeadcountRequestForm';
 import DebugJobApplications from './pages/DebugJobApplications';
+import InterviewsPage from './pages/InterviewsPage';
+import InterviewProcessCreatePage from './pages/InterviewProcessCreatePage';
+import InterviewProcessEditPage from './pages/InterviewProcessEditPage';
+import InterviewProcessDetailPage from './pages/InterviewProcessDetailPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CompanyProvider } from './context/CompanyContext';
 import RoleGuard from './components/guards/RoleGuard';
@@ -244,6 +248,40 @@ const AppRoutes: React.FC = () => {
                 }
               />
               {/* Edit route removed as per requirements */}
+              
+              {/* Interview Process routes */}
+              <Route
+                path="/interviews"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                    <InterviewsPage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/interviews/create"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <InterviewProcessCreatePage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/interviews/:id"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                    <InterviewProcessDetailPage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/interviews/:id/edit"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                    <InterviewProcessEditPage />
+                  </RoleGuard>
+                }
+              />
               
               {/* Debug routes - only visible in development mode */}
               <Route

@@ -29,22 +29,103 @@ const jobApplicationService = {
     return response;
   },
 
-  // Note: The server doesn't currently support updating application status
-  // This is a client-side only implementation for UI demonstration purposes
-  updateApplicationStatus: (id: string, status: JobApplicant['status']): JobApplicant => {
-    console.log(`Status update for application ${id} to ${status} (server endpoint not implemented)`);
-    // Return a mock response with the updated status
-    return {
-      id,
-      status,
-      // Other fields will be populated by the component that has the full applicant data
-    } as JobApplicant;
+  // Update application status
+  updateApplicationStatus: async (id: string, status: JobApplicant['status']): Promise<JobApplicant> => {
+    const response = await api.put<JobApplicant>(`/job-applications/${id}/status`, { status });
+    return response;
   },
 
-  // Download resume
+  // Get URL for resume download
   getResumeDownloadUrl: (applicantId: string): string => {
-    const token = getAuthToken();
-    return `${API_URL}/job-applications/${applicantId}/resume?token=${token}`;
+    return `${API_URL}/job-applications/${applicantId}/resume`;
+  },
+  
+  // Download resume directly
+  downloadResume: async (applicantId: string): Promise<void> => {
+    try {
+      // Create a hidden anchor element
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      
+      // Get the auth token
+      const token = getAuthToken();
+      
+      // Fetch the resume with proper authentication
+      const response = await fetch(`${API_URL}/job-applications/${applicantId}/resume`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to download resume: ${response.status} ${response.statusText}`);
+      }
+      
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Get the filename from the Content-Disposition header or use a default
+      const contentDisposition = response.headers.get('Content-Disposition');
+      let filename = 'resume';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename="(.+)"/i);
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1];
+        }
+      }
+      
+      // Set the anchor's href and download attributes
+      a.href = url;
+      a.download = filename;
+      
+      // Trigger the download
+      a.click();
+      
+      // Clean up
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading resume:', error);
+      throw error;
+    }
+  },
+  
+  // Get resume content as a blob URL for in-browser display
+  getResumeContentUrl: async (applicantId: string): Promise<{ url: string, mimeType: string }> => {
+    try {
+      // Get the auth token
+      const token = getAuthToken();
+      
+      // Fetch the resume with proper authentication
+      const response = await fetch(`${API_URL}/job-applications/${applicantId}/resume`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to get resume content: ${response.status} ${response.statusText}`);
+      }
+      
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Return the URL and mime type
+      return {
+        url,
+        mimeType: blob.type
+      };
+    } catch (error) {
+      console.error('Error getting resume content:', error);
+      throw error;
+    }
   }
 };
 

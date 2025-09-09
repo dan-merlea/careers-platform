@@ -46,6 +46,18 @@ export interface Job {
   rejectedBy?: string;
   rejectionReason?: string;
   rejectedAt?: string;
+  hiringManager?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
+  createdBy?: {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  };
 }
 
 export interface JobCreateDto {
@@ -61,6 +73,7 @@ export interface JobCreateDto {
   headcountRequestId?: string; // Reference to the headcount request this job is created from
   skipApproval?: boolean; // Flag to skip approval process for jobs created from headcount requests
   roleTitle?: string; // Used for matching with job roles when creating from headcount requests
+  hiringManagerId?: string; // Reference to the user who is the hiring manager for this job
 }
 
 export interface JobUpdateDto {
@@ -74,6 +87,7 @@ export interface JobUpdateDto {
   status?: JobStatus;
   jobBoardId?: string;
   roleTitle?: string; // Used for matching with job roles when creating from headcount requests
+  hiringManagerId?: string; // Reference to the user who is the hiring manager for this job
 }
 
 const jobService = {

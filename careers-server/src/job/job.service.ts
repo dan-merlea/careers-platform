@@ -9,12 +9,14 @@ import {
   JobUpdateDto,
   JobCreateFromHeadcountDto,
 } from './job.model';
+import { HeadcountRequestService } from '../headcount/headcount-request.service';
 import { Company, CompanyDocument } from '../company/schemas/company.schema';
 import {
   Department,
   DepartmentDocument,
 } from '../company/schemas/department.schema';
 import { Office, OfficeDocument } from '../company/schemas/office.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
 
 @Injectable()
 export class JobService {
@@ -30,6 +32,11 @@ export class JobService {
 
     @InjectModel(Office.name)
     private officeModel: Model<OfficeDocument>,
+
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
+
+    private headcountRequestService: HeadcountRequestService,
   ) {}
 
   async findAll(): Promise<JobDocument[]> {
@@ -38,6 +45,8 @@ export class JobService {
       .populate('companyId')
       .populate('departments')
       .populate('offices')
+      .populate('hiringManagerId')
+      .populate('createdBy')
       .exec();
   }
 
@@ -47,15 +56,24 @@ export class JobService {
       .populate('companyId')
       .populate('departments')
       .populate('offices')
+      .populate('hiringManagerId')
+      .populate('createdBy')
       .exec();
   }
 
   async findOne(id: string): Promise<JobDocument> {
+    // Check if id is valid before querying
+    if (!id || id === 'undefined') {
+      throw new NotFoundException(`Invalid job ID: ${id}`);
+    }
+
     const job = await this.jobModel
       .findById(id)
       .populate('companyId')
       .populate('departments')
       .populate('offices')
+      .populate('hiringManagerId')
+      .populate('createdBy')
       .exec();
 
     if (!job) {
@@ -66,7 +84,14 @@ export class JobService {
   }
 
   async create(jobCreateDto: JobCreateDto): Promise<JobDocument> {
-    const { companyId, departmentIds, officeIds, ...jobData } = jobCreateDto;
+    const {
+      companyId,
+      departmentIds,
+      officeIds,
+      createdBy,
+      hiringManagerId,
+      ...jobData
+    } = jobCreateDto;
 
     // Find related entities
     const company = await this.companyModel.findById(companyId).exec();
@@ -93,6 +118,16 @@ export class JobService {
       offices: officeObjectIds,
     });
 
+    // Add createdBy if provided
+    if (createdBy) {
+      newJob.createdBy = new Types.ObjectId(createdBy) as any;
+    }
+
+    // Add hiringManagerId if provided
+    if (hiringManagerId) {
+      newJob.hiringManagerId = new Types.ObjectId(hiringManagerId) as any;
+    }
+
     // We don't need to set publishedDate since status is always DRAFT
 
     return newJob.save();
@@ -106,6 +141,8 @@ export class JobService {
       departmentIds,
       officeIds,
       headcountRequestId,
+      createdBy,
+      hiringManagerId,
       ...jobData
     } = jobCreateDto;
 
@@ -150,6 +187,16 @@ export class JobService {
       headcountRequestId: new Types.ObjectId(headcountRequestId),
     });
 
+    // Add createdBy if provided
+    if (createdBy) {
+      newJob.createdBy = new Types.ObjectId(createdBy) as any;
+    }
+
+    // Add hiringManagerId if provided
+    if (hiringManagerId) {
+      newJob.hiringManagerId = new Types.ObjectId(hiringManagerId) as any;
+    }
+
     // Set approvedAt and approvedBy if we're skipping approval
     if (skipApproval) {
       newJob.approvedAt = new Date();
@@ -179,7 +226,8 @@ export class JobService {
 
   async update(id: string, jobUpdateDto: JobUpdateDto): Promise<JobDocument> {
     const job = await this.findOne(id);
-    const { companyId, departmentIds, officeIds, ...jobData } = jobUpdateDto;
+    const { companyId, departmentIds, officeIds, hiringManagerId, ...jobData } =
+      jobUpdateDto;
 
     // Sanitize HTML content if provided
     if (jobData.content) {
@@ -211,6 +259,18 @@ export class JobService {
       job.offices = officeIds.map((id) => new Types.ObjectId(id));
     }
 
+    // Update hiringManagerId if provided and not undefined or empty string
+    if (
+      hiringManagerId &&
+      hiringManagerId !== 'undefined' &&
+      hiringManagerId !== ''
+    ) {
+      job.hiringManagerId = new Types.ObjectId(hiringManagerId) as any;
+    } else if (hiringManagerId === '' || hiringManagerId === undefined) {
+      // If empty string or undefined is provided, remove the hiring manager
+      job.hiringManagerId = null;
+    }
+
     // Set publishedDate if status is changing to PUBLISHED
     if (jobData.status === JobStatus.PUBLISHED && !job.publishedDate) {
       job.publishedDate = new Date();
@@ -220,6 +280,46 @@ export class JobService {
   }
 
   async remove(id: string): Promise<void> {
+    // Find the job first to check if it has a headcount request
+    const job = await this.jobModel.findById(id).exec();
+
+    if (!job) {
+      throw new NotFoundException(`Job with ID ${id} not found`);
+    }
+
+    // Check if this job is associated with a headcount request
+    if (job.headcountRequestId) {
+      try {
+        // Update the headcount request to indicate the job has been deleted
+        // This allows recruiters to create a new job opening for the same headcount request
+        await this.jobModel.db
+          .collection('headcountrequests')
+          .updateOne(
+            { _id: job.headcountRequestId },
+            { $set: { hasJobCreated: false, jobId: null } },
+          );
+
+        const headcountId =
+          job.headcountRequestId instanceof Types.ObjectId
+            ? job.headcountRequestId.toString()
+            : String(job.headcountRequestId);
+        console.log(
+          `Updated headcount request ${headcountId} to allow new job creation`,
+        );
+      } catch (error) {
+        const headcountId =
+          job.headcountRequestId instanceof Types.ObjectId
+            ? job.headcountRequestId.toString()
+            : String(job.headcountRequestId);
+        console.error(
+          `Failed to update headcount request ${headcountId}:`,
+          error,
+        );
+        // Continue with job deletion even if headcount update fails
+      }
+    }
+
+    // Delete the job
     await this.jobModel.findByIdAndDelete(id).exec();
   }
 
@@ -229,6 +329,8 @@ export class JobService {
       .populate('companyId')
       .populate('departments')
       .populate('offices')
+      .populate('hiringManagerId')
+      .populate('createdBy')
       .exec();
   }
 
@@ -238,6 +340,8 @@ export class JobService {
       .populate('companyId')
       .populate('departments')
       .populate('offices')
+      .populate('hiringManagerId')
+      .populate('createdBy')
       .exec();
   }
 
@@ -248,6 +352,8 @@ export class JobService {
       .populate('companyId')
       .populate('departments')
       .populate('offices')
+      .populate('hiringManagerId')
+      .populate('createdBy')
       .exec();
   }
 
@@ -321,6 +427,8 @@ export class JobService {
       .populate('companyId')
       .populate('departments')
       .populate('offices')
+      .populate('hiringManagerId')
+      .populate('createdBy')
       .exec();
   }
 
@@ -330,6 +438,8 @@ export class JobService {
       .populate('companyId')
       .populate('departments')
       .populate('offices')
+      .populate('hiringManagerId')
+      .populate('createdBy')
       .exec();
   }
 }

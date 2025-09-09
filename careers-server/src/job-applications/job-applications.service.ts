@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { JobApplication, JobApplicationDocument } from './schemas/job-application.schema';
+import { JobApplication, JobApplicationDocument, ApplicationStatus } from './schemas/job-application.schema';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto';
 import { JobApplicationResponseDto } from './dto/job-application-response.dto';
+import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
 import { GridFsService } from '../gridfs/gridfs.service';
 
 interface MulterFile {
@@ -148,6 +149,28 @@ export class JobApplicationsService {
     return deletedCount;
   }
 
+  /**
+   * Update the status of a job application
+   * @param id The ID of the job application to update
+   * @param updateStatusDto The new status
+   * @returns The updated job application
+   */
+  async updateStatus(
+    id: string,
+    updateStatusDto: UpdateApplicationStatusDto,
+  ): Promise<JobApplicationResponseDto> {
+    const application = await this.jobApplicationModel.findById(id);
+    
+    if (!application) {
+      throw new NotFoundException(`Job application with ID ${id} not found`);
+    }
+    
+    application.status = updateStatusDto.status;
+    await application.save();
+    
+    return this.mapToResponseDto(application);
+  }
+
   private mapToResponseDto(
     application: JobApplicationDocument,
   ): JobApplicationResponseDto {
@@ -163,6 +186,7 @@ export class JobApplicationsService {
       consentDuration: application.consentDuration,
       consentExpiresAt: application.consentExpiresAt,
       jobId: typeof application.jobId === 'object' ? application.jobId.toString() : application.jobId,
+      status: application.status,
       createdAt: application.createdAt,
       updatedAt: application.updatedAt,
     };

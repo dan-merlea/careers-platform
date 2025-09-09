@@ -12,6 +12,9 @@ import {
   DepartmentSchema,
 } from '../company/schemas/department.schema';
 import { Office, OfficeSchema } from '../company/schemas/office.schema';
+import { HeadcountModule } from '../headcount/headcount.module';
+import { User, UserSchema } from '../users/schemas/user.schema';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
@@ -21,7 +24,10 @@ import { Office, OfficeSchema } from '../company/schemas/office.schema';
       { name: Company.name, schema: CompanySchema },
       { name: Department.name, schema: DepartmentSchema },
       { name: Office.name, schema: OfficeSchema },
+      { name: User.name, schema: UserSchema },
     ]),
+    HeadcountModule,
+    UsersModule,
   ],
   controllers: [JobController, JobTemplateController],
   providers: [JobService, JobTemplateService],

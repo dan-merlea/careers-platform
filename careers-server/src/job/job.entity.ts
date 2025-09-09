@@ -7,7 +7,7 @@ export type JobDocument = Job & Document;
 
 @Schema({ timestamps: true })
 export class Job {
-  @Prop({ required: false, unique: true, default: '0' })
+  @Prop({ required: false, default: '0' })
   internalId: string;
 
   @Prop({ required: true })
@@ -58,6 +58,12 @@ export class Job {
 
   @Prop({ type: Date, default: null })
   rejectedAt: Date;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  createdBy: MongooseSchema.Types.ObjectId;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
+  hiringManagerId: MongooseSchema.Types.ObjectId | null;
 
   // These will be automatically added by the timestamps: true option
   createdAt: Date;

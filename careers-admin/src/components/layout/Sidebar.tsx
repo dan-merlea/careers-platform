@@ -14,7 +14,8 @@ import {
   ArrowLeftOnRectangleIcon,
   BuildingOfficeIcon,
   BugAntIcon,
-  XMarkIcon
+  XMarkIcon,
+  ClipboardDocumentCheckIcon
 } from '@heroicons/react/24/outline';
 
 interface SidebarLinkProps {
@@ -118,6 +119,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
     { path: '/job-boards', text: 'Job boards', icon: <BriefcaseIcon />, roles: ['admin', 'manager', 'recruiter'] },
     { path: '/jobs', text: 'Openings', icon: <BriefcaseIcon />, roles: ['admin', 'director', 'manager'] },
     { path: '/headcount', text: 'Headcount', icon: <UsersIcon />, roles: ['admin', 'director', 'manager'] },
+    { path: '/interviews', text: 'Interviews', icon: <ClipboardDocumentCheckIcon />, roles: ['admin', 'director', 'recruiter'] },
     { path: '/analytics', text: 'Analytics', icon: <ChartBarIcon />, roles: ['admin', 'manager'] },
     { path: '/reports', text: 'Reports', icon: <DocumentTextIcon />, roles: ['admin', 'manager', 'recruiter'] },
     { path: '/setup', text: 'Integrations', icon: <Cog6ToothIcon />, roles: ['admin'] },

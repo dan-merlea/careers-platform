@@ -9,6 +9,7 @@ import { JobBoardsModule } from './job-boards/job-boards.module';
 import { JobModule } from './job/job.module';
 import { HeadcountModule } from './headcount/headcount.module';
 import { JobApplicationsModule } from './job-applications/job-applications.module';
+import { InterviewsModule } from './interviews/interviews.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { JobApplicationsModule } from './job-applications/job-applications.modul
     JobModule,
     HeadcountModule,
     JobApplicationsModule,
+    InterviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
