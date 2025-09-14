@@ -29,6 +29,9 @@ class CompanyValue {
 export class CompanySettings {
   @Prop({ default: 'headcount' })
   approvalType: 'headcount' | 'job-opening';
+
+  @Prop({ default: 'other' })
+  emailCalendarProvider: 'google' | 'microsoft' | 'other';
 }
 
 @Schema({ timestamps: true })

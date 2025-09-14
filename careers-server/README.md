@@ -31,6 +31,14 @@
 $ npm install
 ```
 
+### Environment Configuration
+
+Copy the `.env.example` file to `.env` and update the values:
+
+```bash
+$ cp .env.example .env
+```
+
 ## Compile and run the project
 
 ```bash
@@ -70,6 +78,22 @@ $ mau deploy
 
 With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
 
+## Calendar Provider Integration
+
+The Careers Platform supports integration with different email and calendar providers for interview scheduling:
+
+- **Google Workspace**: Integrates with Google Calendar API
+- **Microsoft 365**: Integrates with Microsoft Graph API
+- **Other**: Generates standard ICS files
+
+To configure calendar providers:
+
+1. Set up the required credentials in your `.env` file
+2. Select the provider in the company settings page
+3. The system will automatically use the selected provider when generating interview invites
+
+For detailed setup instructions, see the [Calendar Provider Setup](#calendar-provider-setup) section.
+
 ## Resources
 
 Check out a few resources that may come in handy when working with NestJS:
@@ -82,6 +106,37 @@ Check out a few resources that may come in handy when working with NestJS:
 - Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
 - To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
 - Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+
+## Calendar Provider Setup
+
+### Google Calendar Integration
+
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select an existing one
+3. Enable the Google Calendar API
+4. Create OAuth 2.0 credentials (Client ID and Client Secret)
+5. Set up the authorized redirect URI
+6. Obtain a refresh token using the OAuth 2.0 flow
+7. Add the following to your `.env` file:
+   ```
+   GOOGLE_CLIENT_ID=your_client_id
+   GOOGLE_CLIENT_SECRET=your_client_secret
+   GOOGLE_REDIRECT_URI=your_redirect_uri
+   GOOGLE_REFRESH_TOKEN=your_refresh_token
+   ```
+
+### Microsoft 365 Integration
+
+1. Go to the [Microsoft Azure Portal](https://portal.azure.com/)
+2. Register a new application in Azure Active Directory
+3. Add the Microsoft Graph API permissions for Calendar.ReadWrite
+4. Create a client secret
+5. Add the following to your `.env` file:
+   ```
+   MICROSOFT_TENANT_ID=your_tenant_id
+   MICROSOFT_CLIENT_ID=your_client_id
+   MICROSOFT_CLIENT_SECRET=your_client_secret
+   ```
 
 ## Support
 

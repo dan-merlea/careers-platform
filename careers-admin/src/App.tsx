@@ -21,10 +21,13 @@ import JobDetailPage from './pages/JobDetailPage';
 import HeadcountListPage from './pages/HeadcountListPage';
 import HeadcountRequestForm from './pages/HeadcountRequestForm';
 import DebugJobApplications from './pages/DebugJobApplications';
+import DebugUserManagement from './pages/DebugUserManagement';
 import InterviewsPage from './pages/InterviewsPage';
 import InterviewProcessCreatePage from './pages/InterviewProcessCreatePage';
 import InterviewProcessEditPage from './pages/InterviewProcessEditPage';
 import InterviewProcessDetailPage from './pages/InterviewProcessDetailPage';
+import InterviewDetailPage from './pages/InterviewDetailPage';
+import ApplicantDetailPage from './pages/ApplicantDetailPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CompanyProvider } from './context/CompanyContext';
 import RoleGuard from './components/guards/RoleGuard';
@@ -282,13 +285,32 @@ const AppRoutes: React.FC = () => {
                   </RoleGuard>
                 }
               />
+              <Route
+                path="/interview/:id"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter', 'interviewer']} showUnauthorized>
+                    <InterviewDetailPage />
+                  </RoleGuard>
+                }
+              />
               
               {/* Debug routes - only visible in development mode */}
               <Route
-                path="/debug/job-applications"
+                path="/debug"
                 element={
                   <RoleGuard requiredRoles={['admin']} showUnauthorized>
                     <DebugJobApplications />
+                    <DebugUserManagement />
+                  </RoleGuard>
+                }
+              />
+              
+              {/* Applicant Detail Page */}
+              <Route
+                path="/applicants/:id"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                    <ApplicantDetailPage />
                   </RoleGuard>
                 }
               />

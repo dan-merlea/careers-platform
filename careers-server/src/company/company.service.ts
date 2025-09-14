@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Company } from './company.schema';
 import { CompanyDto } from './dto/company.dto';
+import { CompanySettingsDto } from './dto/company-settings.dto';
 import { JobFunctionService } from './job-function.service';
 
 @Injectable()
@@ -57,5 +58,41 @@ export class CompanyService {
 
       return savedCompany;
     }
+  }
+
+  /**
+   * Update company settings
+   */
+  async updateCompanySettings(
+    settingsDto: CompanySettingsDto,
+  ): Promise<Company> {
+    // Get existing company
+    const company = await this.getCompanyDetails();
+
+    // Update settings
+    const currentSettings = company.settings || {};
+    const updatedSettings = { ...currentSettings, ...settingsDto };
+
+    // Update company with new settings
+    // Use $set to explicitly set each field in the settings object
+    const updated = await this.companyModel
+      .findByIdAndUpdate(
+        company._id,
+        {
+          $set: {
+            'settings.approvalType': updatedSettings.approvalType,
+            'settings.emailCalendarProvider':
+              updatedSettings.emailCalendarProvider,
+          },
+        },
+        { new: true },
+      )
+      .exec();
+
+    if (!updated) {
+      throw new Error('Failed to update company settings');
+    }
+
+    return updated;
   }
 }

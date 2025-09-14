@@ -1,6 +1,17 @@
 import { api, getAuthToken } from '../utils/api';
 import { API_URL } from '../config';
 
+// Valid application status values from the server
+export enum ApplicationStatus {
+  NEW = 'new',
+  REVIEWED = 'reviewed',
+  CONTACTED = 'contacted',
+  INTERVIEWING = 'interviewing',
+  OFFERED = 'offered',
+  HIRED = 'hired',
+  REJECTED = 'rejected',
+}
+
 export interface JobApplicant {
   id: string;
   firstName: string;
@@ -12,8 +23,16 @@ export interface JobApplicant {
   resumeFilename?: string; // Name of the resume file
   createdAt: string; // Date when the application was created
   updatedAt: string; // Date when the application was last updated
-  status: 'new' | 'reviewed' | 'contacted' | 'interviewing' | 'offered' | 'hired' | 'rejected';
+  status: string;
   jobId: string;
+}
+
+export interface Note {
+  id?: string;
+  userId: string;
+  content: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const jobApplicationService = {
@@ -30,7 +49,7 @@ const jobApplicationService = {
   },
 
   // Update application status
-  updateApplicationStatus: async (id: string, status: JobApplicant['status']): Promise<JobApplicant> => {
+  updateApplicationStatus: async (id: string, status: string): Promise<JobApplicant> => {
     const response = await api.put<JobApplicant>(`/job-applications/${id}/status`, { status });
     return response;
   },
@@ -124,6 +143,49 @@ const jobApplicationService = {
       };
     } catch (error) {
       console.error('Error getting resume content:', error);
+      throw error;
+    }
+  },
+  
+  // Get notes for an applicant (only returns notes created by the current user)
+  getNotes: async (applicantId: string): Promise<Note[]> => {
+    try {
+      const response = await api.get<Note[]>(`/job-applications/${applicantId}/notes`);
+      return response;
+    } catch (error) {
+      console.error('Error fetching notes:', error);
+      throw error;
+    }
+  },
+  
+  // Add a note to an applicant
+  addNote: async (applicantId: string, content: string): Promise<Note> => {
+    try {
+      const response = await api.post<Note>(`/job-applications/${applicantId}/notes`, { content });
+      return response;
+    } catch (error) {
+      console.error('Error adding note:', error);
+      throw error;
+    }
+  },
+  
+  // Update a note
+  updateNote: async (applicantId: string, noteIndex: number, content: string): Promise<Note> => {
+    try {
+      const response = await api.patch<Note>(`/job-applications/${applicantId}/notes/${noteIndex}`, { content });
+      return response;
+    } catch (error) {
+      console.error('Error updating note:', error);
+      throw error;
+    }
+  },
+  
+  // Delete a note
+  deleteNote: async (applicantId: string, noteIndex: number): Promise<void> => {
+    try {
+      await api.delete(`/job-applications/${applicantId}/notes/${noteIndex}`);
+    } catch (error) {
+      console.error('Error deleting note:', error);
       throw error;
     }
   }

@@ -1,7 +1,12 @@
+export interface Consideration {
+  title: string;
+  description: string;
+}
+
 export interface InterviewStage {
   title: string;
   description: string;
-  considerations: string[];
+  considerations: Consideration[];
   emailTemplate: string;
   order: number;
 }

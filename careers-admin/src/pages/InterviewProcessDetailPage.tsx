@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import interviewProcessService, { InterviewProcess } from '../services/interviewProcessService';
+import { formatDate } from '../utils/dateUtils';
+import { toast } from 'react-toastify';
 
 const InterviewProcessDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -136,11 +138,11 @@ const InterviewProcessDetailPage: React.FC = () => {
             </div>
             <div>
               <span className="text-sm text-gray-500 block">Created On:</span>
-              <p className="font-medium">{new Date(interviewProcess.createdAt).toLocaleDateString()}</p>
+              <p className="font-medium">{formatDate(interviewProcess.createdAt)}</p>
             </div>
             <div>
               <span className="text-sm text-gray-500 block">Last Updated:</span>
-              <p className="font-medium">{new Date(interviewProcess.updatedAt).toLocaleDateString()}</p>
+              <p className="font-medium">{formatDate(interviewProcess.updatedAt)}</p>
             </div>
           </div>
         </div>
@@ -217,16 +219,21 @@ const InterviewProcessDetailPage: React.FC = () => {
                       Considerations for Interviewers
                     </h4>
                     {interviewProcess.stages[activeStageIndex].considerations.length > 0 ? (
-                      <ul className="bg-gray-50 p-3 rounded divide-y divide-gray-200">
+                      <div className="space-y-3">
                         {interviewProcess.stages[activeStageIndex].considerations.map((consideration, idx) => (
-                          <li key={idx} className="py-2 flex items-start">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            <span className="text-gray-800">{consideration}</span>
-                          </li>
+                          <div key={idx} className="bg-gray-50 p-3 rounded border border-gray-100">
+                            <div className="flex items-start">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                              </svg>
+                              <div>
+                                <h5 className="font-medium text-gray-800">{consideration.title}</h5>
+                                <p className="text-sm text-gray-600 mt-1">{consideration.description}</p>
+                              </div>
+                            </div>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     ) : (
                       <p className="text-gray-500 italic bg-gray-50 p-3 rounded">No considerations added for this stage.</p>
                     )}

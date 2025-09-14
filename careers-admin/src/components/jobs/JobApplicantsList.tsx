@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { 
   DocumentTextIcon, 
   EnvelopeIcon, 
@@ -7,12 +8,14 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CalendarIcon,
-  ClockIcon
+  ClockIcon,
+  EyeIcon
 } from '@heroicons/react/24/outline';
 import jobApplicationService, { JobApplicant } from '../../services/jobApplicationService';
 import interviewProcessService from '../../services/interviewProcessService';
 import jobService from '../../services/jobService';
 import ScrollableTable from '../common/ScrollableTable';
+import { formatDate, formatTime } from '../../utils/dateUtils';
 
 interface JobApplicantsListProps {
   jobId: string;
@@ -113,6 +116,7 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
             allStages.sort((a, b) => a.order - b.order);
             
             setInterviewStages(allStages);
+            console.log(allStages);
           } else {
             // No matching process found, use default statuses
             // Include standard initial statuses
@@ -190,22 +194,7 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
     fetchInterviewStages();
   }, [jobId]);
 
-  const handleStatusChange = async (applicantId: string, newStatus: JobApplicant['status']) => {
-    try {
-      // Update the status on the server
-      const updatedApplicant = await jobApplicationService.updateApplicationStatus(applicantId, newStatus);
-      
-      // Update the applicant in the local state with the server response
-      setApplicants(prevApplicants => 
-        prevApplicants.map(applicant => 
-          applicant.id === applicantId ? updatedApplicant : applicant
-        )
-      );
-    } catch (err) {
-      console.error('Error updating applicant status:', err);
-      setError('Failed to update applicant status. Please try again.');
-    }
-  };
+  // Status changes are now handled in the applicant detail page
 
   const toggleExpandApplicant = async (applicantId: string) => {
     // If we're expanding this applicant
@@ -253,32 +242,7 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
     }
   };
   
-  // Format date safely to prevent invalid date issues
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return 'N/A';
-      }
-      return date.toLocaleDateString();
-    } catch {
-      // Silently handle parsing errors and return fallback value
-      return 'N/A';
-    }
-  };
-  
-  const formatTime = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) {
-        return '';
-      }
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } catch {
-      // Silently handle parsing errors and return fallback value
-      return '';
-    }
-  };
+  // Date formatting is now handled by the dateUtils utility
 
   const getStatusBadgeClass = (status: string) => {
     // Check if the status is one of the interview stages
@@ -323,31 +287,20 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
     }
   };
   
-  // Map the applicant status to a stage ID
-  const mapStatusToStageId = (status: JobApplicant['status']): string => {
-    // Check if the status matches any stage ID directly
-    if (interviewStages.some(stage => stage.id === status)) {
-      return status;
+  // Map the applicant status to a display stage
+  const mapStatusToDisplayStage = (status: JobApplicant['status']): string => {
+    // Find a matching interview stage by ID or title
+    const matchingStage = interviewStages.find(stage => 
+      stage.id === status || 
+      stage.title.toLowerCase() === status.toLowerCase()
+    );
+    
+    if (matchingStage) {
+      return matchingStage.title;
     }
     
-    // Otherwise, try to map traditional statuses to stage positions
-    switch (status) {
-      case 'new':
-        return interviewStages.length > 0 ? interviewStages[0].id : 'new';
-      case 'reviewed':
-      case 'contacted':
-        return interviewStages.length > 1 ? interviewStages[1].id : status;
-      case 'interviewing':
-        return interviewStages.length > 2 ? interviewStages[2].id : status;
-      case 'offered':
-        return interviewStages.length > 3 ? interviewStages[interviewStages.length - 2].id : status;
-      case 'hired':
-        return interviewStages.length > 4 ? interviewStages[interviewStages.length - 1].id : status;
-      case 'rejected':
-        return 'rejected';
-      default:
-        return status;
-    }
+    // If no matching stage found, return the status with first letter capitalized
+    return status.charAt(0).toUpperCase() + status.slice(1);
   };
 
   if (isLoading) {
@@ -402,9 +355,9 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <div>
-                    <div className="text-sm font-medium text-gray-900">
+                    <Link to={`/applicants/${applicant.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">
                       {applicant.firstName} {applicant.lastName}
-                    </div>
+                    </Link>
                     <div className="text-sm text-gray-500">
                       {applicant.email}
                     </div>
@@ -432,21 +385,20 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                     <span className="text-sm text-gray-500">Loading stages...</span>
                   </div>
                 ) : (
-                  <select
-                    value={mapStatusToStageId(applicant.status)}
-                    onChange={(e) => handleStatusChange(applicant.id, e.target.value as JobApplicant['status'])}
-                    className={`inline-flex text-xs font-semibold rounded-full px-2.5 py-0.5 ${getStatusBadgeClass(mapStatusToStageId(applicant.status))}`}
-                  >
-                    {interviewStages.map(stage => (
-                      <option key={stage.id} value={stage.id}>
-                        {stage.title}
-                      </option>
-                    ))}
-                  </select>
+                  <span className={`inline-flex text-xs font-semibold rounded-full px-2.5 py-0.5 ${getStatusBadgeClass(applicant.status)}`}>
+                    {mapStatusToDisplayStage(applicant.status)}
+                  </span>
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <div className="flex space-x-3">
+                  <Link
+                    to={`/applicants/${applicant.id}`}
+                    className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50"
+                    title="View Details"
+                  >
+                    <EyeIcon className="h-5 w-5" />
+                  </Link>
                   <a 
                     href={`mailto:${applicant.email}`}
                     className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50"

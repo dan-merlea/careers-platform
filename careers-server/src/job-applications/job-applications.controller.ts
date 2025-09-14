@@ -12,13 +12,22 @@ import {
   HttpStatus,
   UseGuards,
   Put,
+  Req,
+  Patch,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import type { Response } from 'express';
+
+// Define a custom Request type with user property
+interface RequestWithUser extends Request {
+  user: { userId: string; [key: string]: any };
+}
 import { JobApplicationsService } from './job-applications.service';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto';
 import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
+import { CreateNoteDto } from './dto/create-note.dto';
+import { ScheduleInterviewDto } from './dto/schedule-interview.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -149,5 +158,111 @@ export class JobApplicationsController {
       message: `Successfully deleted ${count} expired job applications`,
       deletedCount: count,
     });
+  }
+
+  /**
+   * Get all notes for a job application that belong to the current user
+   */
+  @Get(':id/notes')
+  @UseGuards(JwtAuthGuard)
+  async getNotes(@Param('id') id: string, @Req() req: RequestWithUser) {
+    const userId = req.user.userId;
+    return this.jobApplicationsService.getNotesByUser(id, userId);
+  }
+
+  /**
+   * Add a note to a job application
+   */
+  @Post(':id/notes')
+  @UseGuards(JwtAuthGuard)
+  async addNote(
+    @Param('id') id: string,
+    @Body() createNoteDto: CreateNoteDto,
+    @Req() req: RequestWithUser,
+  ) {
+    const userId = req.user.userId;
+    return this.jobApplicationsService.addNote(id, createNoteDto, userId);
+  }
+
+  /**
+   * Update a note
+   */
+  @Patch(':id/notes/:index')
+  @UseGuards(JwtAuthGuard)
+  async updateNote(
+    @Param('id') id: string,
+    @Param('index') index: string,
+    @Body() updateNoteDto: { content: string },
+    @Req() req: RequestWithUser,
+  ) {
+    const userId = req.user.userId;
+    return this.jobApplicationsService.updateNote(
+      id,
+      parseInt(index, 10),
+      updateNoteDto.content,
+      userId,
+    );
+  }
+
+  /**
+   * Delete a note
+   */
+  @Delete(':id/notes/:index')
+  @UseGuards(JwtAuthGuard)
+  async deleteNote(
+    @Param('id') id: string,
+    @Param('index') index: string,
+    @Req() req: RequestWithUser,
+    @Res() res: Response,
+  ) {
+    const userId = req.user.userId;
+    await this.jobApplicationsService.deleteNote(
+      id,
+      parseInt(index, 10),
+      userId,
+    );
+    return res.status(HttpStatus.NO_CONTENT).send();
+  }
+
+  /**
+   * Schedule an interview for a job application
+   */
+  @Post(':id/interviews')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
+  async scheduleInterview(
+    @Param('id') id: string,
+    @Body() scheduleInterviewDto: ScheduleInterviewDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.jobApplicationsService.scheduleInterview(id, scheduleInterviewDto);
+  }
+
+  /**
+   * Get all interviews for a job application
+   */
+  @Get(':id/interviews')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
+  async getInterviews(@Param('id') id: string) {
+    return this.jobApplicationsService.getInterviews(id);
+  }
+
+  /**
+   * Generate interview invite
+   */
+  @Get(':id/interviews/:interviewId/invite')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
+  async generateInterviewInvite(
+    @Param('id') id: string,
+    @Param('interviewId') interviewId: string,
+    @Res() res: Response,
+  ) {
+    const invite = await this.jobApplicationsService.generateInterviewInvite(id, interviewId);
+    
+    res.setHeader('Content-Type', 'text/calendar');
+    res.setHeader('Content-Disposition', `attachment; filename="interview_invite.ics"`);
+    return res.send(invite);
   }
 }

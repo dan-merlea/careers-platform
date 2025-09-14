@@ -1,8 +1,6 @@
-import { IsEnum, IsNotEmpty } from 'class-validator';
-import { ApplicationStatus } from '../schemas/job-application.schema';
+import { IsNotEmpty } from 'class-validator';
 
 export class UpdateApplicationStatusDto {
   @IsNotEmpty()
-  @IsEnum(ApplicationStatus)
-  status: ApplicationStatus;
+  status: string;
 }

@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, UseGuards } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CompanyDto } from './dto/company.dto';
+import { CompanySettingsDto } from './dto/company-settings.dto';
 import { JwtAuthGuard, RolesGuard, Roles } from '../auth';
 import { UserRole } from '../users/schemas/user.schema';
 
@@ -23,5 +24,12 @@ export class CompanyController {
   @Roles(UserRole.ADMIN)
   async saveCompanyDetails(@Body() companyDto: CompanyDto) {
     return this.companyService.saveCompanyDetails(companyDto);
+  }
+
+  @Put('settings')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async updateCompanySettings(@Body() settingsDto: CompanySettingsDto) {
+    return this.companyService.updateCompanySettings(settingsDto);
   }
 }

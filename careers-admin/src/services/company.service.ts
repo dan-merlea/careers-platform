@@ -14,6 +14,7 @@ export interface CompanyValue {
 
 export interface CompanySettings {
   approvalType: 'headcount' | 'job-opening';
+  emailCalendarProvider?: 'google' | 'microsoft' | 'other';
 }
 
 export interface CompanyDetails {
@@ -86,8 +87,7 @@ export const companyService = {
    * Save company settings
    */
   async saveCompanySettings(settings: CompanySettings): Promise<CompanyDetails> {
-    const company = await this.getCompanyDetails();
-    company.settings = settings;
-    return this.saveCompanyDetails(company);
+    // Use the dedicated settings endpoint
+    return api.put<CompanyDetails>('/company/settings', settings);
   },
 };

@@ -49,11 +49,22 @@ export class InterviewProcessService {
     createdBy: string,
     companyId: string,
   ): Promise<InterviewProcessDocument> {
-    // Add stages order if not provided
-    const stages = interviewProcessCreateDto.stages.map((stage, index) => ({
-      ...stage,
-      order: stage.order || index,
-    }));
+    // Add stages order if not provided and convert considerations to proper format
+    const stages = interviewProcessCreateDto.stages.map((stage, index) => {
+      // Convert considerations to objects if they are strings
+      const considerations = stage.considerations.map(consideration => {
+        if (typeof consideration === 'string') {
+          return { title: consideration, description: consideration };
+        }
+        return consideration;
+      });
+      
+      return {
+        ...stage,
+        considerations,
+        order: stage.order || index,
+      };
+    });
 
     const newInterviewProcess = new this.interviewProcessModel({
       ...interviewProcessCreateDto,
@@ -71,12 +82,23 @@ export class InterviewProcessService {
   ): Promise<InterviewProcessDocument> {
     const interviewProcess = await this.findOne(id);
 
-    // Update stages order if provided
+    // Update stages order if provided and convert considerations to proper format
     if (interviewProcessUpdateDto.stages) {
-      interviewProcessUpdateDto.stages = interviewProcessUpdateDto.stages.map((stage, index) => ({
-        ...stage,
-        order: stage.order || index,
-      }));
+      interviewProcessUpdateDto.stages = interviewProcessUpdateDto.stages.map((stage, index) => {
+        // Convert considerations to objects if they are strings
+        const considerations = stage.considerations.map(consideration => {
+          if (typeof consideration === 'string') {
+            return { title: consideration, description: consideration };
+          }
+          return consideration;
+        });
+        
+        return {
+          ...stage,
+          considerations,
+          order: stage.order || index,
+        };
+      });
     }
 
     // Update fields

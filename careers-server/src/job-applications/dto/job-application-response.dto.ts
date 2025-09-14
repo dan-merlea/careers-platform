@@ -1,5 +1,3 @@
-import { ApplicationStatus } from '../schemas/job-application.schema';
-
 export class JobApplicationResponseDto {
   id: string;
   firstName: string;
@@ -12,7 +10,7 @@ export class JobApplicationResponseDto {
   consentDuration: number;
   consentExpiresAt: Date;
   jobId: string;
-  status: ApplicationStatus;
+  status: string;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -88,7 +88,13 @@ export class InterviewProcessController {
       stages: process.stages.map(stage => ({
         title: stage.title,
         description: stage.description,
-        considerations: stage.considerations,
+        considerations: stage.considerations.map(consideration => {
+          // Handle both string and object considerations for backward compatibility
+          if (typeof consideration === 'string') {
+            return { title: consideration, description: consideration };
+          }
+          return consideration;
+        }),
         emailTemplate: stage.emailTemplate,
         order: stage.order,
       })),

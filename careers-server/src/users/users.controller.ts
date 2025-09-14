@@ -9,6 +9,7 @@ import {
   HttpStatus,
   HttpException,
   Request,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard, Roles } from '../auth';
 import { UserRole } from './schemas/user.schema';
@@ -75,9 +76,12 @@ export class UsersController {
   }
 
   @Post('signup')
-  async signup(@Body() createUserDto: CreateUserDto) {
+  async signup(
+    @Body() createUserDto: CreateUserDto,
+    @Query('companyId') companyId?: string,
+  ) {
     try {
-      return await this.usersService.create(createUserDto);
+      return await this.usersService.create(createUserDto, companyId);
     } catch (error) {
       if (error instanceof Error) {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);

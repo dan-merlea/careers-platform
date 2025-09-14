@@ -3,6 +3,17 @@ import { Document, Schema as MongooseSchema } from 'mongoose';
 
 export type InterviewProcessDocument = InterviewProcess & Document;
 
+@Schema()
+export class Consideration {
+  @Prop({ required: true })
+  title: string;
+
+  @Prop({ required: true })
+  description: string;
+}
+
+export const ConsiderationSchema = SchemaFactory.createForClass(Consideration);
+
 @Schema({ timestamps: true })
 export class InterviewStage {
   @Prop({ required: true })
@@ -11,8 +22,8 @@ export class InterviewStage {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ type: [String], default: [] })
-  considerations: string[];
+  @Prop({ type: [ConsiderationSchema], default: [] })
+  considerations: Consideration[];
 
   @Prop({ required: true })
   emailTemplate: string;

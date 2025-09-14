@@ -8,6 +8,7 @@ import { useCompany } from '../context/CompanyContext';
 import { jobRoleService, JobRole } from '../services/jobRoleService';
 import { departmentService, Department } from '../services/departmentService';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { formatDate } from '../utils/dateUtils';
 
 const HeadcountRequestForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -453,7 +454,7 @@ const HeadcountRequestForm: React.FC = () => {
                 
                 <div className="mb-4">
                   <label className="block text-gray-700 text-sm font-bold mb-2">Requested Date</label>
-                  <p className="text-gray-900">{new Date(headcountRequest.createdAt).toLocaleDateString()}</p>
+                  <p className="text-gray-900">{formatDate(headcountRequest.createdAt)}</p>
                 </div>
                 
                 {/* Job Details Section */}
@@ -470,7 +471,7 @@ const HeadcountRequestForm: React.FC = () => {
                         <p className="text-sm mb-2"><span className="font-medium">Title:</span> {jobDetails.title}</p>
                         <p className="text-sm mb-2"><span className="font-medium">Status:</span> {jobDetails.status.toUpperCase()}</p>
                         {jobDetails.publishedDate && (
-                          <p className="text-sm mb-2"><span className="font-medium">Published:</span> {new Date(jobDetails.publishedDate).toLocaleDateString()}</p>
+                          <p className="text-sm mb-2"><span className="font-medium">Published:</span> {formatDate(jobDetails.publishedDate)}</p>
                         )}
                         <div className="mt-3">
                           <Link 
@@ -509,7 +510,7 @@ const HeadcountRequestForm: React.FC = () => {
                   {headcountRequest.reviewedAt && (
                     <div className="mb-4">
                       <label className="block text-gray-700 text-sm font-bold mb-2">Review Date</label>
-                      <p className="text-gray-900">{new Date(headcountRequest.reviewedAt).toLocaleDateString()}</p>
+                      <p className="text-gray-900">{formatDate(headcountRequest.reviewedAt)}</p>
                     </div>
                   )}
                 </div>

@@ -122,7 +122,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
     const updatedStages = [...(formData.stages || [])];
     updatedStages[stageIndex] = {
       ...updatedStages[stageIndex],
-      considerations: [...updatedStages[stageIndex].considerations, '']
+      considerations: [...updatedStages[stageIndex].considerations, { title: '', description: '' }]
     };
     
     setFormData({
@@ -147,10 +147,13 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
     });
   };
 
-  const handleConsiderationChange = (stageIndex: number, considerationIndex: number, value: string) => {
+  const handleConsiderationChange = (stageIndex: number, considerationIndex: number, field: 'title' | 'description', value: string) => {
     const updatedStages = [...(formData.stages || [])];
     const updatedConsiderations = [...updatedStages[stageIndex].considerations];
-    updatedConsiderations[considerationIndex] = value;
+    updatedConsiderations[considerationIndex] = {
+      ...updatedConsiderations[considerationIndex],
+      [field]: value
+    };
     
     updatedStages[stageIndex] = {
       ...updatedStages[stageIndex],
@@ -410,25 +413,42 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                           Add Consideration
                         </button>
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-4">
                         {formData.stages?.[activeStageIndex]?.considerations?.map((consideration, idx) => (
-                          <div key={idx} className="flex items-center">
-                            <input
-                              type="text"
-                              value={consideration}
-                              onChange={(e) => handleConsiderationChange(activeStageIndex, idx, e.target.value)}
-                              className="flex-grow p-2 border border-gray-300 rounded"
-                              placeholder="Enter consideration point"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveConsideration(activeStageIndex, idx)}
-                              className="ml-2 p-1 text-red-500 hover:bg-red-50 rounded"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                              </svg>
-                            </button>
+                          <div key={idx} className="border border-gray-200 rounded-md p-3 bg-gray-50">
+                            <div className="flex justify-between items-start mb-2">
+                              <h4 className="text-sm font-medium text-gray-700">Consideration {idx + 1}</h4>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveConsideration(activeStageIndex, idx)}
+                                className="p-1 text-red-500 hover:bg-red-50 rounded"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            </div>
+                            <div className="space-y-3">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
+                                <input
+                                  type="text"
+                                  value={consideration.title}
+                                  onChange={(e) => handleConsiderationChange(activeStageIndex, idx, 'title', e.target.value)}
+                                  className="w-full p-2 border border-gray-300 rounded"
+                                  placeholder="Enter consideration title"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-500 mb-1">Description</label>
+                                <textarea
+                                  value={consideration.description}
+                                  onChange={(e) => handleConsiderationChange(activeStageIndex, idx, 'description', e.target.value)}
+                                  className="w-full p-2 border border-gray-300 rounded h-20"
+                                  placeholder="Enter detailed description"
+                                />
+                              </div>
+                            </div>
                           </div>
                         ))}
                         {(formData.stages?.[activeStageIndex]?.considerations?.length || 0) === 0 && (

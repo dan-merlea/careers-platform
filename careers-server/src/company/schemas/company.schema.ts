@@ -37,9 +37,10 @@ export class Company {
     instagram?: string;
   };
 
-  @Prop({ type: Object, default: { approvalType: 'headcount' } })
+  @Prop({ type: Object, default: { approvalType: 'headcount', emailCalendarProvider: 'other' } })
   settings: {
     approvalType: 'headcount' | 'job-opening';
+    emailCalendarProvider: 'google' | 'microsoft' | 'other';
   };
 
   // Virtual field for jobs - will be populated when needed

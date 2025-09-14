@@ -124,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
     { path: '/reports', text: 'Reports', icon: <DocumentTextIcon />, roles: ['admin', 'manager', 'recruiter'] },
     { path: '/setup', text: 'Integrations', icon: <Cog6ToothIcon />, roles: ['admin'] },
     // Debug menu item - only visible in development mode
-    { path: '/debug/job-applications', text: 'Debug Applications', icon: <BugAntIcon />, roles: ['admin'], devOnly: true },
+    { path: '/debug', text: 'Debug', icon: <BugAntIcon />, roles: ['admin'], devOnly: true },
   ];
 
   // Filter links based on user role and approval workflow settings

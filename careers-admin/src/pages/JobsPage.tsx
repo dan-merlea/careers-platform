@@ -7,6 +7,7 @@ import jobService, { Job, JobStatus } from '../services/jobService';
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
 import { departmentService, Department } from '../services/departmentService';
 import { getStatusBadgeClass, getPrettyStatus } from '../utils/jobStatusUtils';
+import { formatDate } from '../utils/dateUtils';
 import ScrollableTable from '../components/common/ScrollableTable';
 
 const JobsPage: React.FC = () => {
@@ -421,7 +422,7 @@ const JobsPage: React.FC = () => {
                   </>
                 )}
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(viewMode === 'pending' ? job.updatedAt : job.createdAt).toLocaleDateString()}
+                  {formatDate(viewMode === 'pending' ? job.updatedAt : job.createdAt)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex justify-end space-x-2">
