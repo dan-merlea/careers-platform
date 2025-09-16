@@ -111,4 +111,29 @@ export class InterviewFeedbackController {
     
     return this.interviewsService.updateFeedback(id, interviewerId, feedbackDto);
   }
+
+  @Post(':id/feedback/:interviewerId/remind')
+  @ApiOperation({ summary: 'Send reminder to interviewer to submit feedback' })
+  @ApiResponse({ status: 200, description: 'Reminder sent successfully' })
+  @ApiResponse({ status: 403, description: 'Not authorized to send reminders' })
+  @ApiResponse({ status: 404, description: 'Interview or interviewer not found' })
+  async sendFeedbackReminder(
+    @Param('id') id: string,
+    @Param('interviewerId') interviewerId: string,
+    @Req() request: Request,
+  ) {
+    // Get the user ID from the JWT token
+    if (!request.user) {
+      throw new ForbiddenException('User not authenticated');
+    }
+    const userId = request.user['userId'];
+    
+    // Only recruiters, hiring managers, and admins can send reminders
+    const userRole = request.user['role'];
+    if (!['recruiter', 'hiring_manager', 'admin'].includes(userRole)) {
+      throw new ForbiddenException('Only recruiters, hiring managers, and admins can send reminders');
+    }
+    
+    return this.interviewsService.sendFeedbackReminder(id, interviewerId);
+  }
 }

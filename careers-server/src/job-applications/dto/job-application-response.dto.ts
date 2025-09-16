@@ -11,6 +11,7 @@ export class JobApplicationResponseDto {
   consentExpiresAt: Date;
   jobId: string;
   status: string;
+  interviewerVisibility?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -136,6 +136,9 @@ export class JobApplication {
   @Prop({ type: String })
   status: string;
 
+  @Prop({ type: Boolean, default: false })
+  interviewerVisibility: boolean;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 
@@ -173,6 +176,18 @@ export class JobApplication {
               required: true,
             },
             name: { type: String, required: true },
+          },
+        ],
+        feedback: [
+          {
+            interviewerId: { type: String, required: true },
+            interviewerName: { type: String, required: true },
+            rating: { type: Number, required: true },
+            comments: { type: String },
+            decision: { type: String },
+            considerations: { type: Object },
+            createdAt: { type: Date, default: Date.now },
+            updatedAt: { type: Date, default: Date.now },
           },
         ],
         createdAt: { type: Date, default: Date.now },

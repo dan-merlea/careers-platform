@@ -249,6 +249,19 @@ export class JobApplicationsController {
   }
 
   /**
+   * Update interviewer visibility for a job application
+   */
+  @Put(':id/interviewer-visibility')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
+  async updateInterviewerVisibility(
+    @Param('id') id: string,
+    @Body() updateVisibilityDto: { visibility: boolean },
+  ) {
+    return this.jobApplicationsService.updateInterviewerVisibility(id, updateVisibilityDto.visibility);
+  }
+
+  /**
    * Generate interview invite
    */
   @Get(':id/interviews/:interviewId/invite')
