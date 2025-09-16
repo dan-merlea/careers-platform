@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CheckIcon, ArrowRightIcon, XMarkIcon, CalendarIcon, UserIcon, DocumentArrowDownIcon } from '@heroicons/react/24/solid';
-import { ClockIcon, PencilIcon, XCircleIcon } from '@heroicons/react/24/outline';
+import { ClockIcon } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import EmailTemplateModal from '../modals/EmailTemplateModal';
 import InterviewScheduleModal from '../modals/InterviewScheduleModal';
@@ -67,7 +67,7 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
   const [interviewError, setInterviewError] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState<boolean>(false);
-  const [selectedInterviewId, setSelectedInterviewId] = useState<string>('');
+  const [selectedInterviewId, setSelectedInterviewId] = useState<string>(''); // Used in handleCancelInterview and handleRescheduleInterview
   const [cancelReason, setCancelReason] = useState<string>('');
   const [isCanceling, setIsCanceling] = useState<boolean>(false);
   const [isRescheduling, setIsRescheduling] = useState<boolean>(false);
@@ -468,28 +468,12 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
                   
                   <div className="mt-3 flex space-x-2">
                     {interview.status !== 'cancelled' && (
-                      <>
-                        <button
-                          onClick={() => {
-                            setSelectedInterviewId(interview.id);
-                            setShowRescheduleModal(true);
-                          }}
-                          className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-amber-700 bg-amber-100 hover:bg-amber-200"
-                        >
-                          <PencilIcon className="w-3 h-3 mr-1" />
-                          Reschedule
-                        </button>
-                        <button
-                          onClick={() => {
-                            setSelectedInterviewId(interview.id);
-                            setShowCancelModal(true);
-                          }}
-                          className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200"
-                        >
-                          <XCircleIcon className="w-3 h-3 mr-1" />
-                          Cancel
-                        </button>
-                      </>
+                      <Link 
+                        to={`/interview/${interview.id}`}
+                        className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
+                      >
+                        View Details
+                      </Link>
                     )}
                   </div>
                 </div>

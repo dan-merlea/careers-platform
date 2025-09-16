@@ -1,6 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { UserIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Interviewer } from '../../services/interviewService';
+import { api } from '../../utils/api';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
 
 interface EditInterviewersModalProps {
   isOpen: boolean;
@@ -18,22 +25,66 @@ const EditInterviewersModal: React.FC<EditInterviewersModalProps> = ({
   isLoading
 }) => {
   const [selectedInterviewers, setSelectedInterviewers] = useState<Interviewer[]>([]);
-  const [newInterviewer, setNewInterviewer] = useState<{ userId: string; name: string }>({ userId: '', name: '' });
+  const [users, setUsers] = useState<User[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [showUserDropdown, setShowUserDropdown] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     if (isOpen) {
       setSelectedInterviewers([...interviewers]);
+      fetchUsers();
     }
   }, [isOpen, interviewers]);
   
-  const handleAddInterviewer = () => {
-    if (newInterviewer.userId && newInterviewer.name) {
-      // Check if interviewer already exists
-      if (!selectedInterviewers.some(i => i.userId === newInterviewer.userId)) {
-        setSelectedInterviewers([...selectedInterviewers, { ...newInterviewer }]);
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false);
       }
-      setNewInterviewer({ userId: '', name: '' });
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+  
+  // Fetch company users
+  const fetchUsers = async () => {
+    try {
+      const usersData = await api.get<User[]>('/users');
+      setUsers(usersData);
+    } catch (err) {
+      console.error('Error fetching users:', err);
+      setError('Failed to load company users');
     }
+  };
+  
+  // Filter users based on search term
+  const filteredUsers = users.filter(user => 
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const handleAddInterviewer = (user: User) => {
+    if (selectedInterviewers.length >= 10) {
+      setError('Maximum 10 interviewers can be added');
+      return;
+    }
+    
+    // Check if interviewer already exists
+    if (!selectedInterviewers.some(i => i.userId === user.id)) {
+      setSelectedInterviewers([...selectedInterviewers, { 
+        userId: user.id, 
+        name: user.name 
+      }]);
+    }
+    
+    setSearchTerm('');
+    setShowUserDropdown(false);
   };
   
   const handleRemoveInterviewer = (userId: string) => {
@@ -90,35 +141,70 @@ const EditInterviewersModal: React.FC<EditInterviewersModalProps> = ({
                   )}
                 </div>
                 
+                {error && (
+                  <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+                    {error}
+                  </div>
+                )}
+                
                 <div className="mt-4">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Add New Interviewer</h4>
-                  <div className="flex space-x-2">
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        placeholder="User ID"
-                        value={newInterviewer.userId}
-                        onChange={(e) => setNewInterviewer({ ...newInterviewer, userId: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        placeholder="Name"
-                        value={newInterviewer.name}
-                        onChange={(e) => setNewInterviewer({ ...newInterviewer, name: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleAddInterviewer}
-                      disabled={!newInterviewer.userId || !newInterviewer.name}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-300"
-                    >
-                      Add
-                    </button>
+                  <div className="relative" ref={dropdownRef}>
+                    <input
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setShowUserDropdown(true);
+                      }}
+                      onFocus={() => setShowUserDropdown(true)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="Search for team members..."
+                      disabled={isLoading || selectedInterviewers.length >= 10}
+                    />
+                    <UserIcon className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
+                    
+                    {showUserDropdown && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto">
+                        {searchTerm && filteredUsers.length > 0 ? (
+                          filteredUsers.map((user) => (
+                            <div
+                              key={user.id}
+                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                              onClick={() => handleAddInterviewer(user)}
+                            >
+                              <div className="bg-gray-200 rounded-full h-8 w-8 flex items-center justify-center mr-2">
+                                {user.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-medium">{user.name}</div>
+                                <div className="text-sm text-gray-500">{user.email}</div>
+                              </div>
+                            </div>
+                          ))
+                        ) : searchTerm && filteredUsers.length === 0 ? (
+                          <div className="px-4 py-2 text-gray-500">No users found</div>
+                        ) : users.length > 0 ? (
+                          users.slice(0, 10).map((user) => (
+                            <div
+                              key={user.id}
+                              className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center"
+                              onClick={() => handleAddInterviewer(user)}
+                            >
+                              <div className="bg-gray-200 rounded-full h-8 w-8 flex items-center justify-center mr-2">
+                                {user.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-medium">{user.name}</div>
+                                <div className="text-sm text-gray-500">{user.email}</div>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="px-4 py-2 text-gray-500">Loading users...</div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

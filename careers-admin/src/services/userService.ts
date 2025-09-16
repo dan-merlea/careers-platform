@@ -24,6 +24,15 @@ const getHiringManagers = async (): Promise<User[]> => {
   );
 };
 
+/**
+ * Fetch the current authenticated user
+ * @returns Promise with the current user
+ */
+const getCurrentUser = async (): Promise<User> => {
+  return await api.get<User>('/users/profile');
+};
+
 export const userService = {
-  getHiringManagers
+  getHiringManagers,
+  getCurrentUser
 };

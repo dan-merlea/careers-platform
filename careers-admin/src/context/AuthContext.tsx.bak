@@ -206,14 +206,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Store auth data
       localStorage.setItem('token', data.token);
-      localStorage.setItem('userId', data.user.id);
       localStorage.setItem('userEmail', email);
       localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
       localStorage.setItem('userRole', data.user.role);
       localStorage.setItem('userDepartment', data.user.departmentId || '');
       localStorage.setItem('name', data.user.name || '');
-      
-      console.log('Storing user ID:', data.user.id);
       
       // Store company data if available
       if (data.user.companyId) {
@@ -227,7 +224,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Update state
       setIsAuthenticated(true);
       setToken(data.token);
-      setUserId(data.user.id);
       setUserEmail(email);
       setIsAdmin(data.user.isAdmin);
       setUserRole(data.user.role);
@@ -249,7 +245,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Store auth data
       localStorage.setItem('token', data.token);
-      localStorage.setItem('userId', data.user.id);
       localStorage.setItem('userEmail', email);
       localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
       localStorage.setItem('userRole', data.user.role);
@@ -268,7 +263,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Update state
       setIsAuthenticated(true);
       setToken(data.token);
-      setUserId(data.user.id);
       setUserEmail(email);
       setIsAdmin(data.user.isAdmin);
       setUserRole(data.user.role);
@@ -295,7 +289,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Store auth data
       localStorage.setItem('token', data.token);
-      localStorage.setItem('userId', data.user.id);
       localStorage.setItem('userEmail', email);
       localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
       localStorage.setItem('userRole', data.user.role);
@@ -314,7 +307,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Update state
       setIsAuthenticated(true);
       setToken(data.token);
-      setUserId(data.user.id);
       setUserEmail(email);
       setIsAdmin(data.user.isAdmin);
       setUserRole(data.user.role);

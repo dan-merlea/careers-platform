@@ -7,6 +7,7 @@ export enum ApplicationStatus {
   REVIEWED = 'reviewed',
   CONTACTED = 'contacted',
   INTERVIEWING = 'interviewing',
+  DEBRIEF = 'debrief',
   OFFERED = 'offered',
   HIRED = 'hired',
   REJECTED = 'rejected',
@@ -25,6 +26,7 @@ export interface JobApplicant {
   updatedAt: string; // Date when the application was last updated
   status: string;
   jobId: string;
+  interviewerVisibility?: boolean; // Whether interviewers can see each other's feedback
 }
 
 export interface Note {
@@ -51,6 +53,12 @@ const jobApplicationService = {
   // Update application status
   updateApplicationStatus: async (id: string, status: string): Promise<JobApplicant> => {
     const response = await api.put<JobApplicant>(`/job-applications/${id}/status`, { status });
+    return response;
+  },
+  
+  // Update interviewer visibility
+  updateInterviewerVisibility: async (id: string, visibility: boolean): Promise<JobApplicant> => {
+    const response = await api.put<JobApplicant>(`/job-applications/${id}/interviewer-visibility`, { visibility });
     return response;
   },
 

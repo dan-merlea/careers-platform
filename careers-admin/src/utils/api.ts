@@ -43,6 +43,7 @@ export const isAuthenticated = (): boolean => {
  */
 export const clearAuth = (): void => {
   localStorage.removeItem('token');
+  localStorage.removeItem('userId');
   localStorage.removeItem('isAdmin');
   localStorage.removeItem('userEmail');
   localStorage.removeItem('userRole');

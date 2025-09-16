@@ -1,5 +1,5 @@
 import { api } from '../utils/api';
-import { InterviewProcess, Consideration } from './interviewProcessService';
+import { InterviewProcess } from './interviewProcessService';
 
 export interface Interviewer {
   userId: string;
@@ -36,6 +36,12 @@ export interface InterviewFeedback {
   considerations: { [key: string]: number };
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface Consideration {
+  id: string;
+  title: string;
+  description: string;
 }
 
 const interviewService = {
@@ -94,14 +100,81 @@ const interviewService = {
     }
   },
   
+  // Get all interviews for an application
+  getInterviewsByApplicationId: async (applicationId: string): Promise<Interview[]> => {
+    try {
+      const response = await api.get<Interview[]>(`/job-applications/${applicationId}/interviews`);
+      return response;
+    } catch (error: any) {
+      // If 404, return empty array
+      if (error.message && error.message.includes('not found')) {
+        return [];
+      }
+      console.error(`Error fetching interviews for application ${applicationId}:`, error);
+      throw error;
+    }
+  },
+
+  // Get considerations for a stage
+  getConsiderationsByStage: async (stage: string): Promise<Consideration[]> => {
+    try {
+      // Since there's no direct endpoint for getting considerations by stage,
+      // we'll return a set of default considerations based on the stage name
+      const defaultConsiderations: { [key: string]: Consideration[] } = {
+        'technical': [
+          { id: 'tech_knowledge', title: 'Technical Knowledge', description: 'Understanding of core concepts and technologies' },
+          { id: 'problem_solving', title: 'Problem Solving', description: 'Ability to solve complex problems efficiently' },
+          { id: 'code_quality', title: 'Code Quality', description: 'Writes clean, maintainable code' }
+        ],
+        'culture': [
+          { id: 'team_fit', title: 'Team Fit', description: 'How well the candidate would integrate with the team' },
+          { id: 'communication', title: 'Communication Skills', description: 'Ability to communicate ideas clearly and effectively' },
+          { id: 'values_alignment', title: 'Values Alignment', description: 'Alignment with company values and culture' }
+        ],
+        'behavioral': [
+          { id: 'leadership', title: 'Leadership', description: 'Demonstrates leadership qualities' },
+          { id: 'teamwork', title: 'Teamwork', description: 'Works well with others' },
+          { id: 'adaptability', title: 'Adaptability', description: 'Adapts well to changing circumstances' }
+        ],
+        'system_design': [
+          { id: 'architecture', title: 'Architecture', description: 'Ability to design scalable system architectures' },
+          { id: 'trade_offs', title: 'Trade-offs', description: 'Understanding of engineering trade-offs' },
+          { id: 'scalability', title: 'Scalability', description: 'Designs systems that can scale' }
+        ]
+      };
+      
+      // Return default considerations for the stage or an empty array if the stage is not found
+      return defaultConsiderations[stage.toLowerCase()] || [];
+    } catch (error: any) {
+      console.error(`Error fetching considerations for stage ${stage}:`, error);
+      return [];
+    }
+  },
+  
+  
+  // Get feedback by interview ID
+  getFeedbackByInterviewId: async (interviewId: string): Promise<InterviewFeedback[]> => {
+    try {
+      const response = await api.get<InterviewFeedback[]>(`/interviews/${interviewId}/feedback`);
+      return response;
+    } catch (error: any) {
+      // If 404, return empty array
+      if (error.message && error.message.includes('not found')) {
+        return [];
+      }
+      console.error(`Error fetching feedback for interview ${interviewId}:`, error);
+      throw error;
+    }
+  },
+
   // Get feedback by interviewer
   getInterviewerFeedback: async (interviewId: string, interviewerId: string): Promise<InterviewFeedback | null> => {
     try {
       const response = await api.get<InterviewFeedback>(`/interviews/${interviewId}/feedback/${interviewerId}`);
       return response;
     } catch (error: any) {
-      // If 404, return null
-      if (error.response && error.response.status === 404) {
+      // If 404, return null - this means no feedback exists yet
+      if (error.message && error.message.includes('not found')) {
         return null;
       }
       console.error(`Error fetching feedback for interviewer ${interviewerId}:`, error);
@@ -163,6 +236,16 @@ const interviewService = {
       return response;
     } catch (error) {
       console.error(`Error updating interviewers for interview ${interviewId}:`, error);
+      throw error;
+    }
+  },
+  
+  // Send reminder to interviewer to submit feedback
+  sendFeedbackReminder: async (interviewId: string, interviewerId: string): Promise<void> => {
+    try {
+      await api.post(`/interviews/${interviewId}/feedback/${interviewerId}/remind`);
+    } catch (error) {
+      console.error(`Error sending reminder for interview ${interviewId} to interviewer ${interviewerId}:`, error);
       throw error;
     }
   }

@@ -10,12 +10,15 @@ import {
   ClockIcon,
   ChatBubbleLeftRightIcon,
   UserCircleIcon,
-  PaperAirplaneIcon
+  PaperAirplaneIcon,
+  ClipboardDocumentCheckIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline';
 import jobApplicationService, { JobApplicant, Note } from '../services/jobApplicationService';
 import jobService, { Job } from '../services/jobService';
 import interviewProcessService from '../services/interviewProcessService';
 import ApplicantStagesList from '../components/applicants/ApplicantStagesList';
+import DebriefPage from './DebriefPage';
 import { formatDate, formatTime } from '../utils/dateUtils';
 import { toast } from 'react-toastify';
 
@@ -45,6 +48,7 @@ const ApplicantDetailPage: React.FC = () => {
   const [isLoadingNotes, setIsLoadingNotes] = useState<boolean>(false);
   const [isSavingNote, setIsSavingNote] = useState<boolean>(false);
   const [processId, setProcessId] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<'details' | 'debrief'>('details');
 
   useEffect(() => {
     const fetchApplicant = async () => {
@@ -289,7 +293,7 @@ const ApplicantDetailPage: React.FC = () => {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-4">
         <div className="flex items-center">
           <button 
             onClick={() => navigate(-1)}
@@ -321,6 +325,35 @@ const ApplicantDetailPage: React.FC = () => {
           )}
         </div>
       </div>
+      
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('details')}
+            className={`${
+              activeTab === 'details'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+          >
+            <UserCircleIcon className="w-5 h-5 mr-2" />
+            Applicant Details
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('debrief')}
+            className={`${
+              activeTab === 'debrief'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+          >
+            <ClipboardDocumentCheckIcon className="w-5 h-5 mr-2" />
+            Interview Debrief
+          </button>
+        </nav>
+      </div>
 
       {error && (
         <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
@@ -328,9 +361,10 @@ const ApplicantDetailPage: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column - Applicant details */}
-        <div className="lg:col-span-2">
+      {activeTab === 'details' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left column - Applicant details */}
+          <div className="lg:col-span-2">
           <div className="bg-white shadow rounded overflow-hidden mb-6">
             <div className="p-6">
               <h2 className="text-lg font-semibold mb-4 flex items-center">
@@ -540,6 +574,9 @@ const ApplicantDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+      ) : activeTab === 'debrief' ? (
+        <DebriefPage id={id} />
+      ) : null}
     </div>
   );
 };
