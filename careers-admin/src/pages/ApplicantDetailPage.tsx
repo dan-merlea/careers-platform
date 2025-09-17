@@ -4,15 +4,13 @@ import {
   ArrowLeftIcon, 
   EnvelopeIcon, 
   PhoneIcon, 
-  LinkIcon,
   DocumentTextIcon,
   CalendarIcon,
   ClockIcon,
   ChatBubbleLeftRightIcon,
   UserCircleIcon,
   PaperAirplaneIcon,
-  ClipboardDocumentCheckIcon,
-  ChartBarIcon
+  ClipboardDocumentCheckIcon
 } from '@heroicons/react/24/outline';
 import jobApplicationService, { JobApplicant, Note } from '../services/jobApplicationService';
 import jobService, { Job } from '../services/jobService';
@@ -31,7 +29,7 @@ interface InterviewStageOption {
 }
 
 const ApplicantDetailPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, tab } = useParams<{ id: string; tab?: string }>();
   const navigate = useNavigate();
   
   const [applicant, setApplicant] = useState<JobApplicant | null>(null);
@@ -48,7 +46,16 @@ const ApplicantDetailPage: React.FC = () => {
   const [isLoadingNotes, setIsLoadingNotes] = useState<boolean>(false);
   const [isSavingNote, setIsSavingNote] = useState<boolean>(false);
   const [processId, setProcessId] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'details' | 'debrief'>('details');
+  const [activeTab, setActiveTab] = useState<'details' | 'debrief'>(tab === 'debrief' ? 'debrief' : 'details');
+
+  // Effect to update the active tab when the URL tab parameter changes
+  useEffect(() => {
+    if (tab === 'debrief') {
+      setActiveTab('debrief');
+    } else {
+      setActiveTab('details');
+    }
+  }, [tab]);
 
   useEffect(() => {
     const fetchApplicant = async () => {
@@ -140,6 +147,7 @@ const ApplicantDetailPage: React.FC = () => {
           
           // Create standard final statuses
           const standardFinalStatuses: InterviewStageOption[] = [
+            { id: 'debrief', title: 'Debrief', order: 996, processId: process.id },
             { id: 'offered', title: 'Offered', order: 997, processId: process.id },
             { id: 'hired', title: 'Hired', order: 998, processId: process.id },
             { id: 'rejected', title: 'Rejected', order: 999, processId: process.id }
@@ -159,9 +167,10 @@ const ApplicantDetailPage: React.FC = () => {
             { id: 'reviewed', title: 'Reviewed', order: 1, processId: '' },
             { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
             { id: 'interviewing', title: 'Interviewing', order: 3, processId: '' },
-            { id: 'offered', title: 'Offered', order: 4, processId: '' },
-            { id: 'hired', title: 'Hired', order: 5, processId: '' },
-            { id: 'rejected', title: 'Rejected', order: 6, processId: '' }
+            { id: 'debrief', title: 'Debrief', order: 4, processId: '' },
+            { id: 'offered', title: 'Offered', order: 5, processId: '' },
+            { id: 'hired', title: 'Hired', order: 6, processId: '' },
+            { id: 'rejected', title: 'Rejected', order: 7, processId: '' }
           ]);
         }
       }
@@ -173,9 +182,10 @@ const ApplicantDetailPage: React.FC = () => {
         { id: 'reviewed', title: 'Reviewed', order: 1, processId: '' },
         { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
         { id: 'interviewing', title: 'Interviewing', order: 3, processId: '' },
-        { id: 'offered', title: 'Offered', order: 4, processId: '' },
-        { id: 'hired', title: 'Hired', order: 5, processId: '' },
-        { id: 'rejected', title: 'Rejected', order: 6, processId: '' }
+        { id: 'debrief', title: 'Debrief', order: 4, processId: '' },
+        { id: 'offered', title: 'Offered', order: 5, processId: '' },
+        { id: 'hired', title: 'Hired', order: 6, processId: '' },
+        { id: 'rejected', title: 'Rejected', order: 7, processId: '' }
       ]);
     } finally {
       setIsLoadingStages(false);
@@ -330,7 +340,10 @@ const ApplicantDetailPage: React.FC = () => {
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
           <button
-            onClick={() => setActiveTab('details')}
+            onClick={() => {
+              setActiveTab('details');
+              navigate(`/applicants/${id}`);
+            }}
             className={`${
               activeTab === 'details'
                 ? 'border-blue-500 text-blue-600'
@@ -342,7 +355,10 @@ const ApplicantDetailPage: React.FC = () => {
           </button>
           
           <button
-            onClick={() => setActiveTab('debrief')}
+            onClick={() => {
+              setActiveTab('debrief');
+              navigate(`/applicants/${id}/debrief`);
+            }}
             className={`${
               activeTab === 'debrief'
                 ? 'border-blue-500 text-blue-600'

@@ -314,6 +314,14 @@ const AppRoutes: React.FC = () => {
                   </RoleGuard>
                 }
               />
+              <Route
+                path="/applicants/:id/:tab"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                    <ApplicantDetailPage />
+                  </RoleGuard>
+                }
+              />
               
               {/* Access control pages */}
               <Route path="/unauthorized" element={<UnauthorizedPage />} />

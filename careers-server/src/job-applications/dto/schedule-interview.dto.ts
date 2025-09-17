@@ -32,4 +32,8 @@ export class ScheduleInterviewDto {
   @IsString()
   @IsOptional()
   processId?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  stage: string;
 }

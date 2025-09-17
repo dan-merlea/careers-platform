@@ -103,86 +103,41 @@ export class JobApplicationsService {
       throw new NotFoundException(`Job application with ID ${id} not found`);
     }
 
+    if (!application.resumeId) {
+      throw new NotFoundException(`No resume found for application with ID ${id}`);
+    }
+
     try {
-      const { stream, file } = await this.gridFsService.getFile(
-        application.resumeId,
-      );
+      // Use the getFile method from GridFsService
+      const { stream, file } = await this.gridFsService.getFile(application.resumeId);
 
       return {
         stream,
-        filename: application.resumeFilename,
-        mimetype: application.resumeMimeType,
+        filename: application.resumeFilename || 'resume.pdf',
+        mimetype: application.resumeMimeType || 'application/pdf',
       };
     } catch (error) {
-      throw new NotFoundException('Resume file not found');
+      throw new NotFoundException(`Resume file not found for application with ID ${id}`);
     }
   }
 
-  async remove(id: string): Promise<void> {
+  async updateStatus(
+    id: string,
+    updateStatusDto: UpdateApplicationStatusDto,
+  ): Promise<JobApplicationResponseDto> {
     const application = await this.jobApplicationModel.findById(id).exec();
 
     if (!application) {
       throw new NotFoundException(`Job application with ID ${id} not found`);
     }
 
-    // Delete the resume file from GridFS
-    try {
-      await this.gridFsService.deleteFile(application.resumeId);
-    } catch (error) {
-      console.error(`Error deleting resume file: ${error.message}`);
-    }
-
-    // Delete the application from database
-    await this.jobApplicationModel.findByIdAndDelete(id).exec();
-  }
-
-  async cleanupExpiredApplications(): Promise<number> {
-    const now = new Date();
-    const expiredApplications = await this.jobApplicationModel
-      .find({ consentExpiresAt: { $lt: now } })
-      .exec();
-
-    let deletedCount = 0;
-
-    for (const application of expiredApplications) {
-      try {
-        // Delete resume file from GridFS
-        await this.gridFsService.deleteFile(application.resumeId);
-
-        // Delete application from database
-        const appId = application._id?.toString();
-        if (appId) {
-          await this.jobApplicationModel.findByIdAndDelete(appId).exec();
-          deletedCount++;
-        }
-      } catch (error: any) {
-        const appId = application._id?.toString() || 'unknown';
-        console.error(
-          `Error deleting expired application ${appId}: ${error.message}`,
-        );
-      }
-    }
-
-    return deletedCount;
-  }
-
-  /**
-   * Update the status of a job application
-   * @param id The ID of the job application to update
-   * @param updateStatusDto The new status
-   * @returns The updated job application
-   */
-  async updateStatus(
-    id: string,
-    updateStatusDto: UpdateApplicationStatusDto,
-  ): Promise<JobApplicationResponseDto> {
-    const application = await this.jobApplicationModel.findById(id);
-
-    if (!application) {
-      throw new NotFoundException(`Job application with ID ${id} not found`);
-    }
-
     application.status = updateStatusDto.status;
+    
+    // Automatically enable interviewer visibility when status is 'debrief'
+    if (updateStatusDto.status === 'debrief') {
+      application.interviewerVisibility = true;
+    }
+    
     await application.save();
 
     return this.mapToResponseDto(application);
@@ -231,15 +186,11 @@ export class JobApplicationsService {
   }
 
   /**
-   * Get all notes for a job application created by a specific user
+   * Get all notes for a job application
    * @param applicationId The ID of the job application
-   * @param userId The ID of the user
    * @returns Array of notes
    */
-  async getNotesByUser(
-    applicationId: string,
-    userId: string,
-  ): Promise<NoteDto[]> {
+  async getNotes(applicationId: string): Promise<NoteDto[]> {
     const application = await this.jobApplicationModel.findById(applicationId);
 
     if (!application) {
@@ -248,13 +199,7 @@ export class JobApplicationsService {
       );
     }
 
-    // Filter notes by the requesting user
-    const userNotes =
-      application.userNotes?.filter(
-        (note) => note.userId.toString() === userId,
-      ) || [];
-
-    // Map to DTOs and return
+    const userNotes = application.userNotes || [];
     return userNotes.map((note) => this.mapToNoteDto(note, applicationId));
   }
 
@@ -262,7 +207,7 @@ export class JobApplicationsService {
    * Update a note
    * @param applicationId The ID of the job application
    * @param noteIndex The index of the note in the userNotes array
-   * @param content The new content
+   * @param content The new content for the note
    * @param userId The ID of the user updating the note
    * @returns The updated note
    */
@@ -280,20 +225,19 @@ export class JobApplicationsService {
       );
     }
 
-    if (!application.userNotes || noteIndex >= application.userNotes.length) {
-      throw new NotFoundException(`Note with index ${noteIndex} not found`);
-    }
-
-    const note = application.userNotes[noteIndex];
-
-    // Ensure the note belongs to the requesting user
-    if (note.userId.toString() !== userId) {
+    // Check if the note exists and belongs to the user
+    if (
+      !application.userNotes ||
+      !application.userNotes[noteIndex] ||
+      application.userNotes[noteIndex].userId.toString() !== userId
+    ) {
       throw new ForbiddenException(
         'You do not have permission to update this note',
       );
     }
 
     // Update the note
+    const note = application.userNotes[noteIndex];
     note.content = content;
     note.updatedAt = new Date();
     await application.save();
@@ -352,28 +296,22 @@ export class JobApplicationsService {
       );
     }
 
-    // Format the status name for display (capitalize first letter)
-    const formatStatusName = (status: string): string => {
-      return (
-        status.charAt(0).toUpperCase() + status.slice(1).replace(/-/g, ' ')
-      );
-    };
-
-    // Create a new interview with status name in the title
+    // Create a new interview
     const newInterview: Interview = {
-      _id: new Types.ObjectId(),
       scheduledDate: scheduleInterviewDto.scheduledDate,
-      title: `${formatStatusName(application.status)} - ${scheduleInterviewDto.title}`,
+      title: scheduleInterviewDto.title,
       description: scheduleInterviewDto.description,
-      processId: scheduleInterviewDto.processId ? new Types.ObjectId(scheduleInterviewDto.processId) : undefined,
       interviewers: scheduleInterviewDto.interviewers.map((interviewer) => ({
         userId: new Types.ObjectId(interviewer.userId),
         name: interviewer.name,
       })),
-      stage: application.status, // Store the current stage with the interview
-      status: application.status, // Store the current status with the interview
+      stage: scheduleInterviewDto.stage,
+      status: 'scheduled',
       createdAt: new Date(),
       updatedAt: new Date(),
+      processId: scheduleInterviewDto.processId
+        ? new Types.ObjectId(scheduleInterviewDto.processId)
+        : undefined,
     };
 
     // Add the interview to the application's interviews array
@@ -381,35 +319,30 @@ export class JobApplicationsService {
       application.interviews = [];
     }
     application.interviews.push(newInterview);
-
-    // Don't change the application status - keep it in the current stage
-    // The interview object stores the status at the time it was created
-
     await application.save();
 
     // Return the created interview
-    return {
-      id: newInterview._id ? newInterview._id.toString() : '',
-      scheduledDate: newInterview.scheduledDate,
-      title: newInterview.title,
-      description: newInterview.description,
-      interviewers: newInterview.interviewers.map((interviewer) => ({
-        userId: interviewer.userId.toString(),
-        name: interviewer.name,
-      })),
-      stage: newInterview.stage,
-      status: newInterview.status,
-      createdAt: newInterview.createdAt,
-      updatedAt: newInterview.updatedAt,
-      processId: newInterview.processId ? newInterview.processId.toString() : undefined,
-    };
+    return this.mapInterviewToDto(newInterview);
   }
 
   /**
    * Get all interviews for a job application
    */
-  async getInterviews(applicationId: string): Promise<InterviewDto[]> {
-    const application = await this.jobApplicationModel.findById(applicationId);
+  async getInterviews(id: string): Promise<InterviewDto[]> {
+    const application = await this.jobApplicationModel.findById(id).exec();
+
+    if (!application) {
+      throw new NotFoundException(`Job application with ID ${id} not found`);
+    }
+
+    return application.interviews?.map((interview) => this.mapInterviewToDto(interview)) || [];
+  }
+
+  /**
+   * Generate an interview invite for a specific interview
+   */
+  async generateInterviewInvite(applicationId: string, interviewId: string): Promise<string> {
+    const application = await this.jobApplicationModel.findById(applicationId).exec();
 
     if (!application) {
       throw new NotFoundException(
@@ -417,69 +350,6 @@ export class JobApplicationsService {
       );
     }
 
-    if (!application.interviews || application.interviews.length === 0) {
-      return [];
-    }
-
-    // Map the interviews to DTOs
-    return application.interviews.map((interview) => ({
-      id: interview._id ? interview._id.toString() : '',
-      scheduledDate: interview.scheduledDate,
-      title: interview.title,
-      description: interview.description,
-      interviewers: interview.interviewers.map((interviewer) => ({
-        userId: interviewer.userId.toString(),
-        name: interviewer.name,
-      })),
-      stage: interview.stage || application.status, // Use the stored stage or fallback to current status
-      status: interview.status || application.status, // Use the stored status or fallback to current status
-      createdAt: interview.createdAt,
-      updatedAt: interview.updatedAt,
-      processId: interview.processId ? interview.processId.toString() : undefined,
-    }));
-  }
-
-  /**
-   * Get emails for interviewers based on their user IDs
-   */
-  private async getInterviewerEmails(
-    interviewers: Interviewer[],
-  ): Promise<Array<{ name: string; email: string }>> {
-    if (!interviewers || interviewers.length === 0) {
-      return [];
-    }
-
-    const userIds = interviewers.map((interviewer) => interviewer.userId);
-    const users = await this.userModel.find({ _id: { $in: userIds } }).exec();
-
-    // Map user IDs to emails
-    return interviewers.map((interviewer) => {
-      const user = users.find(
-        (u) => u._id.toString() === interviewer.userId.toString(),
-      );
-      return {
-        name: interviewer.name,
-        email: user?.email || '',
-      };
-    });
-  }
-
-  /**
-   * Generate an interview invite based on the company's email/calendar provider
-   */
-  async generateInterviewInvite(
-    applicationId: string,
-    interviewId: string,
-  ): Promise<string> {
-    const application = await this.jobApplicationModel.findById(applicationId);
-
-    if (!application) {
-      throw new NotFoundException(
-        `Job application with ID ${applicationId} not found`,
-      );
-    }
-
-    // Find the interview
     const interview = application.interviews?.find(
       (i) => i._id && i._id.toString() === interviewId,
     );
@@ -488,28 +358,27 @@ export class JobApplicationsService {
       throw new NotFoundException(`Interview with ID ${interviewId} not found`);
     }
 
-    // Generate a unique identifier for the event
     const uid = `${interviewId}@careers-platform`;
 
-    // Format the start date
+    // Get the scheduled date from the interview
     const startDate = interview.scheduledDate;
 
-    // Format the end date (1 hour after start)
+    // Create an end date 1 hour after the start date
     const endDate = new Date(startDate);
     endDate.setHours(endDate.getHours() + 1);
 
-    // Get interviewers' emails if available
+    // Get emails of all interviewers
     const interviewerEmails = await this.getInterviewerEmails(
       interview.interviewers,
     );
 
-    // Create the description with interviewers' information
+    // Create description for the invite
     let description =
       interview.description ||
       `Interview for ${application.firstName} ${application.lastName}`;
     description += `\n\nCandidate Email: ${application.email}`;
 
-    // Add interviewers' emails to the description
+    // Add interviewer information to the description
     if (interviewerEmails.length > 0) {
       description += '\n\nInterviewers:';
       interviewerEmails.forEach(({ name, email }) => {
@@ -521,27 +390,18 @@ export class JobApplicationsService {
       });
     }
 
-    // Define the attendee type to match CalendarEvent interface
-    type CalendarAttendee = {
-      name: string;
-      email: string;
-      role?: 'CHAIR' | 'REQ-PARTICIPANT' | 'OPT-PARTICIPANT';
-    };
-    
-    // Format attendees for the calendar provider service
-    const attendees: CalendarAttendee[] = [
+    // Create attendees list
+    const attendees = [
       {
         name: `${application.firstName} ${application.lastName}`,
         email: application.email,
-        role: 'REQ-PARTICIPANT',
+        role: 'REQ-PARTICIPANT' as const,
       },
-      ...interviewerEmails
-        .filter((attendee) => attendee.email)
-        .map((attendee): CalendarAttendee => ({
-          name: attendee.name,
-          email: attendee.email,
-          role: 'REQ-PARTICIPANT',
-        })),
+      ...interviewerEmails.map((interviewer) => ({
+        name: interviewer.name,
+        email: interviewer.email,
+        role: 'REQ-PARTICIPANT' as const,
+      })),
     ];
 
     // Create calendar event object
@@ -561,10 +421,114 @@ export class JobApplicationsService {
   }
 
   /**
-   * Map a UserNote to a NoteDto
-   * @param note The UserNote to map
+   * Update interviewer visibility for a job application
+   */
+  async updateInterviewerVisibility(
+    id: string,
+    visibility: boolean,
+  ): Promise<JobApplicationResponseDto> {
+    const application = await this.jobApplicationModel.findById(id).exec();
+    
+    if (!application) {
+      throw new NotFoundException(`Job application with ID ${id} not found`);
+    }
+    
+    // Update the interviewer visibility
+    application.interviewerVisibility = visibility;
+    await application.save();
+    
+    return this.mapToResponseDto(application);
+  }
+
+  /**
+   * Remove a job application by ID
+   * @param id The ID of the job application to remove
+   */
+  async remove(id: string): Promise<void> {
+    const application = await this.jobApplicationModel.findById(id).exec();
+
+    if (!application) {
+      throw new NotFoundException(`Job application with ID ${id} not found`);
+    }
+
+    // Delete resume file if it exists
+    if (application.resumeId) {
+      try {
+        await this.gridFsService.deleteFile(application.resumeId);
+      } catch (error) {
+        console.error(`Error deleting resume file: ${error.message}`);
+      }
+    }
+
+    // Delete the application
+    await this.jobApplicationModel.findByIdAndDelete(id).exec();
+  }
+
+  /**
+   * Get notes by user ID for a specific application
    * @param applicationId The ID of the job application
-   * @returns The mapped NoteDto
+   * @param userId The ID of the user
+   * @returns Array of notes created by the user for the application
+   */
+  async getNotesByUser(applicationId: string, userId: string): Promise<NoteDto[]> {
+    const application = await this.jobApplicationModel.findById(applicationId).exec();
+
+    if (!application) {
+      throw new NotFoundException(`Job application with ID ${applicationId} not found`);
+    }
+
+    // Filter notes by user ID
+    const userNotes = application.userNotes?.filter(
+      (note) => note.userId.toString() === userId
+    ) || [];
+
+    return userNotes.map((note) => this.mapToNoteDto(note, applicationId));
+  }
+
+  /**
+   * Alias for deleteExpiredApplications
+   * @returns Number of deleted applications
+   */
+  async cleanupExpiredApplications(): Promise<number> {
+    return this.deleteExpiredApplications();
+  }
+
+  /**
+   * Delete expired applications
+   * @returns Number of deleted applications
+   */
+  async deleteExpiredApplications(): Promise<number> {
+    const now = new Date();
+    const expiredApplications = await this.jobApplicationModel.find({
+      consentExpiresAt: { $lt: now },
+    });
+
+    let deletedCount = 0;
+
+    for (const application of expiredApplications) {
+      const appId = application._id.toString();
+
+      try {
+        // Delete resume file if it exists
+        if (application.resumeId) {
+          await this.gridFsService.deleteFile(application.resumeId);
+        }
+
+        // Delete the application
+        await this.jobApplicationModel.findByIdAndDelete(appId);
+        deletedCount++;
+      } catch (error) {
+        console.error(
+          `Error deleting expired application ${appId}: ${error.message}`,
+        );
+      }
+    }
+
+    return deletedCount;
+  }
+
+  /**
+   * Map a UserNote to a NoteDto
    */
   private mapToNoteDto(note: UserNote, applicationId: string): NoteDto {
     return {
@@ -576,6 +540,56 @@ export class JobApplicationsService {
     };
   }
 
+  /**
+   * Map an Interview to an InterviewDto
+   */
+  private mapInterviewToDto(interview: Interview): InterviewDto {
+    return {
+      id: interview._id ? interview._id.toString() : '',
+      scheduledDate: interview.scheduledDate,
+      title: interview.title,
+      description: interview.description,
+      interviewers: interview.interviewers.map((interviewer) => ({
+        userId: interviewer.userId.toString(),
+        name: interviewer.name,
+      })),
+      stage: interview.stage,
+      status: interview.status,
+      createdAt: interview.createdAt,
+      updatedAt: interview.updatedAt,
+      processId: interview.processId ? interview.processId.toString() : undefined,
+    };
+  }
+
+  /**
+   * Get emails of interviewers
+   */
+  private async getInterviewerEmails(
+    interviewers: Interviewer[],
+  ): Promise<Array<{ name: string; email: string }>> {
+    if (!interviewers || interviewers.length === 0) {
+      return [];
+    }
+
+    // Get user IDs from interviewers
+    const userIds = interviewers.map((interviewer) => interviewer.userId);
+    const users = await this.userModel.find({ _id: { $in: userIds } }).exec();
+
+    // Map interviewers to their emails
+    return interviewers.map((interviewer) => {
+      const user = users.find(
+        (u) => u._id.toString() === interviewer.userId.toString(),
+      );
+      return {
+        name: interviewer.name,
+        email: user?.email || '',
+      };
+    });
+  }
+
+  /**
+   * Map a JobApplicationDocument to a JobApplicationResponseDto
+   */
   private mapToResponseDto(
     application: JobApplicationDocument,
   ): JobApplicationResponseDto {
@@ -595,6 +609,7 @@ export class JobApplicationsService {
           ? application.jobId.toString()
           : application.jobId,
       status: application.status,
+      interviewerVisibility: application.interviewerVisibility || false,
       createdAt: application.createdAt,
       updatedAt: application.updatedAt,
     };

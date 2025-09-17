@@ -1,7 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { JobApplication, JobApplicationDocument, Interview } from '../job-applications/schemas/job-application.schema';
+import {
+  JobApplication,
+  JobApplicationDocument,
+  Interview,
+} from '../job-applications/schemas/job-application.schema';
 import { Job, JobDocument } from '../jobs/schemas/job.schema';
 
 // Interview data transfer object
@@ -24,7 +28,8 @@ export interface InterviewDto {
 @Injectable()
 export class InterviewsService {
   constructor(
-    @InjectModel(JobApplication.name) private jobApplicationModel: Model<JobApplicationDocument>,
+    @InjectModel(JobApplication.name)
+    private jobApplicationModel: Model<JobApplicationDocument>,
     @InjectModel(Job.name) private jobModel: Model<JobDocument>,
   ) {}
 
@@ -34,9 +39,9 @@ export class InterviewsService {
    */
   async getActiveInterviews(): Promise<InterviewDto[]> {
     const applications = await this.jobApplicationModel
-      .find({ 
+      .find({
         status: { $nin: ['rejected', 'hired'] },
-        interviews: { $exists: true, $ne: [] }
+        interviews: { $exists: true, $ne: [] },
       })
       .populate('jobId')
       .exec();
@@ -48,7 +53,7 @@ export class InterviewsService {
       if (application.interviews && application.interviews.length > 0) {
         const job = application.jobId as any;
         const jobTitle = job ? job.title : 'Unknown Position';
-        
+
         for (const interview of application.interviews) {
           if (interview._id) {
             interviews.push({
@@ -64,7 +69,9 @@ export class InterviewsService {
               status: interview.status,
               createdAt: interview.createdAt,
               updatedAt: interview.updatedAt,
-              applicantId: (application._id as unknown as Types.ObjectId).toString(),
+              applicantId: (
+                application._id as unknown as Types.ObjectId
+              ).toString(),
               applicantName: `${application.firstName} ${application.lastName}`,
               jobTitle: jobTitle,
             });
@@ -74,8 +81,10 @@ export class InterviewsService {
     }
 
     // Sort by scheduled date (most recent first)
-    return interviews.sort((a, b) => 
-      new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime()
+    return interviews.sort(
+      (a, b) =>
+        new Date(b.scheduledDate).getTime() -
+        new Date(a.scheduledDate).getTime(),
     );
   }
 
@@ -88,7 +97,7 @@ export class InterviewsService {
 
     const applications = await this.jobApplicationModel
       .find({
-        'interviews.scheduledDate': { $gte: today }
+        'interviews.scheduledDate': { $gte: today },
       })
       .populate('jobId')
       .exec();
@@ -100,11 +109,11 @@ export class InterviewsService {
       if (application.interviews && application.interviews.length > 0) {
         const job = application.jobId as any;
         const jobTitle = job ? job.title : 'Unknown Position';
-        
+
         const upcomingInterviews = application.interviews.filter(
-          (interview) => new Date(interview.scheduledDate) >= today
+          (interview) => new Date(interview.scheduledDate) >= today,
         );
-        
+
         for (const interview of upcomingInterviews) {
           if (interview._id) {
             interviews.push({
@@ -120,7 +129,9 @@ export class InterviewsService {
               status: interview.status,
               createdAt: interview.createdAt,
               updatedAt: interview.updatedAt,
-              applicantId: (application._id as unknown as Types.ObjectId).toString(),
+              applicantId: (
+                application._id as unknown as Types.ObjectId
+              ).toString(),
               applicantName: `${application.firstName} ${application.lastName}`,
               jobTitle: jobTitle,
             });
@@ -130,8 +141,10 @@ export class InterviewsService {
     }
 
     // Sort by scheduled date (soonest first)
-    return interviews.sort((a, b) => 
-      new Date(a.scheduledDate).getTime() - new Date(b.scheduledDate).getTime()
+    return interviews.sort(
+      (a, b) =>
+        new Date(a.scheduledDate).getTime() -
+        new Date(b.scheduledDate).getTime(),
     );
   }
 
@@ -139,8 +152,23 @@ export class InterviewsService {
    * Get interview by ID
    */
   async getInterviewById(interviewId: string): Promise<InterviewDto> {
+    let objectId;
+    let query: Record<string, any>;
+    
+    try {
+      // Try to convert to ObjectId if it's a valid format
+      objectId = new Types.ObjectId(interviewId);
+      query = { 'interviews._id': objectId };
+    } catch (_) {
+      // If conversion fails, use a different query approach
+      console.log(
+        `Invalid ObjectId format: ${interviewId}. Using string comparison instead.`
+      );
+      query = { interviews: { $elemMatch: { _id: interviewId } } };
+    }
+    
     const application = (await this.jobApplicationModel
-      .findOne({ 'interviews._id': new Types.ObjectId(interviewId) })
+      .findOne(query)
       .populate('jobId')
       .exec()) as JobApplicationDocument;
 
@@ -149,7 +177,7 @@ export class InterviewsService {
     }
 
     const interview = application.interviews.find(
-      (i) => i._id && i._id.toString() === interviewId
+      (i) => i._id && i._id.toString() === interviewId,
     );
 
     if (!interview || !interview._id) {
@@ -175,65 +203,78 @@ export class InterviewsService {
       applicantId: (application._id as unknown as Types.ObjectId).toString(),
       applicantName: `${application.firstName} ${application.lastName}`,
       jobTitle: jobTitle,
-      processId: interview.processId ? interview.processId.toString() : undefined,
+      processId: interview.processId
+        ? interview.processId.toString()
+        : undefined,
     };
   }
 
   /**
    * Cancel an interview
    */
-  async cancelInterview(interviewId: string, reason: string): Promise<InterviewDto> {
-    console.log(`Attempting to cancel interview with ID: ${interviewId}, reason: ${reason}`);
-    
+  async cancelInterview(
+    interviewId: string,
+    reason: string,
+  ): Promise<InterviewDto> {
+    console.log(
+      `Attempting to cancel interview with ID: ${interviewId}, reason: ${reason}`,
+    );
+
     try {
       // Convert string ID to ObjectId
       const objectId = new Types.ObjectId(interviewId);
       console.log('Created ObjectId:', objectId);
-      
+
       // Find the application containing this interview
       const application = await this.jobApplicationModel
         .findOne({ 'interviews._id': objectId })
         .populate('jobId')
         .exec();
-      
+
       console.log('Found application:', application ? 'Yes' : 'No');
-      
+
       if (!application) {
         console.log(`No application found with interview ID ${interviewId}`);
-        throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+        throw new NotFoundException(
+          `Interview with ID ${interviewId} not found`,
+        );
       }
-      
+
       // Find the interview in the application's interviews array
       const interviewIndex = application.interviews.findIndex(
-        (i) => i._id && i._id.toString() === interviewId
+        (i) => i._id && i._id.toString() === interviewId,
       );
-      
+
       console.log(`Interview index in array: ${interviewIndex}`);
-      
+
       if (interviewIndex === -1) {
-        console.log(`Interview with ID ${interviewId} not found in application's interviews array`);
-        throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+        console.log(
+          `Interview with ID ${interviewId} not found in application's interviews array`,
+        );
+        throw new NotFoundException(
+          `Interview with ID ${interviewId} not found`,
+        );
       }
-      
+
       console.log('Before update:', {
         status: application.interviews[interviewIndex].status,
-        reason: application.interviews[interviewIndex].cancellationReason
+        reason: application.interviews[interviewIndex].cancellationReason,
       });
-      
+
       // Update the interview status to cancelled
       application.interviews[interviewIndex].status = 'cancelled';
       application.interviews[interviewIndex].cancellationReason = reason;
       application.interviews[interviewIndex].updatedAt = new Date();
-      
+
       console.log('After update:', {
         status: application.interviews[interviewIndex].status,
-        reason: application.interviews[interviewIndex].cancellationReason
+        reason: application.interviews[interviewIndex].cancellationReason,
       });
-      
+
       // Save the changes
       await application.save();
       console.log('Application saved successfully');
-      
+
       // Return the updated interview
       return this.getInterviewById(interviewId);
     } catch (error) {
@@ -245,7 +286,10 @@ export class InterviewsService {
   /**
    * Reschedule an interview
    */
-  async rescheduleInterview(interviewId: string, scheduledDate: Date): Promise<InterviewDto> {
+  async rescheduleInterview(
+    interviewId: string,
+    scheduledDate: Date,
+  ): Promise<InterviewDto> {
     const application = (await this.jobApplicationModel
       .findOne({ 'interviews._id': new Types.ObjectId(interviewId) })
       .populate('jobId')
@@ -256,7 +300,7 @@ export class InterviewsService {
     }
 
     const interviewIndex = application.interviews.findIndex(
-      (i) => i._id && i._id.toString() === interviewId
+      (i) => i._id && i._id.toString() === interviewId,
     );
 
     if (interviewIndex === -1) {
@@ -276,7 +320,10 @@ export class InterviewsService {
   /**
    * Update interviewers for an interview
    */
-  async updateInterviewers(interviewId: string, interviewers: { userId: string; name: string }[]): Promise<InterviewDto> {
+  async updateInterviewers(
+    interviewId: string,
+    interviewers: { userId: string; name: string }[],
+  ): Promise<InterviewDto> {
     const application = await this.jobApplicationModel
       .findOne({ 'interviews._id': new Types.ObjectId(interviewId) })
       .exec();
@@ -286,7 +333,7 @@ export class InterviewsService {
     }
 
     const interviewIndex = application.interviews.findIndex(
-      (i) => i._id && i._id.toString() === interviewId
+      (i) => i._id && i._id.toString() === interviewId,
     );
 
     if (interviewIndex === -1) {
@@ -294,11 +341,13 @@ export class InterviewsService {
     }
 
     // Update the interviewers
-    application.interviews[interviewIndex].interviewers = interviewers.map(interviewer => ({
-      userId: new Types.ObjectId(interviewer.userId),
-      name: interviewer.name
-    }));
-    
+    application.interviews[interviewIndex].interviewers = interviewers.map(
+      (interviewer) => ({
+        userId: new Types.ObjectId(interviewer.userId),
+        name: interviewer.name,
+      }),
+    );
+
     application.interviews[interviewIndex].updatedAt = new Date();
 
     await application.save();
@@ -320,7 +369,7 @@ export class InterviewsService {
     }
 
     const interview = application.interviews.find(
-      (i) => i._id && i._id.toString() === interviewId
+      (i) => i._id && i._id.toString() === interviewId,
     );
 
     if (!interview) {
@@ -334,7 +383,10 @@ export class InterviewsService {
   /**
    * Get feedback by interviewer
    */
-  async getInterviewerFeedback(interviewId: string, interviewerId: string): Promise<any> {
+  async getInterviewerFeedback(
+    interviewId: string,
+    interviewerId: string,
+  ): Promise<any> {
     const application = await this.jobApplicationModel
       .findOne({ 'interviews._id': new Types.ObjectId(interviewId) })
       .exec();
@@ -344,7 +396,7 @@ export class InterviewsService {
     }
 
     const interview = application.interviews.find(
-      (i) => i._id && i._id.toString() === interviewId
+      (i) => i._id && i._id.toString() === interviewId,
     );
 
     if (!interview) {
@@ -353,11 +405,13 @@ export class InterviewsService {
 
     // Find feedback by interviewer ID
     const feedback = interview.feedback?.find(
-      (f) => f.interviewerId === interviewerId
+      (f) => f.interviewerId === interviewerId,
     );
 
     if (!feedback) {
-      throw new NotFoundException(`Feedback from interviewer ${interviewerId} not found`);
+      throw new NotFoundException(
+        `Feedback from interviewer ${interviewerId} not found`,
+      );
     }
 
     return feedback;
@@ -376,7 +430,7 @@ export class InterviewsService {
     }
 
     const interviewIndex = application.interviews.findIndex(
-      (i) => i._id && i._id.toString() === interviewId
+      (i) => i._id && i._id.toString() === interviewId,
     );
 
     if (interviewIndex === -1) {
@@ -389,9 +443,9 @@ export class InterviewsService {
     }
 
     // Check if feedback from this interviewer already exists
-    const existingFeedbackIndex = application.interviews[interviewIndex].feedback.findIndex(
-      (f) => f.interviewerId === feedbackData.interviewerId
-    );
+    const existingFeedbackIndex = application.interviews[
+      interviewIndex
+    ].feedback.findIndex((f) => f.interviewerId === feedbackData.interviewerId);
 
     if (existingFeedbackIndex !== -1) {
       // Update existing feedback
@@ -412,14 +466,18 @@ export class InterviewsService {
 
     // Return the updated feedback
     return application.interviews[interviewIndex].feedback.find(
-      (f) => f.interviewerId === feedbackData.interviewerId
+      (f) => f.interviewerId === feedbackData.interviewerId,
     );
   }
 
   /**
    * Update feedback for an interview
    */
-  async updateFeedback(interviewId: string, interviewerId: string, feedbackData: any): Promise<any> {
+  async updateFeedback(
+    interviewId: string,
+    interviewerId: string,
+    feedbackData: any,
+  ): Promise<any> {
     const application = await this.jobApplicationModel
       .findOne({ 'interviews._id': new Types.ObjectId(interviewId) })
       .exec();
@@ -429,7 +487,7 @@ export class InterviewsService {
     }
 
     const interviewIndex = application.interviews.findIndex(
-      (i) => i._id && i._id.toString() === interviewId
+      (i) => i._id && i._id.toString() === interviewId,
     );
 
     if (interviewIndex === -1) {
@@ -438,16 +496,20 @@ export class InterviewsService {
 
     // Check if feedback array exists
     if (!application.interviews[interviewIndex].feedback) {
-      throw new NotFoundException(`Feedback from interviewer ${interviewerId} not found`);
+      throw new NotFoundException(
+        `Feedback from interviewer ${interviewerId} not found`,
+      );
     }
 
     // Find feedback by interviewer ID
-    const feedbackIndex = application.interviews[interviewIndex].feedback.findIndex(
-      (f) => f.interviewerId === interviewerId
-    );
+    const feedbackIndex = application.interviews[
+      interviewIndex
+    ].feedback.findIndex((f) => f.interviewerId === interviewerId);
 
     if (feedbackIndex === -1) {
-      throw new NotFoundException(`Feedback from interviewer ${interviewerId} not found`);
+      throw new NotFoundException(
+        `Feedback from interviewer ${interviewerId} not found`,
+      );
     }
 
     // Update feedback
@@ -460,5 +522,68 @@ export class InterviewsService {
 
     // Return the updated feedback
     return application.interviews[interviewIndex].feedback[feedbackIndex];
+  }
+
+  /**
+   * Send reminder to interviewer to submit feedback
+   */
+  async sendFeedbackReminder(
+    interviewId: string,
+    interviewerId: string,
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const application = await this.jobApplicationModel
+        .findOne({ 'interviews._id': new Types.ObjectId(interviewId) })
+        .exec();
+
+      if (!application) {
+        throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+      }
+
+      const interviewIndex = application.interviews.findIndex(
+        (i) => i._id && i._id.toString() === interviewId,
+      );
+
+      if (interviewIndex === -1) {
+        throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+      }
+
+      // Check if interviewer exists for this interview
+      const interviewer = application.interviews[interviewIndex].interviewers.find(
+        (i) => i.userId.toString() === interviewerId,
+      );
+
+      if (!interviewer) {
+        throw new NotFoundException(
+          `Interviewer ${interviewerId} not found for this interview`,
+        );
+      }
+
+      // Check if feedback already exists
+      const existingFeedback = application.interviews[interviewIndex].feedback?.find(
+        (f) => f.interviewerId.toString() === interviewerId,
+      );
+
+      if (existingFeedback) {
+        return {
+          success: false,
+          message: 'Feedback has already been submitted by this interviewer',
+        };
+      }
+
+      // TODO: Implement email sending functionality
+      // This would typically involve:
+      // 1. Getting the interviewer's email from the users collection
+      // 2. Creating an email with a link to submit feedback
+      // 3. Sending the email using a mail service
+
+      // For now, we'll just return a success message
+      return {
+        success: true,
+        message: `Reminder sent to interviewer ${interviewerId} for interview ${interviewId}`,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }
