@@ -79,27 +79,6 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
   // Find the index of the current stage
   const currentStageIndex = sortedStages.findIndex(stage => stage.id === currentStage);
   
-  // Fetch interviews when component mounts or applicationId changes
-  useEffect(() => {
-    const fetchInterviews = async () => {
-      if (!applicationId) return;
-      
-      setIsLoadingInterviews(true);
-      setInterviewError(null);
-      
-      try {
-        const interviewsData = await api.get<Interview[]>(`/job-applications/${applicationId}/interviews`);
-        setInterviews(interviewsData);
-      } catch (err) {
-        console.error('Error fetching interviews:', err);
-        setInterviewError('Failed to load interview data');
-      } finally {
-        setIsLoadingInterviews(false);
-      }
-    };
-    
-    fetchInterviews();
-  }, [applicationId]);
   
   // Handle stage change with email
   const handleStageClick = (stage: Stage) => {
@@ -171,45 +150,6 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
     }
   };
   
-  // Handle downloading interview invite
-  const handleDownloadInvite = async (interviewId: string) => {
-    try {
-      // Use the api utility to get the authenticated response
-      const response = await fetch(
-        `${API_URL}/job-applications/${applicationId}/interviews/${interviewId}/invite`,
-        {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          },
-        }
-      );
-      
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status}`);
-      }
-      
-      // Get the blob from the response
-      const blob = await response.blob();
-      
-      // Create a URL for the blob
-      const url = window.URL.createObjectURL(blob);
-      
-      // Create a temporary link element to trigger the download
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'interview_invite.ics');
-      document.body.appendChild(link);
-      link.click();
-      
-      // Clean up
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error downloading interview invite:', error);
-      alert('Failed to download interview invite. Please try again.');
-    }
-  };
-  
   // Handle email send and update stage
   const handleSendEmail = (emailContent: string) => {
     console.log('Email content to send:', emailContent);
@@ -249,7 +189,7 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
 
   return (
     <>
-      <div className="bg-white shadow rounded-lg p-6 mb-8 relative">
+      <div className="bg-white shadow rounded-lg p-6 relative">
         <h3 className="text-lg font-medium text-gray-900 mb-6">Application Progress</h3>
         
         {/* Vertical timeline line */}
@@ -389,110 +329,6 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
           })}
         </div>
       </div>
-
-      {/* Upcoming interviews section - show at the top for all stages */}
-      {interviews.length > 0 && (
-        <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
-          <h4 className="font-medium text-blue-800 mb-2 flex items-center">
-            <CalendarIcon className="w-5 h-5 mr-2" />
-            Scheduled Interviews
-          </h4>
-          
-          {isLoadingInterviews ? (
-            <div className="flex justify-center items-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          ) : interviewError ? (
-            <div className="text-red-600 text-sm">{interviewError}</div>
-          ) : interviews.length === 0 ? (
-            <div className="text-gray-500 text-sm">No interviews scheduled yet</div>
-          ) : (
-            <div className="space-y-3">
-              {interviews.map((interview) => (
-                <div key={interview.id} className={`${interview.status === 'cancelled' ? 'bg-red-50 border-red-100' : 'bg-white border-blue-100'} border rounded-md p-3`}>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center">
-                        <Link to={`/interview/${interview.id}`} className="font-medium text-blue-600 hover:text-blue-800">
-                          {interview.title}
-                        </Link>
-                        {interview.status === 'cancelled' && (
-                          <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-800 text-xs font-medium rounded-md">
-                            CANCELLED
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600 mt-1">
-                        <CalendarIcon className="w-4 h-4 mr-1" />
-                        {formatDate(interview.scheduledDate)}
-                        <ClockIcon className="w-4 h-4 ml-2 mr-1" />
-                        {formatTime(interview.scheduledDate)}
-                      </div>
-                      {interview.status === 'cancelled' && interview.cancellationReason && (
-                        <div className="mt-1 text-xs text-red-600">
-                          <span className="font-medium">Reason:</span> {interview.cancellationReason}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex space-x-2">
-                      {interview.status !== 'cancelled' && (
-                        <button 
-                          onClick={() => handleDownloadInvite(interview.id)}
-                          className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
-                        >
-                          <DocumentArrowDownIcon className="w-4 h-4 mr-1" />
-                          Calendar Invite
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  {interview.description && (
-                    <p className="text-sm text-gray-600 mt-2">{interview.description}</p>
-                  )}
-                  
-                  <div className="mt-2">
-                    <span className="text-xs text-gray-500 mr-2">Interviewers:</span>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {interview.interviewers.map((interviewer) => (
-                        <span 
-                          key={interviewer.userId} 
-                          className="inline-flex items-center bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full"
-                        >
-                          <UserIcon className="w-3 h-3 mr-1" />
-                          {interviewer.name}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="mt-3 flex space-x-2">
-                    {interview.status !== 'cancelled' && (
-                      <Link 
-                        to={`/interview/${interview.id}`}
-                        className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200"
-                      >
-                        View Details
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Only show Schedule Another Interview button for stages that allow interviews */}
-          {!['new', 'reviewed', 'hired'].includes(currentStage) && (
-            <button
-              onClick={handleScheduleInterview}
-              className="mt-3 inline-flex items-center px-3 py-1.5 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <CalendarIcon className="w-4 h-4 mr-1.5" />
-              Schedule Another Interview
-            </button>
-          )}
-        </div>
-      )}
       
       {/* Email Template Modal */}
       {selectedStage && (

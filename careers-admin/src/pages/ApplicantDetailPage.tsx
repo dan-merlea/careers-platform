@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
   ArrowLeftIcon, 
   EnvelopeIcon, 
@@ -10,13 +10,16 @@ import {
   ChatBubbleLeftRightIcon,
   UserCircleIcon,
   PaperAirplaneIcon,
-  ClipboardDocumentCheckIcon
+  ClipboardDocumentCheckIcon,
+  VideoCameraIcon
 } from '@heroicons/react/24/outline';
 import jobApplicationService, { JobApplicant, Note } from '../services/jobApplicationService';
 import jobService, { Job } from '../services/jobService';
 import interviewProcessService from '../services/interviewProcessService';
+import interviewService, { Interview } from '../services/interviewService';
 import ApplicantStagesList from '../components/applicants/ApplicantStagesList';
 import DebriefPage from './DebriefPage';
+import ResumePage from './ResumePage';
 import { formatDate, formatTime } from '../utils/dateUtils';
 import { toast } from 'react-toastify';
 
@@ -46,16 +49,40 @@ const ApplicantDetailPage: React.FC = () => {
   const [isLoadingNotes, setIsLoadingNotes] = useState<boolean>(false);
   const [isSavingNote, setIsSavingNote] = useState<boolean>(false);
   const [processId, setProcessId] = useState<string>('');
-  const [activeTab, setActiveTab] = useState<'details' | 'debrief'>(tab === 'debrief' ? 'debrief' : 'details');
+  const [activeTab, setActiveTab] = useState<'details' | 'debrief' | 'resume'>(
+    tab === 'debrief' ? 'debrief' : (tab === 'resume' ? 'resume' : 'details')
+  );
+  const [scheduledInterviews, setScheduledInterviews] = useState<Interview[]>([]);
+  const [isLoadingInterviews, setIsLoadingInterviews] = useState<boolean>(false);
 
   // Effect to update the active tab when the URL tab parameter changes
   useEffect(() => {
     if (tab === 'debrief') {
       setActiveTab('debrief');
+    } else if (tab === 'resume') {
+      setActiveTab('resume');
     } else {
       setActiveTab('details');
     }
   }, [tab]);
+
+  // Function to fetch scheduled interviews for the applicant
+  const fetchScheduledInterviews = async () => {
+    if (!id) return;
+    
+    setIsLoadingInterviews(true);
+    try {
+      const interviews = await interviewService.getInterviewsByApplicationId(id);
+      // Sort interviews by date (most recent first)
+      interviews.sort((a, b) => new Date(b.scheduledDate).getTime() - new Date(a.scheduledDate).getTime());
+      setScheduledInterviews(interviews);
+    } catch (err) {
+      console.error('Error fetching scheduled interviews:', err);
+      // Don't show error to user, just log it
+    } finally {
+      setIsLoadingInterviews(false);
+    }
+  };
 
   useEffect(() => {
     const fetchApplicant = async () => {
@@ -82,6 +109,9 @@ const ApplicantDetailPage: React.FC = () => {
         
         // Fetch notes for this applicant
         await fetchApplicantNotes(id);
+
+        // Fetch scheduled interviews
+        await fetchScheduledInterviews();
       } catch (err) {
         console.error('Error fetching applicant:', err);
         setError('Failed to load applicant data. Please try again.');
@@ -192,10 +222,33 @@ const ApplicantDetailPage: React.FC = () => {
     }
   };
 
-  // Use the mapping function from jobApplicationService
+  // Calculate progress percentage based on applicant status and real stages
+  const getStageProgress = (status: string): number => {
+    // If no stages are loaded yet, return 0
+    if (!interviewStages || interviewStages.length === 0) {
+      return 0;
+    }
+
+    // Find the current stage in the interview stages array
+    const currentStage = interviewStages.find(stage => stage.id === status || stage.id === `stage-${status}`);
+    if (!currentStage) {
+      return 0; // Stage not found
+    }
+
+    // Get all stages sorted by order
+    const sortedStages = [...interviewStages].sort((a, b) => a.order - b.order);
+    
+    // Find the index of the current stage
+    const currentIndex = sortedStages.findIndex(stage => stage.id === currentStage.id);
+    if (currentIndex === -1) {
+      return 0; // Stage not found in sorted array (shouldn't happen)
+    }
+
+    // Calculate progress percentage based on position in the stages array
+    return Math.round((currentIndex / (sortedStages.length - 1)) * 100);
+  };
 
   const handleStatusChange = async (newStatus: string) => {
-    console.log('newStatus', newStatus);
     if (!id) return;
     
     try {
@@ -268,10 +321,6 @@ const ApplicantDetailPage: React.FC = () => {
       setIsSavingNote(false);
     }
   };
-
-  // Date formatting is now handled by the dateUtils utility
-
-  // Status handling is now done in the ApplicantStagesList component
 
   if (isLoading) {
     return (
@@ -368,6 +417,21 @@ const ApplicantDetailPage: React.FC = () => {
             <ClipboardDocumentCheckIcon className="w-5 h-5 mr-2" />
             Interview Debrief
           </button>
+
+          <button
+            onClick={() => {
+              setActiveTab('resume');
+              navigate(`/applicants/${id}/resume`);
+            }}
+            className={`${
+              activeTab === 'resume'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+          >
+            <DocumentTextIcon className="w-5 h-5 mr-2" />
+            Resume
+          </button>
         </nav>
       </div>
 
@@ -377,222 +441,188 @@ const ApplicantDetailPage: React.FC = () => {
         </div>
       )}
 
-      {activeTab === 'details' ? (
+      {/* Tab Content */}
+      {activeTab === 'details' && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column - Applicant details */}
           <div className="lg:col-span-2">
-          <div className="bg-white shadow rounded overflow-hidden mb-6">
-            <div className="p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center">
-                <UserCircleIcon className="w-5 h-5 mr-2 text-blue-600" />
-                Applicant Details
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <span className="text-sm text-gray-500">Email:</span>
-                  <p className="font-medium">{applicant.email}</p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Phone:</span>
-                  <p className="font-medium">{applicant.phone || 'Not provided'}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <span className="text-sm text-gray-500">Applied For:</span>
-                  <p className="font-medium">{job?.title || 'Loading job details...'}</p>
-                </div>
-                <div>
-                  <span className="text-sm text-gray-500">Application Date:</span>
-                  <div className="flex items-center">
-                    <CalendarIcon className="h-4 w-4 mr-1 text-gray-500" />
-                    <span className="font-medium">{formatDate(applicant.createdAt)}</span>
-                    <ClockIcon className="h-4 w-4 ml-2 mr-1 text-gray-500" />
-                    <span className="font-medium">{formatTime(applicant.createdAt)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-gray-500">Application Status:</span>
-                  <div>
-                    <span className="text-sm text-gray-500">Last Updated:</span>
-                    <p className="font-medium">{formatDate(applicant.updatedAt)}</p>
-                  </div>
-                </div>
-                
-                {isLoadingStages ? (
-                  <div className="flex justify-center items-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                  </div>
-                ) : (
-                  <div className="bg-white shadow rounded-lg overflow-hidden">
-                    <ApplicantStagesList 
-                      stages={interviewStages}
-                      currentStage={applicant.status}
-                      onStageChange={handleStatusChange}
-                      applicantName={`${applicant.firstName} ${applicant.lastName}`}
-                      jobTitle={job?.title || 'the position'}
-                      applicationId={id || ''}
-                      candidateEmail={applicant.email}
-                      processId={processId}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Resume section */}
-          <div className="bg-white shadow rounded overflow-hidden mb-6">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-lg font-semibold flex items-center">
-                  <DocumentTextIcon className="w-5 h-5 mr-2 text-blue-600" />
-                  Resume
+            <div className="bg-white shadow rounded overflow-hidden mb-6">
+              <div className="p-6">
+                <h2 className="text-lg font-semibold mb-4 flex items-center">
+                  <UserCircleIcon className="w-5 h-5 mr-2 text-blue-600" />
+                  Applicant Details
                 </h2>
-                <button 
-                  onClick={handleDownloadResume}
-                  className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
-                >
-                  <DocumentTextIcon className="h-4 w-4 mr-1" />
-                  Download Resume
-                </button>
-              </div>
+              
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <span className="text-sm text-gray-500">Email:</span>
+                    <p className="font-medium">{applicant.email}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Phone:</span>
+                    <p className="font-medium">{applicant.phone || 'Not provided'}</p>
+                  </div>
+                </div>
 
-              <div className="bg-gray-50 border border-gray-200 rounded-lg">
-                {isLoadingResume ? (
-                  <div className="flex justify-center items-center p-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <span className="text-sm text-gray-500">Applied For:</span>
+                    <p className="font-medium">{job?.title || 'Loading job details...'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Application Date:</span>
+                    <div className="flex items-center">
+                      <CalendarIcon className="h-4 w-4 mr-1 text-gray-500" />
+                      <span className="font-medium">{formatDate(applicant.createdAt)}</span>
+                      <ClockIcon className="h-4 w-4 ml-2 mr-1 text-gray-500" />
+                      <span className="font-medium">{formatTime(applicant.createdAt)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-gray-500">Application Status:</span>
+                    <div>
+                      <span className="text-sm text-gray-500">Last Updated:</span>
+                      <p className="font-medium">{formatDate(applicant.updatedAt)}</p>
+                    </div>
+                  </div>
+                  
+                  {isLoadingStages ? (
+                    <div className="flex justify-center items-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                    </div>
+                  ) : (
+                    <div className="bg-white shadow rounded-lg overflow-hidden">
+                      <ApplicantStagesList 
+                        stages={interviewStages}
+                        currentStage={applicant.status}
+                        onStageChange={handleStatusChange}
+                        applicantName={`${applicant.firstName} ${applicant.lastName}`}
+                        jobTitle={job?.title || 'the position'}
+                        applicationId={id || ''}
+                        candidateEmail={applicant.email}
+                        processId={processId}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right column - Notes and actions */}
+          <div>
+            {/* Application stats */}
+            <div className="bg-white shadow rounded overflow-hidden mb-6">
+              <div className="p-6">
+                <h2 className="text-lg font-semibold mb-4 flex items-center">
+                  <ClipboardDocumentCheckIcon className="w-5 h-5 mr-2 text-blue-600" />
+                  Application Stats
+                </h2>
+                
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <div className="text-sm text-gray-500">Days in Process</div>
+                      <div className="text-xl font-semibold text-blue-700">
+                        {applicant?.createdAt ? Math.ceil((new Date().getTime() - new Date(applicant.createdAt).getTime()) / (1000 * 3600 * 24)) : 0}
+                      </div>
+                    </div>
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <div className="text-sm text-gray-500 mb-2">Application Progress</div>
+                      <div className="relative pt-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">
+                              {applicant?.status || 'New'}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-xs font-semibold inline-block text-green-600">
+                              {getStageProgress(applicant?.status || 'new')}%
+                            </span>
+                          </div>
+                        </div>
+                        <div className="overflow-hidden h-2 mb-1 text-xs flex rounded bg-green-200 mt-1">
+                          <div 
+                            style={{ width: `${getStageProgress(applicant?.status || 'new')}%` }} 
+                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-purple-50 p-4 rounded-lg">
+                    <div className="text-sm text-gray-500">Last Updated</div>
+                    <div className="flex items-center">
+                      <CalendarIcon className="h-4 w-4 mr-1 text-purple-500" />
+                      <span className="font-medium">{applicant?.updatedAt ? formatDate(applicant.updatedAt) : 'N/A'}</span>
+                      <ClockIcon className="h-4 w-4 ml-2 mr-1 text-purple-500" />
+                      <span className="font-medium">{applicant?.updatedAt ? formatTime(applicant.updatedAt) : 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Notes */}
+            <div className="bg-white shadow rounded overflow-hidden mb-6">
+              <div className="p-6">
+                <h2 className="text-lg font-semibold mb-4 flex items-center">
+                  <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2 text-blue-600" />
+                  Notes
+                </h2>
+                
+                {isLoadingNotes ? (
+                  <div className="flex justify-center items-center h-64 border border-gray-300 rounded-md mb-4">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
                   </div>
-                ) : resumeUrl ? (
-                  <div className="h-96 overflow-hidden">
-                    {resumeMimeType.includes('pdf') ? (
-                      <iframe 
-                        src={resumeUrl} 
-                        className="w-full h-full" 
-                        title="Resume Preview"
-                      />
-                    ) : resumeMimeType.includes('image') ? (
-                      <img 
-                        src={resumeUrl} 
-                        alt="Resume" 
-                        className="max-w-full max-h-full mx-auto"
-                      />
-                    ) : (
-                      <div className="p-6 flex flex-col items-center justify-center text-center">
-                        <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
-                        <p className="text-gray-600 mb-4">Resume is available but cannot be previewed in browser</p>
-                        <button
-                          onClick={handleDownloadResume}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-                        >
-                          <DocumentTextIcon className="h-5 w-5 mr-2" />
-                          Download Resume
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 ) : (
-                  <div className="p-6 flex flex-col items-center justify-center text-center">
-                    <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
-                    <p className="text-gray-600">No resume available</p>
-                  </div>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md p-3 h-64 mb-4"
+                    placeholder="Add private notes about this candidate..."
+                    disabled={isSavingNote}
+                  />
                 )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right column - Notes and actions */}
-        <div>
-          <div className="bg-white shadow rounded overflow-hidden mb-6">
-            <div className="p-6">
-              <h2 className="text-lg font-semibold mb-4 flex items-center">
-                <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2 text-blue-600" />
-                Notes
-              </h2>
-              
-              {isLoadingNotes ? (
-                <div className="flex justify-center items-center h-64 border border-gray-300 rounded-md mb-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-500">
+                    <span className="italic">These notes are only visible to you</span>
+                  </p>
+                  <button
+                    onClick={handleSaveNotes}
+                    disabled={isSavingNote || isLoadingNotes}
+                    className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 flex items-center"
+                  >
+                    {isSavingNote ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <PaperAirplaneIcon className="h-4 w-4 mr-2" />
+                        Save
+                      </>
+                    )}
+                  </button>
                 </div>
-              ) : (
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-3 h-64 mb-4"
-                  placeholder="Add private notes about this candidate..."
-                  disabled={isSavingNote}
-                />
-              )}
-              
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-gray-500">
-                  <span className="italic">These notes are only visible to you</span>
-                </p>
-                <button
-                  onClick={handleSaveNotes}
-                  disabled={isSavingNote || isLoadingNotes}
-                  className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 flex items-center"
-                >
-                  {isSavingNote ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <PaperAirplaneIcon className="h-4 w-4 mr-2" />
-                      Save Notes
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white shadow rounded overflow-hidden">
-            <div className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-              
-              <div className="space-y-3">
-                <button
-                  onClick={() => handleStatusChange('contacted')}
-                  className="w-full bg-yellow-100 text-yellow-800 py-2 px-4 rounded-md hover:bg-yellow-200 flex items-center justify-center"
-                >
-                  <EnvelopeIcon className="h-5 w-5 mr-2" />
-                  Mark as Contacted
-                </button>
-                
-                <button
-                  onClick={() => handleStatusChange('interviewing')}
-                  className="w-full bg-indigo-100 text-indigo-800 py-2 px-4 rounded-md hover:bg-indigo-200 flex items-center justify-center"
-                >
-                  <UserCircleIcon className="h-5 w-5 mr-2" />
-                  Schedule Interview
-                </button>
-                
-                <button
-                  onClick={() => handleStatusChange('rejected')}
-                  className="w-full bg-red-100 text-red-800 py-2 px-4 rounded-md hover:bg-red-200 flex items-center justify-center"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  Reject Candidate
-                </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      ) : activeTab === 'debrief' ? (
+      )}
+      {activeTab === 'debrief' && (
         <DebriefPage id={id} />
-      ) : null}
+      )}
+      {activeTab === 'resume' && (
+        <ResumePage id={id || ''} />
+      )}
     </div>
   );
 };
