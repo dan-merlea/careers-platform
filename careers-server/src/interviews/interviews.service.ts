@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import {
@@ -154,7 +158,7 @@ export class InterviewsService {
   async getInterviewById(interviewId: string): Promise<InterviewDto> {
     let objectId;
     let query: Record<string, any>;
-    
+
     try {
       // Try to convert to ObjectId if it's a valid format
       objectId = new Types.ObjectId(interviewId);
@@ -162,11 +166,11 @@ export class InterviewsService {
     } catch (_) {
       // If conversion fails, use a different query approach
       console.log(
-        `Invalid ObjectId format: ${interviewId}. Using string comparison instead.`
+        `Invalid ObjectId format: ${interviewId}. Using string comparison instead.`,
       );
       query = { interviews: { $elemMatch: { _id: interviewId } } };
     }
-    
+
     const application = (await this.jobApplicationModel
       .findOne(query)
       .populate('jobId')
@@ -307,6 +311,23 @@ export class InterviewsService {
       throw new NotFoundException(`Interview with ID ${interviewId} not found`);
     }
 
+    // Check if the interview has already passed
+    const currentInterview = application.interviews[interviewIndex];
+    const currentDate = new Date();
+
+    if (currentInterview.scheduledDate < currentDate) {
+      throw new BadRequestException(
+        'Cannot reschedule an interview that has already passed',
+      );
+    }
+
+    // Check if the new scheduled date is in the past
+    if (new Date(scheduledDate) < currentDate) {
+      throw new BadRequestException(
+        'Cannot reschedule an interview to a past date',
+      );
+    }
+
     // Update the interview scheduled date
     application.interviews[interviewIndex].scheduledDate = scheduledDate;
     application.interviews[interviewIndex].updatedAt = new Date();
@@ -338,6 +359,16 @@ export class InterviewsService {
 
     if (interviewIndex === -1) {
       throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+    }
+
+    // Check if the interview has already passed
+    const currentInterview = application.interviews[interviewIndex];
+    const currentDate = new Date();
+
+    if (currentInterview.scheduledDate < currentDate) {
+      throw new BadRequestException(
+        'Cannot modify interviewers for an interview that has already passed',
+      );
     }
 
     // Update the interviewers
@@ -537,7 +568,9 @@ export class InterviewsService {
         .exec();
 
       if (!application) {
-        throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+        throw new NotFoundException(
+          `Interview with ID ${interviewId} not found`,
+        );
       }
 
       const interviewIndex = application.interviews.findIndex(
@@ -545,13 +578,15 @@ export class InterviewsService {
       );
 
       if (interviewIndex === -1) {
-        throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+        throw new NotFoundException(
+          `Interview with ID ${interviewId} not found`,
+        );
       }
 
       // Check if interviewer exists for this interview
-      const interviewer = application.interviews[interviewIndex].interviewers.find(
-        (i) => i.userId.toString() === interviewerId,
-      );
+      const interviewer = application.interviews[
+        interviewIndex
+      ].interviewers.find((i) => i.userId.toString() === interviewerId);
 
       if (!interviewer) {
         throw new NotFoundException(
@@ -560,9 +595,9 @@ export class InterviewsService {
       }
 
       // Check if feedback already exists
-      const existingFeedback = application.interviews[interviewIndex].feedback?.find(
-        (f) => f.interviewerId.toString() === interviewerId,
-      );
+      const existingFeedback = application.interviews[
+        interviewIndex
+      ].feedback?.find((f) => f.interviewerId.toString() === interviewerId);
 
       if (existingFeedback) {
         return {

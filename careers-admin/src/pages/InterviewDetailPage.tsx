@@ -13,13 +13,16 @@ import ConsiderationsEditor from '../components/interviews/ConsiderationsEditor'
 import { 
   ArrowLeftIcon, 
   CalendarIcon, 
-  ClockIcon,
-  UserIcon,
+  ClockIcon, 
+  MapPinIcon, 
+  UserIcon, 
   DocumentTextIcon,
   ChatBubbleLeftRightIcon,
   VideoCameraIcon,
   BuildingOfficeIcon,
-  PencilIcon
+  PencilIcon,
+  XMarkIcon,
+  CheckIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
 import interviewService, { Interview, Interviewer } from '../services/interviewService';
@@ -211,9 +214,64 @@ const InterviewDetailPage: React.FC = () => {
     }));
   };
   
+  // Handle cancel feedback editing
+  const handleCancelFeedbackEditing = () => {
+    // If there's existing feedback, fetch it again to reset any changes
+    if (hasExistingFeedback && id && interview) {
+      setIsLoadingFeedback(true);
+      interviewService.getInterviewerFeedback(id, feedback.interviewerId)
+        .then(existingFeedback => {
+          if (existingFeedback) {
+            setFeedback(existingFeedback);
+            setIsEditingFeedback(false);
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching existing feedback:', error);
+          toast.error('Failed to cancel editing. Please try again.');
+        })
+        .finally(() => {
+          setIsLoadingFeedback(false);
+        });
+    } else {
+      // If there's no existing feedback, just reset the form
+      setIsEditingFeedback(false);
+    }
+  };
+  
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+  
+  // Format time for display
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  
+  // Check if interview has already passed
+  const isInterviewPassed = (dateString: string) => {
+    const interviewDate = new Date(dateString);
+    const currentDate = new Date();
+    return interviewDate < currentDate;
+  };
+  
   // Handle feedback submission
   const handleSubmitFeedback = async () => {
-    if (!id) return;
+    if (!id) {
+      toast.error('Interview ID is missing');
+      return;
+    }
     
     console.log('Submitting feedback with considerations:', feedback.considerations);
     
@@ -225,21 +283,19 @@ const InterviewDetailPage: React.FC = () => {
       return tmp.textContent || tmp.innerText || '';
     };
     
-    const commentsText = stripHtml(feedback.comments);
-    if (!commentsText.trim()) {
-      toast.error('Please provide feedback comments');
+    if (!feedback.decision) {
+      toast.error('Please select a decision');
       return;
     }
     
-    if (!feedback.decision) {
-      toast.error('Please select a decision');
+    if (!stripHtml(feedback.comments)) {
+      toast.error('Please provide comments');
       return;
     }
     
     setIsSavingFeedback(true);
     
     try {
-      // Try to submit new feedback first
       // The API will handle creating new or updating existing feedback
       let result: InterviewFeedback;
       
@@ -248,9 +304,10 @@ const InterviewDetailPage: React.FC = () => {
         throw new Error('Cannot submit feedback: Missing applicant ID');
       }
       
-      // Add applicantId to the feedback object
+      // Add applicantId to the feedback object and ensure interview ID is set correctly
       const feedbackWithApplicant = {
         ...feedback,
+        interviewId: id, // Ensure the interview ID is set correctly
         applicantId: applicant.id // Add the applicantId to prevent ObjectId errors
       };
       
@@ -263,8 +320,13 @@ const InterviewDetailPage: React.FC = () => {
       } catch (submitError: any) {
         // If submission fails with a conflict error, try updating instead
         if (submitError.message && submitError.message.includes('already exists')) {
-          // Update existing feedback with applicantId
-          result = await interviewService.updateFeedback(feedbackWithApplicant);
+          // Update existing feedback with applicantId and ensure interview ID is set correctly
+          const feedbackToUpdate = {
+            ...feedbackWithApplicant,
+            interviewId: id // Ensure the interview ID is set correctly
+          };
+          
+          result = await interviewService.updateFeedback(feedbackToUpdate);
           console.log('API response from updateFeedback:', result);
           console.log('API response considerations:', result.considerations);
           toast.success('Feedback updated successfully');
@@ -338,6 +400,19 @@ const InterviewDetailPage: React.FC = () => {
       return;
     }
     
+    // Check if interview has already passed
+    if (interview && isInterviewPassed(interview.scheduledDate)) {
+      toast.error('Cannot reschedule an interview that has already passed');
+      return;
+    }
+    
+    // Check if new date is in the past
+    const newDate = new Date(newScheduledDate);
+    if (newDate < new Date()) {
+      toast.error('Cannot reschedule an interview to a past date');
+      return;
+    }
+    
     setIsRescheduling(true);
     
     try {
@@ -360,6 +435,12 @@ const InterviewDetailPage: React.FC = () => {
   // Handle update interviewers
   const handleUpdateInterviewers = async (interviewers: Interviewer[]) => {
     if (!id) return;
+    
+    // Check if interview has already passed
+    if (interview && isInterviewPassed(interview.scheduledDate)) {
+      toast.error('Cannot modify interviewers for an interview that has already passed');
+      return;
+    }
     
     setIsUpdatingInterviewers(true);
     
@@ -727,11 +808,22 @@ const InterviewDetailPage: React.FC = () => {
                         </div>
                       </div>
                     
-                      <div className="flex justify-end">
+                      <div className="flex justify-end space-x-3">
+                        {hasExistingFeedback && (
+                          <button
+                            type="button"
+                            onClick={handleCancelFeedbackEditing}
+                            disabled={isSavingFeedback || isLoadingFeedback}
+                            className="border border-gray-300 bg-white text-gray-700 py-2 px-6 rounded-md hover:bg-gray-50 flex items-center"
+                          >
+                            <XMarkIcon className="h-4 w-4 mr-1" />
+                            Cancel
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={handleSubmitFeedback}
-                          disabled={isSavingFeedback}
+                          disabled={isSavingFeedback || isLoadingFeedback}
                           className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 flex items-center"
                         >
                           {isSavingFeedback ? (
@@ -740,7 +832,10 @@ const InterviewDetailPage: React.FC = () => {
                               Submitting...
                             </>
                           ) : (
-                            'Submit Feedback'
+                            <>
+                              <CheckIcon className="h-4 w-4 mr-1" />
+                              Submit Feedback
+                            </>
                           )}
                         </button>
                       </div>
@@ -823,15 +918,18 @@ const InterviewDetailPage: React.FC = () => {
                     <UserIcon className="h-5 w-5 mr-2 text-blue-600" />
                     <span className="font-medium">Interviewers:</span>
                   </div>
-                  <button
-                    onClick={() => setShowEditInterviewersModal(true)}
-                    className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                    </svg>
-                    Edit
-                  </button>
+                  {/* Only show Edit button for interviews that haven't passed */}
+                  {!isInterviewPassed(interview.scheduledDate) && (
+                    <button
+                      onClick={() => setShowEditInterviewersModal(true)}
+                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                      </svg>
+                      Edit
+                    </button>
+                  )}
                 </div>
                 <div className="ml-7">
                   {interview.interviewers && interview.interviewers.length > 0 ? (
@@ -871,24 +969,40 @@ const InterviewDetailPage: React.FC = () => {
                 
                 {interview.status !== 'cancelled' && (
                   <div className="grid grid-cols-2 gap-3 mt-3">
-                    <button
-                      onClick={() => setShowRescheduleModal(true)}
-                      className="bg-amber-100 text-amber-800 hover:bg-amber-200 py-2 px-3 rounded-md flex items-center justify-center"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-                      </svg>
-                      Reschedule
-                    </button>
-                    <button
-                      onClick={() => setShowCancelModal(true)}
-                      className="bg-red-100 text-red-800 hover:bg-red-200 py-2 px-3 rounded-md flex items-center justify-center"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                      Cancel
-                    </button>
+                    {/* Check if interview has already passed */}
+                    {isInterviewPassed(interview.scheduledDate) ? (
+                      <div className="col-span-2 text-center text-gray-500 italic">
+                        This interview has already passed and cannot be modified
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            // Check if interview has already passed before showing modal
+                            if (isInterviewPassed(interview.scheduledDate)) {
+                              toast.error('Cannot reschedule an interview that has already passed');
+                              return;
+                            }
+                            setShowRescheduleModal(true);
+                          }}
+                          className="bg-amber-100 text-amber-800 hover:bg-amber-200 py-2 px-3 rounded-md flex items-center justify-center"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                          </svg>
+                          Reschedule
+                        </button>
+                        <button
+                          onClick={() => setShowCancelModal(true)}
+                          className="bg-red-100 text-red-800 hover:bg-red-200 py-2 px-3 rounded-md flex items-center justify-center"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                          </svg>
+                          Cancel
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
