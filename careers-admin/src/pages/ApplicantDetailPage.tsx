@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import TabNavigation from '../components/common/TabNavigation';
 import { 
   ArrowLeftIcon, 
@@ -18,6 +18,7 @@ import jobService, { Job } from '../services/jobService';
 import interviewProcessService from '../services/interviewProcessService';
 import interviewService, { Interview } from '../services/interviewService';
 import ApplicantStagesList from '../components/applicants/ApplicantStagesList';
+import InterviewScheduleModal from '../components/modals/InterviewScheduleModal';
 import DebriefPage from './DebriefPage';
 import ResumePage from './ResumePage';
 import { formatDate, formatTime } from '../utils/dateUtils';
@@ -51,6 +52,7 @@ const ApplicantDetailPage: React.FC = () => {
   );
   const [scheduledInterviews, setScheduledInterviews] = useState<Interview[]>([]);
   const [isLoadingInterviews, setIsLoadingInterviews] = useState<boolean>(false);
+  const [showInterviewModal, setShowInterviewModal] = useState<boolean>(false);
 
   // Effect to update the active tab when the URL tab parameter changes
   useEffect(() => {
@@ -79,6 +81,18 @@ const ApplicantDetailPage: React.FC = () => {
     } finally {
       setIsLoadingInterviews(false);
     }
+  };
+  
+  // Handle opening the interview scheduling modal
+  const handleOpenInterviewModal = () => {
+    setShowInterviewModal(true);
+  };
+  
+  // Handle interview scheduled - navigate to interview details page
+  const handleInterviewScheduled = (interviewId: string) => {
+    // Navigate to the interview details page
+    navigate(`/interview/${interviewId}`);
+    toast.success('Interview scheduled successfully');
   };
 
   useEffect(() => {
@@ -467,10 +481,12 @@ const ApplicantDetailPage: React.FC = () => {
             {scheduledInterviews.length > 0 && (
               <div className="bg-white shadow rounded overflow-hidden mb-6">
                 <div className="p-6">
-                  <h2 className="text-lg font-semibold mb-4 flex items-center">
-                    <CalendarIcon className="w-5 h-5 mr-2 text-blue-600" />
-                    Scheduled Interviews
-                  </h2>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-lg font-semibold flex items-center">
+                      <CalendarIcon className="w-5 h-5 mr-2 text-blue-600" />
+                      Scheduled Interviews
+                    </h2>
+                  </div>
                   
                   {isLoadingInterviews ? (
                     <div className="flex justify-center items-center py-4">
@@ -621,6 +637,19 @@ const ApplicantDetailPage: React.FC = () => {
       )}
       {activeTab === 'resume' && (
         <ResumePage id={id || ''} />
+      )}
+      
+      {/* Interview Schedule Modal */}
+      {applicant && (
+        <InterviewScheduleModal
+          isOpen={showInterviewModal}
+          onClose={() => setShowInterviewModal(false)}
+          applicationId={id || ''}
+          candidateName={`${applicant.firstName} ${applicant.lastName}`}
+          candidateEmail={applicant.email}
+          onScheduled={handleInterviewScheduled}
+          processId={processId}
+        />
       )}
     </div>
   );

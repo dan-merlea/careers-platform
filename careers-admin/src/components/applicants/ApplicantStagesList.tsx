@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckIcon, ArrowRightIcon, XMarkIcon, CalendarIcon, UserIcon, DocumentArrowDownIcon } from '@heroicons/react/24/solid';
 import { ClockIcon } from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import EmailTemplateModal from '../modals/EmailTemplateModal';
 import InterviewScheduleModal from '../modals/InterviewScheduleModal';
 import { api } from '../../utils/api';
@@ -54,6 +54,7 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
   candidateEmail,
   processId
 }) => {
+  const navigate = useNavigate();
   // State for email template modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState<Stage | null>(null);
@@ -91,19 +92,10 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
     setIsInterviewModalOpen(true);
   };
   
-  // Handle interview scheduled
-  const handleInterviewScheduled = () => {
-    // Refresh interviews
-    const fetchInterviews = async () => {
-      try {
-        const interviewsData = await api.get<Interview[]>(`/job-applications/${applicationId}/interviews`);
-        setInterviews(interviewsData);
-      } catch (err) {
-        console.error('Error fetching interviews:', err);
-      }
-    };
-    
-    fetchInterviews();
+  // Handle interview scheduled - navigate to interview details page
+  const handleInterviewScheduled = (interviewId: string) => {
+    // Navigate to the interview details page
+    navigate(`/interview/${interviewId}`);
   };
   
   // Handle cancel interview

@@ -116,9 +116,12 @@ export class GoogleCalendarService {
       });
 
       // Generate ICS file with Google Calendar event ID
-      const eventId = response.data.id || `google-${Date.now()}`;
+      // Use the original event UID if available to ensure consistency across calendar providers
+      // Otherwise, create a Google Calendar specific ID
+      const googleEventId = response.data.id || `google-${Date.now()}`;
       const eventLink = response.data.htmlLink || '';
-      const icsContent = this.generateIcsWithGoogleLink(event, eventId, eventLink);
+      // Use the event's original UID to ensure consistency when re-downloading
+      const icsContent = this.generateIcsWithGoogleLink(event, event.uid || `interview-${googleEventId}@careers-platform`, eventLink);
 
       return {
         content: icsContent,
@@ -152,8 +155,21 @@ export class GoogleCalendarService {
       return `ATTENDEE;ROLE=${role};PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=${attendee.name}:mailto:${attendee.email}`;
     });
 
-    // Add Google Calendar specific properties
-    const description = `${event.description}\n\nView in Google Calendar: ${googleEventLink}`;
+    // Add Google Calendar specific properties and meeting details
+    let description = `${event.description}\n\nView in Google Calendar: ${googleEventLink}`;
+    
+    // Add meeting details if available
+    if (event.onlineMeetingUrl) {
+      description += `\n\nMeeting URL: ${event.onlineMeetingUrl}`;
+    }
+    
+    if (event.meetingId) {
+      description += `\n\nMeeting ID: ${event.meetingId}`;
+    }
+    
+    if (event.meetingPassword) {
+      description += `\n\nPassword: ${event.meetingPassword}`;
+    }
 
     // Create the iCalendar content with Google Calendar specific properties
     const iCalContent = [
@@ -199,6 +215,22 @@ export class GoogleCalendarService {
       return `ATTENDEE;ROLE=${role};PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=${attendee.name}:mailto:${attendee.email}`;
     });
 
+    // Enhance description with meeting details if available
+    let enhancedDescription = event.description;
+    
+    // Add meeting details if available
+    if (event.onlineMeetingUrl) {
+      enhancedDescription += `\n\nMeeting URL: ${event.onlineMeetingUrl}`;
+    }
+    
+    if (event.meetingId) {
+      enhancedDescription += `\n\nMeeting ID: ${event.meetingId}`;
+    }
+    
+    if (event.meetingPassword) {
+      enhancedDescription += `\n\nPassword: ${event.meetingPassword}`;
+    }
+    
     // Create the iCalendar content
     const iCalContent = [
       'BEGIN:VCALENDAR',
@@ -211,7 +243,7 @@ export class GoogleCalendarService {
       `DTSTART:${formatDate(event.startDate)}`,
       `DTEND:${formatDate(event.endDate)}`,
       `SUMMARY:${event.title}`,
-      `DESCRIPTION:${event.description.replace(/\n/g, '\\n')}`,
+      `DESCRIPTION:${enhancedDescription.replace(/\n/g, '\\n')}`,
       event.location ? `LOCATION:${event.location}` : '',
       'STATUS:CONFIRMED',
       'SEQUENCE:0',

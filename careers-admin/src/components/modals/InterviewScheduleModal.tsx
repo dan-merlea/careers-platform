@@ -20,7 +20,7 @@ interface InterviewScheduleModalProps {
   applicationId: string;
   candidateName: string;
   candidateEmail: string;
-  onScheduled: () => void;
+  onScheduled: (interviewId: string) => void;
   processId?: string; // Interview process ID
 }
 
@@ -37,6 +37,10 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
   const [description, setDescription] = useState<string>('');
   const [date, setDate] = useState<string>('');
   const [time, setTime] = useState<string>('');
+  const [location, setLocation] = useState<string>('');
+  const [onlineMeetingUrl, setOnlineMeetingUrl] = useState<string>('');
+  const [meetingId, setMeetingId] = useState<string>('');
+  const [meetingPassword, setMeetingPassword] = useState<string>('');
   const [interviewers, setInterviewers] = useState<Interviewer[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -69,6 +73,16 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
     }
   }, [isOpen]);
 
+  // URL validation function
+  const isValidUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch (err) {
+      return false;
+    }
+  };
+  
   // Filter users based on search term
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,6 +129,12 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
       return;
     }
     
+    // Validate meeting URL if provided
+    if (onlineMeetingUrl && !isValidUrl(onlineMeetingUrl)) {
+      setError('Please enter a valid meeting URL');
+      return;
+    }
+    
     setIsSubmitting(true);
     setError(null);
     
@@ -129,15 +149,29 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
       }));
       
       // Call the API to schedule the interview
-      await api.post(`/job-applications/${applicationId}/interviews`, {
+      // The server returns the full interview object with an id field
+      interface InterviewResponse {
+        id: string;
+        [key: string]: any;
+      }
+      
+      const response = await api.post<InterviewResponse>(`/job-applications/${applicationId}/interviews`, {
         scheduledDate,
         title,
         description,
         interviewers: interviewersList,
         processId, // Include the process ID if available
+        location,
+        onlineMeetingUrl,
+        meetingId,
+        meetingPassword,
       });
       
-      onScheduled();
+      // Get the interview ID from the response
+      const interviewId = response.id;
+      
+      // Call onScheduled with the new interview ID
+      onScheduled(interviewId);
       onClose();
     } catch (err) {
       console.error('Error scheduling interview:', err);
@@ -214,18 +248,6 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                       }
                     }}
                   />
-                  <button 
-                    type="button" 
-                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-500"
-                    onClick={() => {
-                      const dateInput = document.getElementById('date') as HTMLInputElement;
-                      if (dateInput && 'showPicker' in dateInput) {
-                        (dateInput as any).showPicker();
-                      }
-                    }}
-                  >
-                    <CalendarIcon className="h-5 w-5" />
-                  </button>
                 </div>
               </div>
               
@@ -258,6 +280,72 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                 disabled={isSubmitting}
                 placeholder="Add interview details, agenda, or instructions..."
               />
+            </div>
+            
+            <div>
+              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
+                Location
+              </label>
+              <input
+                type="text"
+                id="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={isSubmitting}
+                placeholder="Office address or 'Remote'"
+              />
+            </div>
+            
+            <div className="border-t border-gray-200 pt-4 mt-4">
+              <h3 className="text-md font-medium mb-3">Meeting Details</h3>
+              
+              <div>
+                <label htmlFor="onlineMeetingUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                  Meeting URL
+                </label>
+                <input
+                  type="url"
+                  id="onlineMeetingUrl"
+                  value={onlineMeetingUrl}
+                  onChange={(e) => setOnlineMeetingUrl(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={isSubmitting}
+                  placeholder="https://zoom.us/j/123456789"
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
+                <div>
+                  <label htmlFor="meetingId" className="block text-sm font-medium text-gray-700 mb-1">
+                    Meeting ID (optional)
+                  </label>
+                  <input
+                    type="text"
+                    id="meetingId"
+                    value={meetingId}
+                    onChange={(e) => setMeetingId(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={isSubmitting}
+                    placeholder="123 456 7890"
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="meetingPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    Password (optional)
+                  </label>
+                  <input
+                    type="text"
+                    id="meetingPassword"
+                    value={meetingPassword}
+                    onChange={(e) => setMeetingPassword(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    disabled={isSubmitting}
+                    placeholder="123456"
+                  />
+                </div>
+              </div>
             </div>
             
             <div>

@@ -22,6 +22,8 @@ export interface Interview {
   jobTitle: string;
   location?: string;
   onlineMeetingUrl?: string;
+  meetingId?: string; // Meeting ID for online meetings
+  meetingPassword?: string; // Password for online meetings
   processId?: string; // ID of the interview process this interview belongs to
 }
 
@@ -203,6 +205,17 @@ const interviewService = {
       return response;
     } catch (error) {
       console.error('Error updating interview feedback:', error);
+      throw error;
+    }
+  },
+  
+  // Update interview details
+  updateInterview: async (interviewId: string, interviewData: Partial<Interview>): Promise<Interview> => {
+    try {
+      const response = await api.put<Interview>(`/interviews/${interviewId}`, interviewData);
+      return response;
+    } catch (error) {
+      console.error('Error updating interview details:', error);
       throw error;
     }
   },

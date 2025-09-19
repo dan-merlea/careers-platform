@@ -16,6 +16,9 @@ export interface CalendarEvent {
     role?: 'CHAIR' | 'REQ-PARTICIPANT' | 'OPT-PARTICIPANT';
   }>;
   location?: string;
+  onlineMeetingUrl?: string;
+  meetingId?: string;
+  meetingPassword?: string;
 }
 
 export interface CalendarInviteResult {

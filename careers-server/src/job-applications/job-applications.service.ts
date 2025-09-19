@@ -312,6 +312,10 @@ export class JobApplicationsService {
       processId: scheduleInterviewDto.processId
         ? new Types.ObjectId(scheduleInterviewDto.processId)
         : undefined,
+      location: scheduleInterviewDto.location,
+      onlineMeetingUrl: scheduleInterviewDto.onlineMeetingUrl,
+      meetingId: scheduleInterviewDto.meetingId,
+      meetingPassword: scheduleInterviewDto.meetingPassword,
     };
 
     // Add the interview to the application's interviews array
@@ -358,7 +362,10 @@ export class JobApplicationsService {
       throw new NotFoundException(`Interview with ID ${interviewId} not found`);
     }
 
-    const uid = `${interviewId}@careers-platform`;
+    // Create a consistent UID that will remain the same for this interview
+    // Format: interview-{interviewId}@careers-platform
+    // This ensures that calendar clients recognize this as the same event when re-downloaded
+    const uid = `interview-${interviewId}@careers-platform`;
 
     // Get the scheduled date from the interview
     const startDate = interview.scheduledDate;
@@ -412,6 +419,10 @@ export class JobApplicationsService {
       startDate,
       endDate,
       attendees,
+      location: interview.location,
+      onlineMeetingUrl: interview.onlineMeetingUrl,
+      meetingId: interview.meetingId,
+      meetingPassword: interview.meetingPassword,
     };
 
     // Use the calendar provider service to generate the invite

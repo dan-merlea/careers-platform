@@ -36,4 +36,20 @@ export class ScheduleInterviewDto {
   @IsString()
   @IsNotEmpty()
   stage: string;
+  
+  @IsString()
+  @IsOptional()
+  location?: string;
+  
+  @IsString()
+  @IsOptional()
+  onlineMeetingUrl?: string;
+  
+  @IsString()
+  @IsOptional()
+  meetingId?: string;
+  
+  @IsString()
+  @IsOptional()
+  meetingPassword?: string;
 }

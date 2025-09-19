@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import EditInterviewersModal from '../components/modals/EditInterviewersModal';
+import EditInterviewModal from '../components/modals/EditInterviewModal';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import '../styles/QuillEditor.css';
@@ -23,6 +24,7 @@ import {
   PencilIcon,
   XMarkIcon,
   CheckIcon,
+  ArrowTopRightOnSquareIcon as ExternalLinkIcon,
 } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
 import interviewService, { Interview, Interviewer } from '../services/interviewService';
@@ -89,11 +91,13 @@ const InterviewDetailPage: React.FC = () => {
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState<boolean>(false);
   const [showEditInterviewersModal, setShowEditInterviewersModal] = useState<boolean>(false);
+  const [showEditInterviewModal, setShowEditInterviewModal] = useState<boolean>(false);
   const [cancelReason, setCancelReason] = useState<string>('');
   const [newScheduledDate, setNewScheduledDate] = useState<string>('');
   const [isCanceling, setIsCanceling] = useState<boolean>(false);
   const [isRescheduling, setIsRescheduling] = useState<boolean>(false);
   const [isUpdatingInterviewers, setIsUpdatingInterviewers] = useState<boolean>(false);
+  const [isUpdatingInterview, setIsUpdatingInterview] = useState<boolean>(false);
   
   // State for feedback
   const [feedback, setFeedback] = useState<InterviewFeedback>({
@@ -457,6 +461,34 @@ const InterviewDetailPage: React.FC = () => {
       toast.error('Failed to update interviewers. Please try again.');
     } finally {
       setIsUpdatingInterviewers(false);
+    }
+  };
+  
+  // Handle update interview details
+  const handleUpdateInterview = async (interviewData: Partial<Interview>) => {
+    if (!id) return;
+    
+    // Check if interview has already passed
+    if (interview && isInterviewPassed(interview.scheduledDate)) {
+      toast.error('Cannot modify details for an interview that has already passed');
+      return;
+    }
+    
+    setIsUpdatingInterview(true);
+    
+    try {
+      await interviewService.updateInterview(id, interviewData);
+      toast.success('Interview details updated successfully');
+      setShowEditInterviewModal(false);
+      
+      // Refresh interview data
+      const updatedInterview = await interviewService.getInterviewById(id);
+      setInterview(updatedInterview);
+    } catch (err) {
+      console.error('Error updating interview details:', err);
+      toast.error('Failed to update interview details. Please try again.');
+    } finally {
+      setIsUpdatingInterview(false);
     }
   };
   
@@ -891,26 +923,56 @@ const InterviewDetailPage: React.FC = () => {
                 </div>
               )}
               
-              {interview.onlineMeetingUrl && (
-                <div className="mb-4">
-                  <div className="flex items-center mb-2">
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center">
                     <VideoCameraIcon className="h-5 w-5 mr-2 text-blue-600" />
-                    <span className="font-medium">Online Meeting:</span>
+                    <span className="font-medium">Meeting Details:</span>
                   </div>
-                  <a 
-                    href={interview.onlineMeetingUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="ml-7 text-blue-600 hover:underline flex items-center"
-                  >
-                    Join Meeting
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                      <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-                    </svg>
-                  </a>
+                  {!isInterviewPassed(interview.scheduledDate) && (
+                    <button
+                      onClick={() => setShowEditInterviewModal(true)}
+                      className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+                    >
+                      <PencilIcon className="h-4 w-4 mr-1" />
+                      Edit
+                    </button>
+                  )}
                 </div>
-              )}
+                
+                {interview.onlineMeetingUrl ? (
+                  <div className="ml-7 space-y-2">
+                    <div>
+                      <span className="font-medium text-sm">URL: </span>
+                      <a 
+                        href={interview.onlineMeetingUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline inline-flex items-center"
+                      >
+                        <ExternalLinkIcon className="h-4 w-4 mr-1" />
+                        Join Meeting
+                      </a>
+                    </div>
+                    
+                    {interview.meetingId && (
+                      <div>
+                        <span className="font-medium text-sm">Meeting ID: </span>
+                        <span className="text-gray-700">{interview.meetingId}</span>
+                      </div>
+                    )}
+                    
+                    {interview.meetingPassword && (
+                      <div>
+                        <span className="font-medium text-sm">Password: </span>
+                        <span className="text-gray-700">{interview.meetingPassword}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="ml-7 text-gray-500 italic">No online meeting details available</p>
+                )}
+              </div>
               
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-2">
@@ -1120,6 +1182,17 @@ const InterviewDetailPage: React.FC = () => {
         onSave={handleUpdateInterviewers}
         isLoading={isUpdatingInterviewers}
       />
+      
+      {/* Edit Interview Details Modal */}
+      {interview && (
+        <EditInterviewModal
+          isOpen={showEditInterviewModal}
+          onClose={() => setShowEditInterviewModal(false)}
+          interview={interview}
+          onSave={handleUpdateInterview}
+          isLoading={isUpdatingInterview}
+        />
+      )}
     </div>
   );
 };

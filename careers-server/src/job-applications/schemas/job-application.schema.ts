@@ -32,6 +32,18 @@ export class Interview {
   @Prop()
   cancellationReason?: string;
   
+  @Prop()
+  location?: string;
+  
+  @Prop()
+  onlineMeetingUrl?: string;
+  
+  @Prop()
+  meetingId?: string;
+  
+  @Prop()
+  meetingPassword?: string;
+  
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'InterviewProcess' })
   processId?: Types.ObjectId;
 
