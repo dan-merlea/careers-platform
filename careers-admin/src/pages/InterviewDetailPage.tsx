@@ -5,6 +5,11 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import '../styles/QuillEditor.css';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import ResumePage from './ResumePage';
+import TabNavigation from '../components/common/TabNavigation';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import EmptyState from '../components/common/EmptyState';
+import ConsiderationsEditor from '../components/interviews/ConsiderationsEditor';
 import { 
   ArrowLeftIcon, 
   CalendarIcon, 
@@ -22,17 +27,6 @@ import jobApplicationService, { JobApplicant } from '../services/jobApplicationS
 import { formatDate, formatTime } from '../utils/dateUtils';
 import { toast } from 'react-toastify';
 
-// Helper function to get consistent consideration keys
-const getConsiderationKey = (index: number): string => `consideration_${index}`;
-
-// Helper function to get consideration rating
-const getConsiderationRating = (feedback: InterviewFeedback, index: number): number => {
-  const key = getConsiderationKey(index);
-  console.log(`Getting rating for consideration index ${index}, key: ${key}, value: ${feedback.considerations[key] || 0}`);
-  console.log('All considerations:', feedback.considerations);
-  return feedback.considerations[key] || 0;
-};
-
 // Define the feedback interface
 interface InterviewFeedback {
   id?: string;
@@ -47,12 +41,6 @@ interface InterviewFeedback {
   updatedAt?: string;
 }
 
-// Define the consideration type used in the considerations array
-interface ConsiderationItem {
-  id: string;
-  title: string;
-  description: string;
-}
 
 const InterviewDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -85,11 +73,14 @@ const InterviewDetailPage: React.FC = () => {
     setActiveTab(getTabFromUrl());
   }, [location.search, getTabFromUrl]);
   
+  // Handle tab change
+  const handleTabChange = (tabId: string) => {
+    setActiveTab(tabId as 'candidate' | 'resume' | 'feedback' | 'info');
+    navigate(`/interview/${id}?tab=${tabId}`, { replace: true });
+  };
+  
   // State to track if current user is an interviewer for this interview
   const [isInterviewer, setIsInterviewer] = useState<boolean>(false);
-  const [resumeUrl, setResumeUrl] = useState<string>('');
-  const [resumeMimeType, setResumeMimeType] = useState<string>('application/pdf');
-  const [isLoadingResume, setIsLoadingResume] = useState<boolean>(false);
   
   // State for modals
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
@@ -116,10 +107,8 @@ const InterviewDetailPage: React.FC = () => {
   const [isEditingFeedback, setIsEditingFeedback] = useState<boolean>(false);
   const [isLoadingFeedback, setIsLoadingFeedback] = useState<boolean>(false);
   
-  // State for interview stage considerations
-  const [considerations, setConsiderations] = useState<ConsiderationItem[]>([]);
-  const [isLoadingConsiderations, setIsLoadingConsiderations] = useState<boolean>(false);
-  
+  // State for interview stage considerations - now managed by ConsiderationsEditor
+
   // Fetch interview data
   useEffect(() => {
     const fetchInterviewData = async () => {
@@ -131,20 +120,12 @@ const InterviewDetailPage: React.FC = () => {
       try {
         // Fetch interview details
         const interviewData = await interviewService.getInterviewById(id);
-        console.log('Interview data received:', interviewData);
-        console.log('Process ID:', interviewData.processId);
         setInterview(interviewData);
         
         // Check if current user is an interviewer for this interview based on userId
-        const isUserInterviewer = interviewData.interviewers.some(interviewer => interviewer.userId === userId);
-        
-        console.log('User ID:', userId);
-        console.log('User email:', userEmail);
-        console.log('Interviewers:', interviewData.interviewers);
-        console.log('Is user an interviewer?', isUserInterviewer);
-        
+        const isUserInterviewer = interviewData.interviewers.some(interviewer => interviewer.userId === userId);        
         setIsInterviewer(isUserInterviewer);
-        
+  
         // Try to find the current user in the interviewers list based on userId
         const currentInterviewer = interviewData.interviewers.find(interviewer => interviewer.userId === userId);
         
@@ -162,17 +143,7 @@ const InterviewDetailPage: React.FC = () => {
             try {
               const existingFeedback = await interviewService.getInterviewerFeedback(id, currentInterviewer.userId);
               if (existingFeedback) {
-                console.log('Found existing feedback:', existingFeedback);
-                console.log('Existing feedback considerations:', existingFeedback.considerations);
-                
-                // Make sure to preserve the considerations from the existing feedback
-                const updatedFeedback = {
-                  ...existingFeedback,
-                  considerations: { ...existingFeedback.considerations }
-                };
-                
-                console.log('Setting feedback with preserved considerations:', updatedFeedback);
-                setFeedback(updatedFeedback);
+                setFeedback(existingFeedback);
                 setHasExistingFeedback(true);
                 setIsEditingFeedback(false);
               } else {
@@ -201,154 +172,7 @@ const InterviewDetailPage: React.FC = () => {
         if (interviewData.applicantId) {
           const applicantData = await jobApplicationService.getApplication(interviewData.applicantId);
           setApplicant(applicantData);
-          
-          // Load resume if available
-          if (applicantData.resumeFilename) {
-            await loadResumeContent(interviewData.applicantId);
-          }
         }
-        
-        // Fetch interview stage considerations
-        setIsLoadingConsiderations(true);
-        
-        // Default considerations to use if we can't fetch from the database
-        const defaultConsiderations: ConsiderationItem[] = [];
-        
-        let stageConsiderations: ConsiderationItem[] = [];
-        
-        console.log('Interview has stage and processId:', { 
-          stage: interviewData.stage, 
-          processId: interviewData.processId 
-        });
-
-        try {
-          // If the interview has a stage property, use it to fetch the appropriate considerations
-          if (interviewData.stage && interviewData.processId) {
-            
-            // Get the interview process details
-            const processResponse = await interviewService.getInterviewProcess(interviewData.processId);
-            console.log('Process response:', processResponse);
-            
-            if (processResponse && processResponse.stages && processResponse.stages.length > 0) {
-              console.log('Process stages:', processResponse.stages);
-              
-              // Extract stage number from the interview stage
-              // The stage format could be 'stage-1', 'stage-2', etc.
-              let stageNumber: number | null = null;
-              if (interviewData.stage) {
-                const match = interviewData.stage.match(/stage-(\d+)/);
-                if (match && match[1]) {
-                  stageNumber = parseInt(match[1], 10);
-                  console.log('Extracted stage number:', stageNumber);
-                }
-              }
-              
-              // Find the stage that matches the stage number
-              let currentStage = null;
-              
-              if (stageNumber !== null) {
-                // Sort stages by order
-                const sortedStages = [...processResponse.stages].sort((a, b) => a.order - b.order);
-                
-                // Try to find the stage by index (stage numbers are 0-based in the array)
-                if (stageNumber < sortedStages.length) {
-                  currentStage = sortedStages[stageNumber];
-                  console.log('Found stage by number:', currentStage);
-                }
-              }
-              
-              // If no stage found by number, fall back to title matching
-              if (!currentStage && interviewData.stage) {
-                // Try exact match by title
-                currentStage = processResponse.stages.find(stage => {
-                  const stageTitle = stage.title?.trim().toLowerCase();
-                  const interviewStage = interviewData.stage?.trim().toLowerCase();
-                  return stageTitle === interviewStage;
-                });
-                
-                // If still no match, try partial match
-                if (!currentStage) {
-                  currentStage = processResponse.stages.find(stage => {
-                    const stageTitle = stage.title?.trim().toLowerCase();
-                    const interviewStage = interviewData.stage?.trim().toLowerCase();
-                    return stageTitle?.includes(interviewStage || '') || interviewStage?.includes(stageTitle || '');
-                  });
-                }
-              }
-              
-              // If still no match, use the first stage as fallback
-              if (!currentStage && processResponse.stages.length > 0) {
-                const sortedStages = [...processResponse.stages].sort((a, b) => a.order - b.order);
-                currentStage = sortedStages[0];
-                console.log('Using first stage as fallback:', currentStage);
-              }
-              
-              if (currentStage) {
-                console.log('Found matching stage:', currentStage);
-                
-                if (currentStage.considerations && currentStage.considerations.length > 0) {
-                  console.log('Stage has considerations:', currentStage.considerations);
-                  
-                  // Convert considerations array to our ConsiderationItem format
-                  stageConsiderations = currentStage.considerations.map(
-                    (consideration: any, index: number) => {
-                      console.log('Processing consideration:', consideration);
-                      return {
-                        id: `consideration_${index}`,
-                        title: consideration.title || 'Consideration',
-                        description: consideration.description || ''
-                      };
-                    }
-                  );
-                  console.log('Mapped considerations:', stageConsiderations);
-                } else {
-                  console.log('Stage found but has no considerations');
-                  // Stage found but no considerations defined, use defaults
-                  stageConsiderations = defaultConsiderations;
-                }
-              } else {
-                console.log('No matching stage found');
-                stageConsiderations = defaultConsiderations;
-              }
-            } else {
-              // No stages found in process, use defaults
-              stageConsiderations = defaultConsiderations;
-            }
-          } else {
-            // No stage information, use defaults
-            stageConsiderations = defaultConsiderations;
-          }
-        } catch (err) {
-          console.error('Error fetching interview stage considerations:', err);
-          // Use defaults on error
-          stageConsiderations = defaultConsiderations;
-        } finally {
-          setIsLoadingConsiderations(false);
-        }
-        
-        // Update the considerations state - use default considerations if none were found
-        setConsiderations(stageConsiderations.length > 0 ? stageConsiderations : defaultConsiderations);
-        
-        // Initialize considerations in feedback
-        const initialConsiderations: { [key: string]: number } = {};
-        stageConsiderations.forEach((consideration: ConsiderationItem) => {
-          initialConsiderations[consideration.id] = 0;
-        });
-        
-        // Always ensure we have at least the default considerations initialized
-        defaultConsiderations.forEach((consideration: ConsiderationItem) => {
-          if (!initialConsiderations[consideration.id]) {
-            initialConsiderations[consideration.id] = 0;
-          }
-        });
-        
-        setFeedback(prev => ({
-          ...prev,
-          interviewId: id || '',
-          considerations: initialConsiderations,
-          interviewerId: userId || userEmail || '',
-          interviewerName: name || userEmail || 'Anonymous User',
-        }));
         
       } catch (err) {
         console.error('Error fetching interview data:', err);
@@ -361,20 +185,7 @@ const InterviewDetailPage: React.FC = () => {
     fetchInterviewData();
   }, [id, userEmail, name, userId, location.search]); // Include location.search to react to URL changes
   
-  // Load resume content
-  const loadResumeContent = async (applicantId: string) => {
-    try {
-      setIsLoadingResume(true);
-      const { url, mimeType } = await jobApplicationService.getResumeContentUrl(applicantId);
-      setResumeUrl(url);
-      setResumeMimeType(mimeType);
-    } catch (err) {
-      console.error('Error loading resume content:', err);
-      setError('Failed to load resume content. Please try again.');
-    } finally {
-      setIsLoadingResume(false);
-    }
-  };
+  // Resume is now handled by the ResumePage component
   
   // Handle rating change
   const handleRatingChange = (rating: number) => {
@@ -382,28 +193,6 @@ const InterviewDetailPage: React.FC = () => {
       ...prev,
       rating
     }));
-  };
-  
-  // Handle consideration rating change
-  const handleConsiderationChange = (considerationId: string, rating: number) => {
-    console.log(`Setting consideration rating for ${considerationId} to ${rating}`);
-    
-    // Use the consideration ID directly as the key
-    setFeedback(prev => {
-      // Create a deep copy of the considerations object to ensure we're not modifying the original
-      const updatedConsiderations = JSON.parse(JSON.stringify(prev.considerations || {}));
-      
-      // Set the rating for this consideration
-      updatedConsiderations[considerationId] = rating;
-      
-      console.log('Updated considerations:', updatedConsiderations);
-      
-      // Return the updated feedback object
-      return {
-        ...prev,
-        considerations: updatedConsiderations
-      };
-    });
   };
   
   // Handle decision change
@@ -420,55 +209,6 @@ const InterviewDetailPage: React.FC = () => {
       ...prev,
       comments: content
     }));
-  };
-  
-  // Function to fetch existing feedback
-  const fetchExistingFeedback = async () => {
-    if (!id || !feedback.interviewerId) return;
-    
-    setIsLoadingFeedback(true);
-    
-    try {
-      const existingFeedback = await interviewService.getInterviewerFeedback(id, feedback.interviewerId);
-      
-      if (existingFeedback) {
-        console.log('Found existing feedback:', existingFeedback);
-        console.log('Existing feedback considerations:', existingFeedback.considerations);
-        
-        // Create a deep copy of the considerations to ensure we're not modifying the original
-        const considerationsCopy = existingFeedback.considerations ? 
-          JSON.parse(JSON.stringify(existingFeedback.considerations)) : {};
-        
-        // Create a new feedback object with the existing feedback data
-        // Make sure to preserve the considerations object structure
-        const updatedFeedback = {
-          ...existingFeedback,
-          considerations: considerationsCopy
-        };
-        
-        console.log('Setting feedback with deep copied considerations:', updatedFeedback);
-        setFeedback(updatedFeedback);
-        setHasExistingFeedback(true);
-        // Initially don't show the form, just display the feedback
-        setIsEditingFeedback(false);
-      } else {
-        setHasExistingFeedback(false);
-        // If no existing feedback, show the form for new feedback
-        setIsEditingFeedback(true);
-      }
-    } catch (error) {
-      console.error('Error fetching existing feedback:', error);
-      // If error fetching feedback, assume none exists and show the form
-      setHasExistingFeedback(false);
-      setIsEditingFeedback(true);
-    } finally {
-      setIsLoadingFeedback(false);
-    }
-  };
-  
-  // Toggle edit mode for feedback
-  const handleEditFeedback = () => {
-    setIsEditingFeedback(true);
   };
   
   // Handle feedback submission
@@ -502,17 +242,29 @@ const InterviewDetailPage: React.FC = () => {
       // Try to submit new feedback first
       // The API will handle creating new or updating existing feedback
       let result: InterviewFeedback;
+      
+      // Ensure we have the applicantId to prevent ObjectId errors
+      if (!applicant || !applicant.id) {
+        throw new Error('Cannot submit feedback: Missing applicant ID');
+      }
+      
+      // Add applicantId to the feedback object
+      const feedbackWithApplicant = {
+        ...feedback,
+        applicantId: applicant.id // Add the applicantId to prevent ObjectId errors
+      };
+      
       try {
         // Try to submit new feedback
-        result = await interviewService.submitFeedback(feedback);
+        result = await interviewService.submitFeedback(feedbackWithApplicant);
         console.log('API response from submitFeedback:', result);
         console.log('API response considerations:', result.considerations);
         toast.success('Feedback submitted successfully');
       } catch (submitError: any) {
         // If submission fails with a conflict error, try updating instead
         if (submitError.message && submitError.message.includes('already exists')) {
-          // Update existing feedback
-          result = await interviewService.updateFeedback(feedback);
+          // Update existing feedback with applicantId
+          result = await interviewService.updateFeedback(feedbackWithApplicant);
           console.log('API response from updateFeedback:', result);
           console.log('API response considerations:', result.considerations);
           toast.success('Feedback updated successfully');
@@ -632,7 +384,7 @@ const InterviewDetailPage: React.FC = () => {
     return (
       <div className="p-6">
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <LoadingSpinner size="large" message="Loading interview details..." />
         </div>
       </div>
     );
@@ -702,49 +454,30 @@ const InterviewDetailPage: React.FC = () => {
           {/* Tabs */}
           <div className="bg-white shadow rounded-lg mb-6">
             <div className="border-b border-gray-200">
-              <nav className="-mb-px flex">
-                <button
-                  onClick={() => {
-                    setActiveTab('info');
-                    navigate(`/interview/${id}?tab=info`, { replace: true });
-                  }}
-                  className={`${
-                    activeTab === 'info'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-center`}
-                >
-                  Candidate Information
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveTab('resume');
-                    navigate(`/interview/${id}?tab=resume`, { replace: true });
-                  }}
-                  className={`${
-                    activeTab === 'resume'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  } flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-center`}
-                >
-                  Resume
-                </button>
-                {isInterviewer && (
-                  <button
-                    onClick={() => {
-                      setActiveTab('feedback');
-                      navigate(`/interview/${id}?tab=feedback`, { replace: true });
-                    }}
-                    className={`${
-                      activeTab === 'feedback'
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    } flex-1 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm text-center`}
-                  >
-                    Provide Feedback
-                  </button>
-                )}
-              </nav>
+              <TabNavigation
+                tabs={[
+                  {
+                    id: 'info',
+                    label: 'Candidate Information',
+                    icon: <UserIcon className="w-5 h-5" />
+                  },
+                  {
+                    id: 'resume',
+                    label: 'Resume',
+                    icon: <DocumentTextIcon className="w-5 h-5" />
+                  },
+                  ...(isInterviewer ? [
+                    {
+                      id: 'feedback',
+                      label: 'Provide Feedback',
+                      icon: <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                    }
+                  ] : [])
+                ]}
+                activeTab={activeTab}
+                onTabChange={handleTabChange}
+                className="px-4"
+              />
             </div>
             
             {/* Tab content */}
@@ -781,68 +514,16 @@ const InterviewDetailPage: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                  
-                  {/* Cover letter section - uncomment when available in the JobApplicant type
-                  <div className="mb-6">
-                    <h3 className="text-md font-semibold mb-2">Cover Letter</h3>
-                    <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                      <p className="whitespace-pre-wrap">No cover letter provided</p>
-                    </div>
-                  </div>
-                  */}
-                  
-                  
                 </div>
               )}
               
               {/* Resume Tab */}
-              {activeTab === 'resume' && (
-                <div>
-                  <h2 className="text-lg font-semibold mb-4 flex items-center">
-                    <DocumentTextIcon className="w-5 h-5 mr-2 text-blue-600" />
-                    Resume
-                  </h2>
-                  
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg">
-                    {isLoadingResume ? (
-                      <div className="flex justify-center items-center p-12">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                      </div>
-                    ) : resumeUrl ? (
-                      <div className="h-[600px] overflow-hidden">
-                        {resumeMimeType.includes('pdf') ? (
-                          <iframe 
-                            src={resumeUrl} 
-                            className="w-full h-full" 
-                            title="Resume Preview"
-                          />
-                        ) : resumeMimeType.includes('image') ? (
-                          <img 
-                            src={resumeUrl} 
-                            alt="Resume" 
-                            className="max-w-full max-h-full mx-auto"
-                          />
-                        ) : (
-                          <div className="p-6 flex flex-col items-center justify-center text-center">
-                            <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
-                            <p className="text-gray-600 mb-4">Resume is available but cannot be previewed in browser</p>
-                            <button
-                              onClick={() => window.open(resumeUrl, '_blank')}
-                              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
-                            >
-                              <DocumentTextIcon className="h-5 w-5 mr-2" />
-                              Download Resume
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="p-6 flex flex-col items-center justify-center text-center">
-                        <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
-                        <p className="text-gray-600">No resume available</p>
-                      </div>
-                    )}
-                  </div>
+              {activeTab === 'resume' && applicant && applicant.id ? (
+                <ResumePage id={applicant.id} />
+              ) : activeTab === 'resume' && (
+                <div className="p-6 flex flex-col items-center justify-center text-center">
+                  <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
+                  <p className="text-gray-600">No resume available</p>
                 </div>
               )}
               
@@ -905,90 +586,20 @@ const InterviewDetailPage: React.FC = () => {
                         </div>
                       </div>
                       
-                      {/* Debug logs */}
-                      {(() => { 
-                        console.log('Rendering feedback display with considerations:', considerations); 
-                        console.log('Current feedback object:', feedback);
-                        
-                        // Debug all consideration keys and values
-                        console.log('All consideration keys in feedback:');
-                        if (feedback.considerations) {
-                          Object.keys(feedback.considerations).forEach(key => {
-                            console.log(`Key: ${key}, Value: ${feedback.considerations[key]}`);
-                          });
-                        }
-                        
-                        return null; 
-                      })()}
-                      {considerations.length > 0 && (
+                      {hasExistingFeedback && !isEditingFeedback && (
                         <div className="mb-6">
                           <h3 className="text-md font-semibold mb-2">Considerations</h3>
-                          <div className="space-y-4">
-                            {considerations.map((consideration) => (
-                              <div key={consideration.id} className="border border-gray-200 rounded-md p-4 bg-white shadow-sm">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-grow pr-4">
-                                    <h4 className="font-semibold text-blue-800">{consideration.title}</h4>
-                                    <div className="mt-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-md border border-gray-100">
-                                      {consideration.description}
-                                    </div>
-                                  </div>
-                                  <div className="flex-shrink-0">
-                                    <div className="bg-gray-50 p-2 rounded-md border border-gray-100">
-                                      <p className="text-xs text-gray-500 mb-1 text-center">Rating</p>
-                                      <div className="flex">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                          <span
-                                            key={star}
-                                            className={`${(function() {
-                                              // Hard-code the consideration key based on the index
-                                              const key = consideration.id;
-                                              console.log(`Star ${star} for consideration with ID ${consideration.id}`);
-                                              
-                                              // Try to get the rating from the feedback object
-                                              let rating = 0;
-                                              
-                                              // Check if this is consideration_0
-                                              if (consideration.id === 'consideration_0') {
-                                                rating = 4; // Hard-code the rating for consideration_0
-                                                console.log('Using hard-coded rating 4 for consideration_0');
-                                              }
-                                              // Check if this is consideration_1
-                                              else if (consideration.id === 'consideration_1') {
-                                                rating = 5; // Hard-code the rating for consideration_1
-                                                console.log('Using hard-coded rating 5 for consideration_1');
-                                              }
-                                              
-                                              return rating >= star ? 'text-yellow-400' : 'text-gray-300';
-                                            })()}`}
-                                          >
-                                            <StarIcon className="h-5 w-5" />
-                                          </span>
-                                        ))}
-                                      </div>
-                                      <p className="text-xs text-center mt-1">
-                                        {(function() {
-                                          // Use the same hard-coded approach for consistency
-                                          let rating = 0;
-                                          
-                                          // Check if this is consideration_0
-                                          if (consideration.id === 'consideration_0') {
-                                            rating = 4; // Hard-code the rating for consideration_0
-                                          }
-                                          // Check if this is consideration_1
-                                          else if (consideration.id === 'consideration_1') {
-                                            rating = 5; // Hard-code the rating for consideration_1
-                                          }
-                                          
-                                          return rating > 0 ? `${rating}/5` : 'Not rated';
-                                        })()}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                          <ConsiderationsEditor
+                            interview={interview}
+                            isEditable={false}
+                            initialRatings={feedback.considerations}
+                            onRatingsChange={(ratings) => {
+                              setFeedback(prev => ({
+                                ...prev,
+                                considerations: ratings
+                              }));
+                            }}
+                          />
                         </div>
                       )}
                       
@@ -1025,57 +636,17 @@ const InterviewDetailPage: React.FC = () => {
                   
                       <div className="mb-6">
                         <h3 className="text-md font-semibold mb-4">Considerations</h3>
-                        {isLoadingConsiderations ? (
-                          <div className="flex justify-center items-center p-8">
-                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                            <span className="ml-2 text-gray-600">Loading considerations...</span>
-                          </div>
-                        ) : considerations.length === 0 ? (
-                          <div className="bg-gray-50 p-4 rounded-md border border-gray-200 text-center">
-                            <p className="text-gray-600">No considerations found for this interview stage.</p>
-                          </div>
-                        ) : (
-                          <div className="space-y-4">
-                            {considerations.map((consideration) => (
-                              <div key={consideration.id} className="border border-gray-200 rounded-md p-4 bg-white shadow-sm">
-                                <div className="flex justify-between items-start">
-                                  <div className="flex-grow pr-4">
-                                    <h4 className="font-semibold text-blue-800">{consideration.title}</h4>
-                                    <div className="mt-2 text-sm text-gray-600 bg-gray-50 p-3 rounded-md border border-gray-100">
-                                      {consideration.description}
-                                    </div>
-                                  </div>
-                                  <div className="flex-shrink-0">
-                                    <div className="bg-gray-50 p-2 rounded-md border border-gray-100">
-                                      <p className="text-xs text-gray-500 mb-1 text-center">Your Rating</p>
-                                      <div className="flex">
-                                        {[1, 2, 3, 4, 5].map((star) => (
-                                          <button
-                                            key={star}
-                                            type="button"
-                                            onClick={() => handleConsiderationChange(consideration.id, star)}
-                                            className={`${
-                                              (feedback.considerations[consideration.id] || 0) >= star
-                                                ? 'text-yellow-400'
-                                                : 'text-gray-300'
-                                            } hover:text-yellow-400 focus:outline-none focus:ring-0`}
-                                          >
-                                            <StarIcon className="h-6 w-6" />
-                                          </button>
-                                        ))}
-                                      </div>
-                                      <p className="text-xs text-center mt-1">
-                                        {feedback.considerations[consideration.id] ? 
-                                          `${feedback.considerations[consideration.id]}/5` : 
-                                          'Not rated'}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        <ConsiderationsEditor
+                          interview={interview}
+                          isEditable={isEditingFeedback}
+                          initialRatings={feedback.considerations}
+                          onRatingsChange={(ratings) => {
+                            setFeedback(prev => ({
+                              ...prev,
+                              considerations: ratings
+                            }));
+                          }}
+                        />
                       </div>
                     
                       <div className="mb-6">

@@ -14,6 +14,14 @@ const ResumePage: React.FC<ResumePageProps> = ({ id }) => {
 
   useEffect(() => {
     const loadResumeContent = async () => {
+      // Validate ID to prevent ObjectId errors
+      if (!id || id === 'undefined' || id === '') {
+        console.error('Invalid ID provided to ResumePage:', id);
+        setError('No valid applicant ID provided.');
+        setIsLoadingResume(false);
+        return;
+      }
+      
       try {
         setIsLoadingResume(true);
         const { url, mimeType } = await jobApplicationService.getResumeContentUrl(id);
@@ -31,7 +39,12 @@ const ResumePage: React.FC<ResumePageProps> = ({ id }) => {
   }, [id]);
 
   const handleDownloadResume = async () => {
-    if (!id) return;
+    // Validate ID to prevent ObjectId errors
+    if (!id || id === 'undefined' || id === '') {
+      console.error('Invalid ID provided for download:', id);
+      setError('Cannot download: No valid applicant ID provided.');
+      return;
+    }
     
     try {
       await jobApplicationService.downloadResume(id);

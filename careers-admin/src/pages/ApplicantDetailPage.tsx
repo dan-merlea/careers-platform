@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import TabNavigation from '../components/common/TabNavigation';
 import { 
   ArrowLeftIcon, 
   EnvelopeIcon, 
@@ -11,7 +12,6 @@ import {
   UserCircleIcon,
   PaperAirplaneIcon,
   ClipboardDocumentCheckIcon,
-  VideoCameraIcon
 } from '@heroicons/react/24/outline';
 import jobApplicationService, { JobApplicant, Note } from '../services/jobApplicationService';
 import jobService, { Job } from '../services/jobService';
@@ -39,9 +39,6 @@ const ApplicantDetailPage: React.FC = () => {
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
-  const [resumeMimeType, setResumeMimeType] = useState<string>('');
-  const [isLoadingResume, setIsLoadingResume] = useState<boolean>(false);
   const [interviewStages, setInterviewStages] = useState<InterviewStageOption[]>([]);
   const [isLoadingStages, setIsLoadingStages] = useState<boolean>(false);
   const [notes, setNotes] = useState<string>('');
@@ -99,11 +96,6 @@ const ApplicantDetailPage: React.FC = () => {
         const jobData = await jobService.getJob(applicantData.jobId);
         setJob(jobData);
         
-        // Load resume if available
-        if (applicantData.resumeFilename) {
-          await loadResumeContent(id);
-        }
-        
         // Fetch interview stages
         await fetchInterviewStages(applicantData.jobId);
         
@@ -122,20 +114,6 @@ const ApplicantDetailPage: React.FC = () => {
     
     fetchApplicant();
   }, [id]);
-
-  const loadResumeContent = async (applicantId: string) => {
-    try {
-      setIsLoadingResume(true);
-      const { url, mimeType } = await jobApplicationService.getResumeContentUrl(applicantId);
-      setResumeUrl(url);
-      setResumeMimeType(mimeType);
-    } catch (err) {
-      console.error('Error loading resume content:', err);
-      setError('Failed to load resume content. Please try again.');
-    } finally {
-      setIsLoadingResume(false);
-    }
-  };
 
   const fetchInterviewStages = async (jobId: string) => {
     setIsLoadingStages(true);
@@ -263,17 +241,6 @@ const ApplicantDetailPage: React.FC = () => {
     }
   };
 
-  const handleDownloadResume = async () => {
-    if (!id) return;
-    
-    try {
-      await jobApplicationService.downloadResume(id);
-    } catch (err) {
-      console.error('Error downloading resume:', err);
-      setError('Failed to download resume. Please try again.');
-    }
-  };
-
   // Function to fetch notes for the applicant
   const fetchApplicantNotes = async (applicantId: string) => {
     setIsLoadingNotes(true);
@@ -386,53 +353,35 @@ const ApplicantDetailPage: React.FC = () => {
       </div>
       
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
-          <button
-            onClick={() => {
-              setActiveTab('details');
+      <div className="mb-6">
+        <TabNavigation
+          tabs={[
+            {
+              id: 'details',
+              label: 'Applicant Details',
+              icon: <UserCircleIcon className="w-5 h-5" />
+            },
+            {
+              id: 'debrief',
+              label: 'Interview Debrief',
+              icon: <ClipboardDocumentCheckIcon className="w-5 h-5" />
+            },
+            {
+              id: 'resume',
+              label: 'Resume',
+              icon: <DocumentTextIcon className="w-5 h-5" />
+            }
+          ]}
+          activeTab={activeTab}
+          onTabChange={(tabId) => {
+            setActiveTab(tabId as 'details' | 'debrief' | 'resume');
+            if (tabId === 'details') {
               navigate(`/applicants/${id}`);
-            }}
-            className={`${
-              activeTab === 'details'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
-          >
-            <UserCircleIcon className="w-5 h-5 mr-2" />
-            Applicant Details
-          </button>
-          
-          <button
-            onClick={() => {
-              setActiveTab('debrief');
-              navigate(`/applicants/${id}/debrief`);
-            }}
-            className={`${
-              activeTab === 'debrief'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
-          >
-            <ClipboardDocumentCheckIcon className="w-5 h-5 mr-2" />
-            Interview Debrief
-          </button>
-
-          <button
-            onClick={() => {
-              setActiveTab('resume');
-              navigate(`/applicants/${id}/resume`);
-            }}
-            className={`${
-              activeTab === 'resume'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
-          >
-            <DocumentTextIcon className="w-5 h-5 mr-2" />
-            Resume
-          </button>
-        </nav>
+            } else {
+              navigate(`/applicants/${id}/${tabId}`);
+            }
+          }}
+        />
       </div>
 
       {error && (
@@ -514,6 +463,56 @@ const ApplicantDetailPage: React.FC = () => {
 
           {/* Right column - Notes and actions */}
           <div>
+            {/* Scheduled Interviews */}
+            {scheduledInterviews.length > 0 && (
+              <div className="bg-white shadow rounded overflow-hidden mb-6">
+                <div className="p-6">
+                  <h2 className="text-lg font-semibold mb-4 flex items-center">
+                    <CalendarIcon className="w-5 h-5 mr-2 text-blue-600" />
+                    Scheduled Interviews
+                  </h2>
+                  
+                  {isLoadingInterviews ? (
+                    <div className="flex justify-center items-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-blue-500"></div>
+                    </div>
+                  ) : scheduledInterviews.length === 0 ? (
+                    <div className="text-gray-500 text-sm">No interviews scheduled yet</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {scheduledInterviews.map((interview) => (
+                        <div key={interview.id} className={`${interview.status === 'cancelled' ? 'bg-red-50 border-red-100' : 'bg-white border-blue-100'} border rounded-md p-3`}>
+                          <div>
+                            <div className="flex items-center">
+                              <Link to={`/interview/${interview.id}`} className="font-medium text-blue-600 hover:text-blue-800">
+                                {interview.title}
+                              </Link>
+                              {interview.status === 'cancelled' && (
+                                <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-800 text-xs font-medium rounded-md">
+                                  CANCELLED
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600 mt-1">
+                              <CalendarIcon className="w-4 h-4 mr-1" />
+                              {formatDate(interview.scheduledDate)}
+                              <ClockIcon className="w-4 h-4 ml-2 mr-1" />
+                              {formatTime(interview.scheduledDate)}
+                            </div>
+                            {interview.status === 'cancelled' && interview.cancellationReason && (
+                              <div className="mt-1 text-xs text-red-600">
+                                <span className="font-medium">Reason:</span> {interview.cancellationReason}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
             {/* Application stats */}
             <div className="bg-white shadow rounded overflow-hidden mb-6">
               <div className="p-6">
