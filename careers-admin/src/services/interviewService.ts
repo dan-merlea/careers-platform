@@ -57,6 +57,17 @@ const interviewService = {
       throw error;
     }
   },
+  
+  // Get interviews for the current user
+  getUserInterviews: async (): Promise<Interview[]> => {
+    try {
+      const response = await api.get<Interview[]>('/interviews/user');
+      return response;
+    } catch (error) {
+      console.error('Error fetching user interviews:', error);
+      throw error;
+    }
+  },
 
   // Get all upcoming interviews
   getUpcomingInterviews: async (): Promise<Interview[]> => {

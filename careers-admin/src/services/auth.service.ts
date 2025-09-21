@@ -14,6 +14,7 @@ export interface User {
   email: string;
   role: UserRole;
   departmentId?: string;
+  companyId?: string;
 }
 
 export interface LoginCredentials {
@@ -30,6 +31,15 @@ export interface SignupCredentials {
 export interface AuthResponse {
   token: string;
   user: User;
+  company?: {
+    id: string;
+    name: string;
+  };
+  impersonatedBy?: {
+    id: string;
+    email: string;
+    name: string;
+  };
 }
 
 export interface ProfileResponse extends User {
@@ -39,6 +49,10 @@ export interface ProfileResponse extends User {
 export interface UpdateProfileRequest {
   name?: string;
   email?: string;
+}
+
+export interface ImpersonateUserRequest {
+  userId: string;
 }
 
 export interface ChangePasswordRequest {
@@ -88,6 +102,11 @@ const changePassword = async (data: ChangePasswordRequest, token: string): Promi
   return api.patch<ChangePasswordResponse>('/users/change-password', data);
 };
 
+const impersonateUser = async (userId: string): Promise<AuthResponse> => {
+  // token is handled automatically by the api utility
+  return api.post<AuthResponse>('/users/impersonate', { userId });
+};
+
 export const authService = {
   login,
   signup,
@@ -96,5 +115,6 @@ export const authService = {
   updateUserDepartment,
   getProfile,
   updateProfile,
-  changePassword
+  changePassword,
+  impersonateUser
 };

@@ -55,7 +55,10 @@ const SignupPage: React.FC = () => {
           Create your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-400">
-          Join the Careers platform
+          Join Hatch Beacon
+        </p>
+        <p className="mt-2 text-center text-sm text-gray-400">
+          The beacon for hiring success
         </p>
       </div>
 

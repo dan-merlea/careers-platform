@@ -46,8 +46,11 @@ const LoginPage: React.FC = () => {
           </svg>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-          Careers Admin Portal
+          Hatch Beacon
         </h2>
+        <p className="mt-2 text-center text-sm text-gray-400">
+          The beacon for hiring success
+        </p>
         <p className="mt-2 text-center text-sm text-gray-400">
           Restricted access - Administrators only
         </p>

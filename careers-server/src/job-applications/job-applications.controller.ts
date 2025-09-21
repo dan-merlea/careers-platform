@@ -14,8 +14,11 @@ import {
   Put,
   Req,
   Patch,
+  ForbiddenException,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { LogAction } from '../user-logs/user-logs.interceptor';
 import { memoryStorage } from 'multer';
 import type { Response } from 'express';
 
@@ -73,6 +76,7 @@ export class JobApplicationsController {
   ) {}
 
   @Post()
+  @LogAction('create_application', 'job_application')
   @UseInterceptors(
     FileInterceptor('resume', {
       storage: memoryStorage(), // Use memory storage for GridFS
@@ -133,6 +137,7 @@ export class JobApplicationsController {
   @Put(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
+  @LogAction('update_application_status', 'job_application')
   updateStatus(
     @Param('id') id: string,
     @Body() updateStatusDto: UpdateApplicationStatusDto,
@@ -143,6 +148,7 @@ export class JobApplicationsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @LogAction('delete_application', 'job_application')
   async remove(@Param('id') id: string, @Res() res: Response) {
     await this.jobApplicationsService.remove(id);
     return res.status(HttpStatus.NO_CONTENT).send();
@@ -175,6 +181,7 @@ export class JobApplicationsController {
    */
   @Post(':id/notes')
   @UseGuards(JwtAuthGuard)
+  @LogAction('add_note', 'job_application_note')
   async addNote(
     @Param('id') id: string,
     @Body() createNoteDto: CreateNoteDto,
@@ -189,6 +196,7 @@ export class JobApplicationsController {
    */
   @Patch(':id/notes/:index')
   @UseGuards(JwtAuthGuard)
+  @LogAction('update_note', 'job_application_note')
   async updateNote(
     @Param('id') id: string,
     @Param('index') index: string,
@@ -209,6 +217,7 @@ export class JobApplicationsController {
    */
   @Delete(':id/notes/:index')
   @UseGuards(JwtAuthGuard)
+  @LogAction('delete_note', 'job_application_note')
   async deleteNote(
     @Param('id') id: string,
     @Param('index') index: string,
@@ -230,6 +239,7 @@ export class JobApplicationsController {
   @Post(':id/interviews')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
+  @LogAction('schedule_interview', 'job_application_interview')
   async scheduleInterview(
     @Param('id') id: string,
     @Body() scheduleInterviewDto: ScheduleInterviewDto,
@@ -254,6 +264,7 @@ export class JobApplicationsController {
   @Put(':id/interviewer-visibility')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
+  @LogAction('update_interviewer_visibility', 'job_application')
   async updateInterviewerVisibility(
     @Param('id') id: string,
     @Body() updateVisibilityDto: { visibility: boolean },

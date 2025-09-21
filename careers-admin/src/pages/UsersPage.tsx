@@ -12,7 +12,8 @@ const UsersPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const { token, userRole } = useAuth();
+  const [impersonating, setImpersonating] = useState<boolean>(false);
+  const { token, userRole, impersonateUser } = useAuth();
   
   // Only admins should be able to access this page
   const isAdmin = userRole === 'admin';
@@ -269,6 +270,25 @@ const UsersPage: React.FC = () => {
                                     Edit Department
                                   </button>
                                 )}
+                                <button
+                                  type="button"
+                                  className="text-purple-600 hover:text-purple-900"
+                                  onClick={async () => {
+                                    try {
+                                      setImpersonating(true);
+                                      await impersonateUser(user.id);
+                                      // The page will reload with the new user context
+                                    } catch (error) {
+                                      console.error('Error impersonating user:', error);
+                                      setImpersonating(false);
+                                      // Show error message
+                                      alert('Failed to impersonate user. Please try again.');
+                                    }
+                                  }}
+                                  disabled={impersonating}
+                                >
+                                  {impersonating ? 'Signing in...' : 'Sign in as'}
+                                </button>
                               </>
                             )}
                             {!isAdmin && (

@@ -4,20 +4,30 @@ import interviewProcessService, { InterviewProcess } from '../services/interview
 import interviewService, { Interview } from '../services/interviewService';
 import { toast } from 'react-toastify';
 import { CalendarIcon, ClockIcon, UserIcon } from '@heroicons/react/24/solid';
+import { useAuth } from '../context/AuthContext';
 
 const InterviewsPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { userRole, userId } = useAuth();
+  const isUser = userRole === 'user';
   
   // Get tab from URL query parameters
-  const getTabFromUrl = useCallback((): 'processes' | 'active' => {
+  const getTabFromUrl = useCallback((): 'processes' | 'active' | 'my-interviews' => {
     const params = new URLSearchParams(location.search);
     const tab = params.get('tab');
-    return tab === 'processes' ? 'processes' : 'active';
-  }, [location.search]);
+    
+    // If user role is 'user', default to 'my-interviews' tab
+    if (isUser) {
+      return 'my-interviews';
+    }
+    
+    // For admin and other roles, use the tab from URL or default to 'active'
+    return tab === 'processes' ? 'processes' : (tab === 'my-interviews' ? 'my-interviews' : 'active');
+  }, [location.search, isUser]);
   
   // Tab state
-  const [activeTab, setActiveTab] = useState<'processes' | 'active'>(getTabFromUrl());
+  const [activeTab, setActiveTab] = useState<'processes' | 'active' | 'my-interviews'>(getTabFromUrl());
   
   // Interview processes state
   const [interviewProcesses, setInterviewProcesses] = useState<InterviewProcess[]>([]);
@@ -28,6 +38,11 @@ const InterviewsPage: React.FC = () => {
   const [activeInterviews, setActiveInterviews] = useState<Interview[]>([]);
   const [isLoadingInterviews, setIsLoadingInterviews] = useState<boolean>(true);
   const [interviewsError, setInterviewsError] = useState<string | null>(null);
+  
+  // User's interviews state
+  const [userInterviews, setUserInterviews] = useState<Interview[]>([]);
+  const [isLoadingUserInterviews, setIsLoadingUserInterviews] = useState<boolean>(true);
+  const [userInterviewsError, setUserInterviewsError] = useState<string | null>(null);
 
   // Listen for URL changes
   useEffect(() => {
@@ -80,6 +95,28 @@ const InterviewsPage: React.FC = () => {
       fetchActiveInterviews();
     }
   }, [activeTab]);
+  
+  // Fetch user's interviews
+  useEffect(() => {
+    const fetchUserInterviews = async () => {
+      setIsLoadingUserInterviews(true);
+      setUserInterviewsError(null);
+      
+      try {
+        const data = await interviewService.getUserInterviews();
+        setUserInterviews(data);
+      } catch (err) {
+        console.error('Error fetching user interviews:', err);
+        setUserInterviewsError('Failed to load your interviews. Please try again.');
+      } finally {
+        setIsLoadingUserInterviews(false);
+      }
+    };
+    
+    if (activeTab === 'my-interviews') {
+      fetchUserInterviews();
+    }
+  }, [activeTab]);
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this interview process?')) {
@@ -117,7 +154,8 @@ const InterviewsPage: React.FC = () => {
   
   // Loading state
   const isLoading = (activeTab === 'processes' && isLoadingProcesses) || 
-                   (activeTab === 'active' && isLoadingInterviews);
+                   (activeTab === 'active' && isLoadingInterviews) ||
+                   (activeTab === 'my-interviews' && isLoadingUserInterviews);
   
   if (isLoading) {
     return (
@@ -131,7 +169,7 @@ const InterviewsPage: React.FC = () => {
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">
-          {activeTab === 'processes' ? 'Interview Processes' : 'Active Interviews'}
+          {activeTab === 'processes' ? 'Interview Processes' : (activeTab === 'active' ? 'Active Interviews' : 'My Interviews')}
         </h1>
         <div>
           {activeTab === 'processes' && (
@@ -160,33 +198,51 @@ const InterviewsPage: React.FC = () => {
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
+          {!isUser && (
+            <Link
+              to="/interviews?tab=active"
+              className={`${activeTab === 'active' 
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
+                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab('active');
+                navigate('/interviews?tab=active', { replace: true });
+              }}
+            >
+              Active Applicant Interviews
+            </Link>
+          )}
+          {!isUser && (
+            <Link
+              to="/interviews?tab=processes"
+              className={`${activeTab === 'processes' 
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
+                whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveTab('processes');
+                navigate('/interviews?tab=processes', { replace: true });
+              }}
+            >
+              Interview Processes
+            </Link>
+          )}
           <Link
-            to="/interviews?tab=active"
-            className={`${activeTab === 'active' 
+            to="/interviews?tab=my-interviews"
+            className={`${activeTab === 'my-interviews' 
               ? 'border-blue-500 text-blue-600' 
               : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
               whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
             onClick={(e) => {
               e.preventDefault();
-              setActiveTab('active');
-              navigate('/interviews?tab=active', { replace: true });
+              setActiveTab('my-interviews');
+              navigate('/interviews?tab=my-interviews', { replace: true });
             }}
           >
-            Active Applicant Interviews
-          </Link>
-          <Link
-            to="/interviews?tab=processes"
-            className={`${activeTab === 'processes' 
-              ? 'border-blue-500 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
-              whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('processes');
-              navigate('/interviews?tab=processes', { replace: true });
-            }}
-          >
-            Interview Processes
+            My Interviews
           </Link>
         </nav>
       </div>
@@ -201,6 +257,12 @@ const InterviewsPage: React.FC = () => {
       {activeTab === 'active' && interviewsError && (
         <div className="bg-red-100 p-4 rounded text-red-700 mb-6">
           {interviewsError}
+        </div>
+      )}
+      
+      {activeTab === 'my-interviews' && userInterviewsError && (
+        <div className="bg-red-100 p-4 rounded text-red-700 mb-6">
+          {userInterviewsError}
         </div>
       )}
 
@@ -362,6 +424,95 @@ const InterviewsPage: React.FC = () => {
                             {interviewer.name}
                           </span>
                         ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+      
+      {/* My Interviews Tab Content */}
+      {activeTab === 'my-interviews' && (
+        <>
+          {userInterviews.length === 0 ? (
+            <div className="bg-white shadow rounded-lg p-6 text-center">
+              <p className="text-gray-500">You don't have any interviews scheduled.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {userInterviews.map((interview) => (
+                <div key={interview.id} className="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                  <div className="border-l-4 border-purple-500 p-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h2 className="text-xl font-semibold mb-2 text-purple-800">{interview.title}</h2>
+                        <div className="flex items-center mb-2">
+                          <div className="bg-purple-100 text-purple-800 rounded-full px-3 py-1 text-sm font-semibold mr-2">
+                            {interview.status}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {interview.jobTitle}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Link
+                          to={`/interview/${interview.id}`}
+                          className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                            <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                          </svg>
+                          View Interview
+                        </Link>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <div className="flex items-center text-sm text-gray-600 mb-2">
+                        <UserIcon className="h-4 w-4 mr-2" />
+                        <span className="font-medium">Applicant:</span>
+                        <span className="ml-2">{interview.applicantName}</span>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600 mb-2">
+                        <CalendarIcon className="h-4 w-4 mr-2" />
+                        <span className="font-medium">Date:</span>
+                        <span className="ml-2">{formatDate(interview.scheduledDate)}</span>
+                      </div>
+                      
+                      <div className="flex items-center text-sm text-gray-600 mb-2">
+                        <ClockIcon className="h-4 w-4 mr-2" />
+                        <span className="font-medium">Time:</span>
+                        <span className="ml-2">{formatTime(interview.scheduledDate)}</span>
+                      </div>
+                    </div>
+                    
+                    {interview.description && (
+                      <div className="mt-3 text-sm text-gray-600">
+                        <p className="font-medium">Description:</p>
+                        <p className="mt-1">{interview.description}</p>
+                      </div>
+                    )}
+                    
+                    <div className="mt-4">
+                      <p className="text-sm font-medium text-gray-600">Other Interviewers:</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {interview.interviewers
+                          .filter(interviewer => interviewer.userId !== userId)
+                          .map((interviewer) => (
+                            <span 
+                              key={interviewer.userId} 
+                              className="inline-flex items-center bg-gray-100 text-gray-800 text-xs px-3 py-1 rounded-full"
+                            >
+                              <UserIcon className="h-3 w-3 mr-1" />
+                              {interviewer.name}
+                            </span>
+                          ))}
                       </div>
                     </div>
                   </div>

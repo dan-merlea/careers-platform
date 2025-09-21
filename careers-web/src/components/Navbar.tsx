@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 
@@ -18,8 +19,9 @@ export default function Navbar() {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-xl font-bold text-blue-600">
-                Careers
+              <Link href="/" className="flex items-center">
+                <Image src="/logo.svg" alt="Hatch Beacon Logo" width={32} height={32} className="mr-2" />
+                <span className="text-xl font-bold" style={{ color: '#0D3C40' }}>Hatch Beacon</span>
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

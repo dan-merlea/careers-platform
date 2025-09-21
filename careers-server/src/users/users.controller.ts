@@ -10,6 +10,7 @@ import {
   HttpException,
   Request,
   Query,
+  ForbiddenException,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard, Roles } from '../auth';
 import { UserRole } from './schemas/user.schema';
@@ -19,6 +20,8 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { CompanySignupDto } from './dto/company-signup.dto';
+import { ImpersonateUserDto } from './dto/impersonate-user.dto';
+import { LogAction } from '../user-logs/user-logs.interceptor';
 
 @Controller('users')
 export class UsersController {
@@ -170,6 +173,38 @@ export class UsersController {
         changePasswordDto,
       );
     } catch (error) {
+      if (error instanceof Error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('An error occurred', HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Impersonate a user (admin only)
+   */
+  @Post('impersonate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @LogAction('impersonate_user', 'user')
+  async impersonateUser(
+    @Request() req: { user: { userId: string } },
+    @Body() impersonateUserDto: ImpersonateUserDto,
+  ) {
+    try {
+      // Check if the requesting user is an admin
+      if (req.user.userId === impersonateUserDto.userId) {
+        throw new ForbiddenException('Cannot impersonate yourself');
+      }
+
+      return await this.usersService.impersonateUser(
+        req.user.userId,
+        impersonateUserDto.userId,
+      );
+    } catch (error) {
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
       if (error instanceof Error) {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }

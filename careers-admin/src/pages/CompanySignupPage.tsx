@@ -56,7 +56,10 @@ const CompanySignupPage: React.FC = () => {
           Create your company
         </h2>
         <p className="mt-2 text-center text-sm text-gray-400">
-          Set up your company on the Careers platform
+          Set up your company on Hatch Beacon
+        </p>
+        <p className="mt-2 text-center text-sm text-gray-400">
+          The beacon for hiring success
         </p>
       </div>
 

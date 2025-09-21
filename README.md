@@ -1,6 +1,8 @@
-# Careers Platform
+# Hatch Beacon
 
-A full-stack careers platform with a NextJS frontend, NestJS backend, and React admin panel.
+*The beacon for hiring success*
+
+A full-stack recruitment platform with a NextJS frontend, NestJS backend, and React admin panel.
 
 ## Project Structure
 

@@ -11,6 +11,9 @@ import { JobModule } from './job/job.module';
 import { HeadcountModule } from './headcount/headcount.module';
 import { JobApplicationsModule } from './job-applications/job-applications.module';
 import { InterviewsModule } from './interviews/interviews.module';
+import { UserLogsModule } from './user-logs/user-logs.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { UserLogsInterceptor } from './user-logs/user-logs.interceptor';
 
 @Module({
   imports: [
@@ -26,8 +29,15 @@ import { InterviewsModule } from './interviews/interviews.module';
     HeadcountModule,
     JobApplicationsModule,
     InterviewsModule,
+    UserLogsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: UserLogsInterceptor,
+    },
+  ],
 })
 export class AppModule {}

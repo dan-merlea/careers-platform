@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Put,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { InterviewsService } from './interviews.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -24,6 +32,17 @@ export class InterviewsController {
   @ApiResponse({ status: 200, description: 'Returns all upcoming interviews' })
   async getUpcomingInterviews() {
     return this.interviewsService.getUpcomingInterviews();
+  }
+  
+  @Get('user')
+  @ApiOperation({ summary: 'Get interviews for the current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns interviews where the current user is an interviewer',
+  })
+  async getUserInterviews(@Request() req: { user: { userId: string } }) {
+    const userId = req.user.userId;
+    return this.interviewsService.getUserInterviews(userId);
   }
 
   @Get(':id')

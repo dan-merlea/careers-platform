@@ -15,7 +15,8 @@ import {
   BuildingOfficeIcon,
   BugAntIcon,
   XMarkIcon,
-  ClipboardDocumentCheckIcon
+  ClipboardDocumentCheckIcon,
+  ClipboardDocumentListIcon
 } from '@heroicons/react/24/outline';
 
 interface SidebarLinkProps {
@@ -119,7 +120,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
     { path: '/job-boards', text: 'Job boards', icon: <BriefcaseIcon />, roles: ['admin', 'manager', 'recruiter'] },
     { path: '/jobs', text: 'Openings', icon: <BriefcaseIcon />, roles: ['admin', 'director', 'manager'] },
     { path: '/headcount', text: 'Headcount', icon: <UsersIcon />, roles: ['admin', 'director', 'manager'] },
-    { path: '/interviews', text: 'Interviews', icon: <ClipboardDocumentCheckIcon />, roles: ['admin', 'director', 'recruiter'] },
+    { path: '/interviews', text: 'Interviews', icon: <ClipboardDocumentCheckIcon />, roles: ['admin', 'director', 'recruiter', 'user'] },
+    { path: '/logs', text: 'Activity Logs', icon: <ClipboardDocumentListIcon />, roles: ['admin'] },
     { path: '/analytics', text: 'Analytics', icon: <ChartBarIcon />, roles: ['admin', 'manager'] },
     { path: '/reports', text: 'Reports', icon: <DocumentTextIcon />, roles: ['admin', 'manager', 'recruiter'] },
     { path: '/setup', text: 'Integrations', icon: <Cog6ToothIcon />, roles: ['admin'] },
@@ -152,7 +154,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
   return (
     <div className={sidebarClasses}>
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-        <h1 className="text-xl font-bold text-blue-600">Careers Platform</h1>
+        <div className="flex items-center">
+          <img src="/logo.svg" alt="Hatch Beacon Logo" className="h-8 w-8 mr-2" />
+          <h1 className="text-xl font-bold" style={{ color: '#0D3C40' }}>Hatch Beacon</h1>
+        </div>
         
         {isMobile && (
           <button 

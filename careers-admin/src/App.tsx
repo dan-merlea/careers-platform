@@ -28,9 +28,11 @@ import InterviewProcessEditPage from './pages/InterviewProcessEditPage';
 import InterviewProcessDetailPage from './pages/InterviewProcessDetailPage';
 import InterviewDetailPage from './pages/InterviewDetailPage';
 import ApplicantDetailPage from './pages/ApplicantDetailPage';
+import LogsPage from './pages/LogsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CompanyProvider } from './context/CompanyContext';
 import RoleGuard from './components/guards/RoleGuard';
+import InterviewAccessGuard from './components/guards/InterviewAccessGuard';
 import SessionExpiredNotification from './components/notifications/SessionExpiredNotification';
 
 // Protected route component
@@ -256,7 +258,7 @@ const AppRoutes: React.FC = () => {
               <Route
                 path="/interviews"
                 element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter', 'user']} showUnauthorized>
                     <InterviewsPage />
                   </RoleGuard>
                 }
@@ -288,8 +290,10 @@ const AppRoutes: React.FC = () => {
               <Route
                 path="/interview/:id"
                 element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter', 'interviewer']} showUnauthorized>
-                    <InterviewDetailPage />
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter', 'interviewer', 'user']} showUnauthorized>
+                    <InterviewAccessGuard>
+                      <InterviewDetailPage />
+                    </InterviewAccessGuard>
                   </RoleGuard>
                 }
               />
@@ -301,6 +305,16 @@ const AppRoutes: React.FC = () => {
                   <RoleGuard requiredRoles={['admin']} showUnauthorized>
                     <DebugJobApplications />
                     <DebugUserManagement />
+                  </RoleGuard>
+                }
+              />
+              
+              {/* User Activity Logs */}
+              <Route
+                path="/logs"
+                element={
+                  <RoleGuard requiredRoles={['admin']} showUnauthorized>
+                    <LogsPage />
                   </RoleGuard>
                 }
               />

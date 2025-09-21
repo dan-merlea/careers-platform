@@ -93,6 +93,69 @@ export class InterviewsService {
   }
 
   /**
+   * Get interviews for a specific user (where user is an interviewer)
+   */
+  async getUserInterviews(userId: string): Promise<InterviewDto[]> {
+    const applications = await this.jobApplicationModel
+      .find({
+        'interviews.interviewers.userId': new Types.ObjectId(userId),
+      })
+      .populate('jobId')
+      .exec();
+
+    const interviews: InterviewDto[] = [];
+
+    // Extract interviews where the user is an interviewer
+    for (const application of applications as JobApplicationDocument[]) {
+      if (application.interviews && application.interviews.length > 0) {
+        const job = application.jobId as any;
+        const jobTitle = job ? job.title : 'Unknown Position';
+
+        const userInterviews = application.interviews.filter(
+          (interview) =>
+            interview.interviewers.some(
+              (interviewer) => interviewer.userId.toString() === userId,
+            ),
+        );
+
+        for (const interview of userInterviews) {
+          if (interview._id) {
+            interviews.push({
+              id: interview._id.toString(),
+              scheduledDate: interview.scheduledDate,
+              title: interview.title,
+              description: interview.description,
+              interviewers: interview.interviewers.map((interviewer) => ({
+                userId: interviewer.userId.toString(),
+                name: interviewer.name,
+              })),
+              stage: interview.stage,
+              status: interview.status,
+              createdAt: interview.createdAt,
+              updatedAt: interview.updatedAt,
+              applicantId: (
+                application._id as unknown as Types.ObjectId
+              ).toString(),
+              applicantName: `${application.firstName} ${application.lastName}`,
+              jobTitle: jobTitle,
+              processId: interview.processId
+                ? interview.processId.toString()
+                : undefined,
+            });
+          }
+        }
+      }
+    }
+
+    // Sort by scheduled date (most recent first)
+    return interviews.sort(
+      (a, b) =>
+        new Date(b.scheduledDate).getTime() -
+        new Date(a.scheduledDate).getTime(),
+    );
+  }
+
+  /**
    * Get all upcoming interviews (scheduled for today or in the future)
    */
   async getUpcomingInterviews(): Promise<InterviewDto[]> {

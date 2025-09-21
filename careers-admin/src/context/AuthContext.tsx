@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api, clearAuth, getAuthToken, SESSION_EXPIRED_EVENT } from '../utils/api';
+import { authService } from '../services/auth.service';
 
 // Define company type
 interface Company {
@@ -25,6 +26,14 @@ interface AuthContextType {
   logout: () => Promise<void>;
   loading: boolean;
   hasPermission: (requiredRoles: string[]) => boolean;
+  impersonateUser: (userId: string) => Promise<void>;
+  isImpersonating: boolean;
+  impersonatedBy: {
+    id: string;
+    email: string;
+    name: string;
+  } | null;
+  returnToAdmin: () => Promise<void>;
 }
 
 // Create the context with a default value
@@ -45,6 +54,10 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   loading: true,
   hasPermission: () => false,
+  impersonateUser: async () => {},
+  isImpersonating: false,
+  impersonatedBy: null,
+  returnToAdmin: async () => {},
 });
 
 // Custom hook to use the auth context
@@ -85,6 +98,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [name, setName] = useState<string | null>(null);
+  const [isImpersonating, setIsImpersonating] = useState<boolean>(false);
+  const [impersonatedBy, setImpersonatedBy] = useState<{
+    id: string;
+    email: string;
+    name: string;
+  } | null>(null);
   
   // We can't use useNavigate directly in the provider because it's not inside a Router
   // Instead, we'll handle navigation in a separate effect
@@ -101,6 +120,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedCompanyId = localStorage.getItem('companyId');
       const storedCompanyName = localStorage.getItem('companyName');
       const storedName = localStorage.getItem('name');
+      
+      // Check if user is being impersonated
+      const storedImpersonatedBy = localStorage.getItem('impersonatedBy');
+      let impersonationData = null;
+      if (storedImpersonatedBy) {
+        try {
+          impersonationData = JSON.parse(storedImpersonatedBy);
+          setIsImpersonating(true);
+          setImpersonatedBy(impersonationData);
+        } catch (e) {
+          console.error('Error parsing impersonation data:', e);
+          localStorage.removeItem('impersonatedBy');
+        }
+      }
 
       if (storedToken) {
         // Validate token with the backend
@@ -160,7 +193,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Listen for session expiration events
     const handleSessionExpired = () => {
-      // Clear auth state
+      // Token is invalid, clear auth data
       clearAuth();
       setIsAuthenticated(false);
       setToken(null);
@@ -172,6 +205,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setCompanyId(null);
       setCompany(null);
       setName(null);
+      setIsImpersonating(false);
+      setImpersonatedBy(null);
+      setIsImpersonating(false);
+      setImpersonatedBy(null);
       
       // We can't use navigate here, so we'll redirect manually
       window.location.href = '/login';
@@ -347,6 +384,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       localStorage.removeItem('companyId');
       localStorage.removeItem('companyName');
       localStorage.removeItem('name');
+      localStorage.removeItem('impersonatedBy');
       
       // Update state
       setIsAuthenticated(false);
@@ -363,6 +401,93 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Impersonate user function
+  const impersonateUser = async (userId: string) => {
+    setLoading(true);
+    
+    try {
+      const data = await authService.impersonateUser(userId);
+      
+      // Store auth data
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('userId', data.user.id);
+      localStorage.setItem('userEmail', data.user.email);
+      localStorage.setItem('isAdmin', data.user.role === 'admin' ? 'true' : 'false');
+      localStorage.setItem('userRole', data.user.role);
+      localStorage.setItem('userDepartment', data.user.departmentId || '');
+      localStorage.setItem('name', data.user.name || '');
+      
+      // Store company data if available
+      if (data.user.companyId) {
+        localStorage.setItem('companyId', data.user.companyId);
+      }
+      
+      if (data.company) {
+        localStorage.setItem('companyName', data.company.name);
+      }
+      
+      // Store impersonation data
+      if (data.impersonatedBy) {
+        localStorage.setItem('impersonatedBy', JSON.stringify(data.impersonatedBy));
+      }
+      
+      // Update state
+      setIsAuthenticated(true);
+      setToken(data.token);
+      setUserId(data.user.id);
+      setUserEmail(data.user.email);
+      setIsAdmin(data.user.role === 'admin');
+      setUserRole(data.user.role);
+      setUserDepartment(data.user.departmentId || null);
+      setCompanyId(data.user.companyId || null);
+      setCompany(data.company || null);
+      setName(data.user.name || null);
+      setIsImpersonating(true);
+      setImpersonatedBy(data.impersonatedBy || null);
+    } catch (error) {
+      console.error('Error impersonating user:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Return to admin function
+  const returnToAdmin = async () => {
+    setLoading(true);
+    
+    try {
+      if (!impersonatedBy) {
+        throw new Error('Not currently impersonating a user');
+      }
+      
+      // Log in as the admin user
+      const adminEmail = impersonatedBy.email;
+      
+      // Clear current user data
+      clearAuth();
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userRole');
+      localStorage.removeItem('userDepartment');
+      localStorage.removeItem('companyId');
+      localStorage.removeItem('companyName');
+      localStorage.removeItem('name');
+      localStorage.removeItem('impersonatedBy');
+      
+      // Reset impersonation state
+      setIsImpersonating(false);
+      setImpersonatedBy(null);
+      
+      // Redirect to login page with admin email pre-filled
+      window.location.href = `/login?email=${encodeURIComponent(adminEmail)}`;
+    } catch (error) {
+      console.error('Error returning to admin:', error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   // Create the auth value object
   const value = {
     isAuthenticated,
@@ -381,6 +506,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     logout,
     loading,
     hasPermission,
+    impersonateUser,
+    isImpersonating,
+    impersonatedBy,
+    returnToAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

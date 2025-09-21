@@ -3,6 +3,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
+import ImpersonationBanner from '../notifications/ImpersonationBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -64,6 +65,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       
       {/* Main Content */}
       <div className={`flex-1 flex flex-col overflow-hidden ${isMobile ? 'w-full' : ''}`}>
+        {/* Impersonation Banner */}
+        <ImpersonationBanner />
+        
         {/* Navbar */}
         <Navbar 
           onMenuClick={toggleSidebar}

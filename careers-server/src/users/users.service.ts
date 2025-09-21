@@ -342,4 +342,74 @@ export class UsersService {
       departmentId: updatedUser.departmentId,
     };
   }
+
+  /**
+   * Impersonate a user (admin only)
+   * @param adminId ID of the admin user who is impersonating
+   * @param userId ID of the user to impersonate
+   * @returns Authentication data for the impersonated user with admin info
+   */
+  async impersonateUser(adminId: string, userId: string) {
+    // Find the admin user
+    const adminUser = await this.userModel.findById(adminId).exec();
+    if (!adminUser) {
+      throw new Error('Admin user not found');
+    }
+
+    // Verify the admin has appropriate permissions
+    if (adminUser.role !== UserRole.ADMIN) {
+      throw new Error('Only administrators can impersonate users');
+    }
+
+    // Find the user to impersonate
+    const userToImpersonate = await this.userModel.findById(userId).exec();
+    if (!userToImpersonate) {
+      throw new Error('User to impersonate not found');
+    }
+
+    // Get company information if available
+    let companyData: { id: string; name: string } | null = null;
+    if (userToImpersonate.companyId) {
+      const company = await this.companyModel
+        .findById(userToImpersonate.companyId)
+        .exec();
+      if (company) {
+        companyData = {
+          id: String(company._id),
+          name: company.name,
+        };
+      }
+    }
+
+    // Generate JWT token with role information, company ID, and impersonation data
+    const token = this.authService.generateToken({
+      sub: userToImpersonate._id,
+      email: userToImpersonate.email,
+      role: userToImpersonate.role,
+      companyId: userToImpersonate.companyId,
+      impersonatedBy: {
+        id: adminUser._id,
+        email: adminUser.email,
+        name: adminUser.name,
+      },
+    });
+
+    return {
+      token,
+      user: {
+        id: userToImpersonate._id,
+        email: userToImpersonate.email,
+        name: userToImpersonate.name,
+        role: userToImpersonate.role,
+        departmentId: userToImpersonate.departmentId,
+        companyId: userToImpersonate.companyId,
+      },
+      company: companyData,
+      impersonatedBy: {
+        id: adminUser._id,
+        email: adminUser.email,
+        name: adminUser.name,
+      },
+    };
+  }
 }

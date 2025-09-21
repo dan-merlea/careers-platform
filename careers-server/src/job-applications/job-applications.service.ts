@@ -1,7 +1,14 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { CalendarProviderService, CalendarEvent } from '../calendar/calendar-provider.service';
+import {
+  CalendarProviderService,
+  CalendarEvent,
+} from '../calendar/calendar-provider.service';
 import {
   JobApplication,
   JobApplicationDocument,
@@ -104,20 +111,26 @@ export class JobApplicationsService {
     }
 
     if (!application.resumeId) {
-      throw new NotFoundException(`No resume found for application with ID ${id}`);
+      throw new NotFoundException(
+        `No resume found for application with ID ${id}`,
+      );
     }
 
     try {
       // Use the getFile method from GridFsService
-      const { stream, file } = await this.gridFsService.getFile(application.resumeId);
+      const { stream, file } = await this.gridFsService.getFile(
+        application.resumeId,
+      );
 
       return {
         stream,
         filename: application.resumeFilename || 'resume.pdf',
         mimetype: application.resumeMimeType || 'application/pdf',
       };
-    } catch (error) {
-      throw new NotFoundException(`Resume file not found for application with ID ${id}`);
+    } catch {
+      throw new NotFoundException(
+        `Resume file not found for application with ID ${id}`,
+      );
     }
   }
 
@@ -132,12 +145,12 @@ export class JobApplicationsService {
     }
 
     application.status = updateStatusDto.status;
-    
+
     // Automatically enable interviewer visibility when status is 'debrief'
     if (updateStatusDto.status === 'debrief') {
       application.interviewerVisibility = true;
     }
-    
+
     await application.save();
 
     return this.mapToResponseDto(application);
@@ -339,14 +352,23 @@ export class JobApplicationsService {
       throw new NotFoundException(`Job application with ID ${id} not found`);
     }
 
-    return application.interviews?.map((interview) => this.mapInterviewToDto(interview)) || [];
+    return (
+      application.interviews?.map((interview) =>
+        this.mapInterviewToDto(interview),
+      ) || []
+    );
   }
 
   /**
    * Generate an interview invite for a specific interview
    */
-  async generateInterviewInvite(applicationId: string, interviewId: string): Promise<string> {
-    const application = await this.jobApplicationModel.findById(applicationId).exec();
+  async generateInterviewInvite(
+    applicationId: string,
+    interviewId: string,
+  ): Promise<string> {
+    const application = await this.jobApplicationModel
+      .findById(applicationId)
+      .exec();
 
     if (!application) {
       throw new NotFoundException(
@@ -426,8 +448,9 @@ export class JobApplicationsService {
     };
 
     // Use the calendar provider service to generate the invite
-    const inviteResult = await this.calendarProviderService.generateInvite(calendarEvent);
-    
+    const inviteResult =
+      await this.calendarProviderService.generateInvite(calendarEvent);
+
     return inviteResult.content;
   }
 
@@ -439,15 +462,15 @@ export class JobApplicationsService {
     visibility: boolean,
   ): Promise<JobApplicationResponseDto> {
     const application = await this.jobApplicationModel.findById(id).exec();
-    
+
     if (!application) {
       throw new NotFoundException(`Job application with ID ${id} not found`);
     }
-    
+
     // Update the interviewer visibility
     application.interviewerVisibility = visibility;
     await application.save();
-    
+
     return this.mapToResponseDto(application);
   }
 
@@ -481,17 +504,25 @@ export class JobApplicationsService {
    * @param userId The ID of the user
    * @returns Array of notes created by the user for the application
    */
-  async getNotesByUser(applicationId: string, userId: string): Promise<NoteDto[]> {
-    const application = await this.jobApplicationModel.findById(applicationId).exec();
+  async getNotesByUser(
+    applicationId: string,
+    userId: string,
+  ): Promise<NoteDto[]> {
+    const application = await this.jobApplicationModel
+      .findById(applicationId)
+      .exec();
 
     if (!application) {
-      throw new NotFoundException(`Job application with ID ${applicationId} not found`);
+      throw new NotFoundException(
+        `Job application with ID ${applicationId} not found`,
+      );
     }
 
     // Filter notes by user ID
-    const userNotes = application.userNotes?.filter(
-      (note) => note.userId.toString() === userId
-    ) || [];
+    const userNotes =
+      application.userNotes?.filter(
+        (note) => note.userId.toString() === userId,
+      ) || [];
 
     return userNotes.map((note) => this.mapToNoteDto(note, applicationId));
   }
@@ -544,6 +575,7 @@ export class JobApplicationsService {
   private mapToNoteDto(note: UserNote, applicationId: string): NoteDto {
     return {
       id: note._id?.toString(),
+      applicantionId: applicationId,
       userId: note.userId.toString(),
       content: note.content,
       createdAt: note.createdAt,
@@ -568,7 +600,9 @@ export class JobApplicationsService {
       status: interview.status,
       createdAt: interview.createdAt,
       updatedAt: interview.updatedAt,
-      processId: interview.processId ? interview.processId.toString() : undefined,
+      processId: interview.processId
+        ? interview.processId.toString()
+        : undefined,
     };
   }
 
