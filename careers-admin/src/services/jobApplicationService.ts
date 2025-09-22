@@ -46,7 +46,21 @@ const jobApplicationService = {
 
   // Get a specific application by ID
   getApplication: async (id: string): Promise<JobApplicant> => {
-    const response = await api.get<JobApplicant>(`/job-applications/${id}`);
+    try {
+      const response = await api.get<JobApplicant>(`/job-applications/${id}`);
+      return response;
+    } catch (error: any) {
+      // If we get a 403 error, try the interviewer access endpoint
+      if (error.response && error.response.status === 403) {
+        return jobApplicationService.getApplicationAsInterviewer(id);
+      }
+      throw error;
+    }
+  },
+  
+  // Get a specific application by ID as an interviewer
+  getApplicationAsInterviewer: async (id: string): Promise<JobApplicant> => {
+    const response = await api.get<JobApplicant>(`/job-applications/${id}/interviewer-access`);
     return response;
   },
 

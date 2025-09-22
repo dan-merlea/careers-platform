@@ -113,14 +113,25 @@ export class JobApplicationsController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER, UserRole.USER)
   findOne(@Param('id') id: string) {
     return this.jobApplicationsService.findOne(id);
+  }
+  
+  /**
+   * Get a job application by ID for interviewers
+   * This endpoint allows users who are assigned as interviewers to access the job application
+   */
+  @Get(':id/interviewer-access')
+  @UseGuards(JwtAuthGuard)
+  async findOneForInterviewer(@Param('id') id: string, @Req() req: RequestWithUser) {
+    const userId = req.user.userId;
+    return this.jobApplicationsService.findOneForInterviewer(id, userId);
   }
 
   @Get(':id/resume')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
+  @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER, UserRole.USER)
   async getResume(@Param('id') id: string, @Res() res: Response) {
     const resume = await this.jobApplicationsService.getResume(id);
 

@@ -98,6 +98,36 @@ export class JobApplicationsService {
 
     return this.mapToResponseDto(application);
   }
+  
+  /**
+   * Find a job application by ID for an interviewer
+   * This method checks if the user is assigned as an interviewer for any interview in the job application
+   */
+  async findOneForInterviewer(
+    id: string,
+    userId: string,
+  ): Promise<JobApplicationResponseDto> {
+    const application = await this.jobApplicationModel.findById(id).exec();
+
+    if (!application) {
+      throw new NotFoundException(`Job application with ID ${id} not found`);
+    }
+
+    // Check if the user is an interviewer for any interview in this application
+    const isInterviewer = application.interviews.some((interview) =>
+      interview.interviewers.some(
+        (interviewer) => interviewer.userId.toString() === userId,
+      ),
+    );
+
+    if (!isInterviewer) {
+      throw new ForbiddenException(
+        'You do not have permission to access this job application',
+      );
+    }
+
+    return this.mapToResponseDto(application);
+  }
 
   async getResume(id: string): Promise<{
     stream: any;

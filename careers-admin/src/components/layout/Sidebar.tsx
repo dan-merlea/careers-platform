@@ -156,7 +156,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <div className="flex items-center">
           <img src="/logo.svg" alt="Hatch Beacon Logo" className="h-8 w-8 mr-2" />
-          <h1 className="text-xl font-bold" style={{ color: '#0D3C40' }}>Hatch Beacon</h1>
+          <h1 className="text-xl font-bold" style={{ color: '#022427' }}>Hatch Beacon</h1>
         </div>
         
         {isMobile && (
