@@ -44,6 +44,7 @@ export class UsersController {
   @Patch(':id/role')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @LogAction('update_user_role', 'user')
   async updateUserRole(
     @Param('id') id: string,
     @Body() updateRoleDto: { role: string },
@@ -61,6 +62,7 @@ export class UsersController {
   @Patch(':id/department')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @LogAction('update_user_department', 'user')
   async updateUserDepartment(
     @Param('id') id: string,
     @Body() updateDepartmentDto: { departmentId: string | null },
@@ -79,6 +81,7 @@ export class UsersController {
   }
 
   @Post('signup')
+  @LogAction('signup', 'user')
   async signup(
     @Body() createUserDto: CreateUserDto,
     @Query('companyId') companyId?: string,
@@ -106,6 +109,7 @@ export class UsersController {
   }
 
   @Post('login')
+  @LogAction('login', 'user')
   async login(@Body() loginUserDto: LoginUserDto) {
     try {
       return await this.usersService.login(loginUserDto);
@@ -144,6 +148,7 @@ export class UsersController {
 
   @Patch('profile')
   @UseGuards(JwtAuthGuard)
+  @LogAction('update_profile', 'user')
   async updateProfile(
     @Request() req: { user: { userId: string } },
     @Body() updateProfileDto: UpdateProfileDto,
@@ -163,6 +168,7 @@ export class UsersController {
 
   @Patch('change-password')
   @UseGuards(JwtAuthGuard)
+  @LogAction('change_password', 'user')
   async changePassword(
     @Request() req: { user: { userId: string } },
     @Body() changePasswordDto: ChangePasswordDto,

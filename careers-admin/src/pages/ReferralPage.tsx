@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import jobService from '../services/jobService';
 import jobApplicationService, { CreateReferralRequest } from '../services/jobApplicationService';
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +13,10 @@ const ReferralPage: React.FC = () => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [activeTab, setActiveTab] = useState<'refer' | 'my-referrals'>('refer');
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Determine active tab based on URL path
+  const activeTab = location.pathname.includes('/referrals/my-referrals') ? 'my-referrals' : 'refer';
   const { userId } = useAuth();
   
   const {
@@ -63,8 +66,8 @@ const ReferralPage: React.FC = () => {
       
       toast.success('Your referral has been successfully submitted.');
       
-      // Switch to the My Referrals tab instead of navigating away
-      setActiveTab('my-referrals');
+      // Navigate to the My Referrals tab instead
+      navigate('/referrals/my-referrals');
     } catch (error) {
       console.error('Error submitting referral:', error);
       toast.error('There was an error submitting your referral. Please try again.');
@@ -86,16 +89,18 @@ const ReferralPage: React.FC = () => {
             {
               id: 'refer',
               label: 'Refer a Candidate',
-              icon: <UserPlusIcon className="w-5 h-5" />
+              icon: <UserPlusIcon className="w-5 h-5" />,
+              href: '/referrals'
             },
             {
               id: 'my-referrals',
               label: 'My Referrals',
-              icon: <DocumentTextIcon className="w-5 h-5" />
+              icon: <DocumentTextIcon className="w-5 h-5" />,
+              href: '/referrals/my-referrals'
             }
           ]}
           activeTab={activeTab}
-          onTabChange={(tabId) => setActiveTab(tabId as 'refer' | 'my-referrals')}
+          onTabChange={(tabId) => {}}
         />
       </div>
       

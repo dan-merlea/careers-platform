@@ -4,6 +4,7 @@ import { CompanyDto } from './dto/company.dto';
 import { CompanySettingsDto } from './dto/company-settings.dto';
 import { JwtAuthGuard, RolesGuard, Roles } from '../auth';
 import { UserRole } from '../users/schemas/user.schema';
+import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
 @Controller('company')
 export class CompanyController {
@@ -22,6 +23,7 @@ export class CompanyController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @LogAction('save_company_details', 'company')
   async saveCompanyDetails(@Body() companyDto: CompanyDto) {
     return this.companyService.saveCompanyDetails(companyDto);
   }
@@ -29,6 +31,7 @@ export class CompanyController {
   @Put('settings')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @LogAction('update_company_settings', 'company')
   async updateCompanySettings(@Body() settingsDto: CompanySettingsDto) {
     return this.companyService.updateCompanySettings(settingsDto);
   }

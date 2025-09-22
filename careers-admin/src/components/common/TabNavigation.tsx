@@ -1,10 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import './TabNavigationStyles.css';
 
 export interface TabItem {
   id: string;
   label: string;
   icon?: React.ReactNode;
+  href?: string; // Optional URL for link-based tabs
 }
 
 interface TabNavigationProps {
@@ -70,20 +72,35 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
         onScroll={checkForScrollShadows}
       >
         <nav className="flex space-x-8 min-w-max">
-          {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onTabChange(tab.id)}
-            className={`${
+          {tabs.map((tab) => {
+            const tabClasses = `${
               activeTab === tab.id
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap pt-4 pb-3 px-1 border-b-2 font-medium text-sm flex items-center`}
-          >
-            {tab.icon && <div className="mr-2">{tab.icon}</div>}
-            {tab.label}
-          </button>
-        ))}
+            } whitespace-nowrap pt-4 pb-3 px-1 border-b-2 font-medium text-sm flex items-center`;
+            
+            // Render as link if href is provided, otherwise as button
+            return tab.href ? (
+              <Link
+                key={tab.id}
+                to={tab.href}
+                onClick={() => onTabChange(tab.id)}
+                className={tabClasses}
+              >
+                {tab.icon && <div className="mr-2">{tab.icon}</div>}
+                {tab.label}
+              </Link>
+            ) : (
+              <button
+                key={tab.id}
+                onClick={() => onTabChange(tab.id)}
+                className={tabClasses}
+              >
+                {tab.icon && <div className="mr-2">{tab.icon}</div>}
+                {tab.label}
+              </button>
+            );
+          })}
         </nav>
       </div>
       

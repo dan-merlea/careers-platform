@@ -17,6 +17,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/schemas/user.schema';
+import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
 @Controller('company/offices')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -25,6 +26,7 @@ export class OfficesController {
 
   @Post()
   @Roles(UserRole.ADMIN)
+  @LogAction('create_office', 'office')
   create(
     @Body() createOfficeDto: CreateOfficeDto,
     @Req() req: Request & { user: { companyId: string } },
@@ -53,12 +55,14 @@ export class OfficesController {
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
+  @LogAction('update_office', 'office')
   update(@Param('id') id: string, @Body() updateOfficeDto: UpdateOfficeDto) {
     return this.officesService.update(id, updateOfficeDto);
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
+  @LogAction('delete_office', 'office')
   remove(@Param('id') id: string) {
     return this.officesService.remove(id);
   }

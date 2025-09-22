@@ -14,6 +14,7 @@ import { CreateJobFunctionDto } from './dto/create-job-function.dto';
 import { UpdateJobFunctionDto } from './dto/update-job-function.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { JobFunction } from './job-function.model';
+import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
 @Controller('job-functions')
 @UseGuards(JwtAuthGuard)
@@ -21,6 +22,7 @@ export class JobFunctionController {
   constructor(private readonly jobFunctionService: JobFunctionService) {}
 
   @Post()
+  @LogAction('create_job_function', 'job_function')
   async create(
     @Body() createJobFunctionDto: CreateJobFunctionDto,
     @Req() req: { user: { companyId: string } },
@@ -46,6 +48,7 @@ export class JobFunctionController {
   }
 
   @Patch(':id')
+  @LogAction('update_job_function', 'job_function')
   async update(
     @Param('id') id: string,
     @Body() updateJobFunctionDto: UpdateJobFunctionDto,
@@ -54,6 +57,7 @@ export class JobFunctionController {
   }
 
   @Delete(':id')
+  @LogAction('delete_job_function', 'job_function')
   async remove(@Param('id') id: string): Promise<void> {
     return this.jobFunctionService.remove(id);
   }

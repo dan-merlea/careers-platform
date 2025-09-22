@@ -13,6 +13,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { InterviewsService } from './interviews.service';
 import type { Request } from 'express';
+import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
 interface FeedbackDto {
   interviewId: string;
@@ -37,6 +38,7 @@ export class InterviewFeedbackController {
     description: 'Returns all feedback for the interview',
   })
   @ApiResponse({ status: 404, description: 'Interview not found' })
+  @LogAction('get_interview_feedback', 'interview')
   async getInterviewFeedback(@Param('id') id: string) {
     return this.interviewsService.getInterviewFeedback(id);
   }
@@ -63,6 +65,7 @@ export class InterviewFeedbackController {
     description: 'User is not an interviewer for this interview',
   })
   @ApiResponse({ status: 404, description: 'Interview not found' })
+  @LogAction('submit_interview_feedback', 'interview')
   async submitFeedback(
     @Param('id') id: string,
     @Body() feedbackDto: FeedbackDto,
@@ -108,6 +111,7 @@ export class InterviewFeedbackController {
     description: 'User is not an interviewer for this interview',
   })
   @ApiResponse({ status: 404, description: 'Feedback not found' })
+  @LogAction('update_interview_feedback', 'interview')
   async updateFeedback(
     @Param('id') id: string,
     @Param('interviewerId') interviewerId: string,
@@ -154,6 +158,7 @@ export class InterviewFeedbackController {
     status: 404,
     description: 'Interview or interviewer not found',
   })
+  @LogAction('send_interview_feedback_reminder', 'interview')
   async sendFeedbackReminder(
     @Param('id') id: string,
     @Param('interviewerId') interviewerId: string,

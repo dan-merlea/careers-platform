@@ -13,6 +13,7 @@ import { CreateApiKeyDto } from './dto/create-api-key.dto';
 import { JwtAuthGuard, RolesGuard, Roles } from '../auth';
 import { IntegrationType } from './api-keys.schema';
 import { UserRole } from '../users/schemas/user.schema';
+import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
 @Controller('api-keys')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -21,6 +22,7 @@ export class ApiKeysController {
   constructor(private readonly apiKeysService: ApiKeysService) {}
 
   @Post()
+  @LogAction('create_api_key', 'api_key')
   create(@Req() req, @Body() createApiKeyDto: CreateApiKeyDto) {
     return this.apiKeysService.create(req.user.userId, req.user.companyId, createApiKeyDto);
   }
@@ -36,6 +38,7 @@ export class ApiKeysController {
   }
 
   @Delete(':id')
+  @LogAction('delete_api_key', 'api_key')
   remove(@Req() req, @Param('id') id: string) {
     return this.apiKeysService.remove(req.user.userId, req.user.companyId, id);
   }

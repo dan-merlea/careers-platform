@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/schemas/user.schema';
+import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
 @Controller('company/departments')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -24,6 +25,7 @@ export class DepartmentController {
 
   @Post()
   @Roles(UserRole.ADMIN)
+  @LogAction('create_department', 'department')
   create(
     @Body() createDepartmentDto: CreateDepartmentDto,
     @Request() req: { user: { companyId: string } },
@@ -59,25 +61,26 @@ export class DepartmentController {
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
+  @LogAction('update_department', 'department')
   update(
     @Param('id') id: string,
     @Body() updateDepartmentDto: UpdateDepartmentDto,
     @Request() req: { user: { companyId: string } },
   ) {
     // First verify the department belongs to this company
-    return this.departmentService.findOne(id, req.user.companyId)
-      .then(() => {
-        // Add company ID to ensure it doesn't change
-        const updateData = {
-          ...updateDepartmentDto,
-          companyId: req.user.companyId,
-        };
-        return this.departmentService.update(id, updateData);
-      });
+    return this.departmentService.findOne(id, req.user.companyId).then(() => {
+      // Add company ID to ensure it doesn't change
+      const updateData = {
+        ...updateDepartmentDto,
+        companyId: req.user.companyId,
+      };
+      return this.departmentService.update(id, updateData);
+    });
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
+  @LogAction('delete_department', 'department')
   async remove(
     @Param('id') id: string,
     @Request() req: { user: { companyId: string } },

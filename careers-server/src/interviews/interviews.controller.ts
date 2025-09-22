@@ -10,6 +10,7 @@ import {
 import { InterviewsService } from './interviews.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
 @ApiTags('interviews')
 @Controller('interviews')
@@ -60,6 +61,7 @@ export class InterviewsController {
   @ApiOperation({ summary: 'Cancel an interview' })
   @ApiResponse({ status: 200, description: 'Interview cancelled successfully' })
   @ApiResponse({ status: 404, description: 'Interview not found' })
+  @LogAction('cancel_interview', 'interview')
   async cancelInterview(
     @Param('id') id: string,
     @Body() cancelData: { reason: string },
@@ -71,6 +73,7 @@ export class InterviewsController {
   @ApiOperation({ summary: 'Reschedule an interview' })
   @ApiResponse({ status: 200, description: 'Interview rescheduled successfully' })
   @ApiResponse({ status: 404, description: 'Interview not found' })
+  @LogAction('reschedule_interview', 'interview')
   async rescheduleInterview(
     @Param('id') id: string,
     @Body() rescheduleData: { scheduledDate: string },
@@ -82,6 +85,7 @@ export class InterviewsController {
   @ApiOperation({ summary: 'Update interviewers for an interview' })
   @ApiResponse({ status: 200, description: 'Interviewers updated successfully' })
   @ApiResponse({ status: 404, description: 'Interview not found' })
+  @LogAction('update_interviewers', 'interview')
   async updateInterviewers(
     @Param('id') id: string,
     @Body() updateData: { interviewers: { userId: string; name: string }[] },

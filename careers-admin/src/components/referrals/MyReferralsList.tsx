@@ -103,37 +103,39 @@ const MyReferralsList: React.FC = () => {
         {referrals.map((referral) => (
           <li key={referral.id}>
             <Link to={`/applicants/${referral.id}`} className="block hover:bg-gray-50">
-              <div className="px-4 py-4 sm:px-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <p className="text-sm font-medium text-blue-600 truncate">
-                      {referral.firstName} {referral.lastName}
-                    </p>
-                    <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(referral.status)}`}>
-                      {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
-                    </span>
+              <div className="flex items-center justify-between">
+              
+                <div className="px-4 py-4 sm:px-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <p className="text-sm font-medium text-blue-600 truncate">
+                        {referral.firstName} {referral.lastName}
+                      </p>
+                      <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(referral.status)}`}>
+                        {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="ml-2 flex-shrink-0 flex">
-                    <ChevronRightIcon className="h-5 w-5 text-gray-400" />
+                  <div className="mt-2 sm:flex">
+                    <div className="sm:flex">
+                      <p className="flex items-center text-sm text-gray-500">
+                        <BriefcaseIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
+                        {jobTitles[referral.jobId] || 'Loading...'}
+                      </p>
+                      <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                        <CalendarIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
+                        {formatDate(referral.createdAt)}
+                      </p>
+                      <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                        <ClockIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
+                        Referred {formatTime(referral.createdAt)}
+                      </p>
+                    </div>
                   </div>
                 </div>
-                <div className="mt-2 sm:flex sm:justify-between">
-                  <div className="sm:flex">
-                    <p className="flex items-center text-sm text-gray-500">
-                      <BriefcaseIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                      {jobTitles[referral.jobId] || 'Loading...'}
-                    </p>
-                    <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                      <CalendarIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                      {formatDate(referral.createdAt)}
-                    </p>
-                  </div>
-                  <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                    <ClockIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                    <p>
-                      Referred {formatTime(referral.createdAt)}
-                    </p>
-                  </div>
+
+                <div className="ml-2 flex-shrink-0 flex mr-2">
+                  <ChevronRightIcon className="h-5 w-5 text-gray-400" />
                 </div>
               </div>
             </Link>

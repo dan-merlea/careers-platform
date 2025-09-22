@@ -343,6 +343,10 @@ const AppRoutes: React.FC = () => {
                 path="/referrals"
                 element={<ReferralPage />}
               />
+              <Route
+                path="/referrals/my-referrals"
+                element={<ReferralPage />}
+              />
               
               {/* Access control pages */}
               <Route path="/unauthorized" element={<UnauthorizedPage />} />

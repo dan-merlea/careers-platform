@@ -11,8 +11,11 @@ import { Reflector } from '@nestjs/core';
 import { Request } from 'express';
 
 interface RequestUser {
-  id?: string;
+  userId?: string;
   sub?: string;
+  email?: string;
+  role?: string;
+  companyId?: string;
   [key: string]: any;
 }
 
@@ -55,36 +58,49 @@ export class UserLogsInterceptor implements NestInterceptor {
     }
 
     // Extract user ID from request (assuming JWT authentication)
-    const userId = request.user
-      ? ((request.user as RequestUser).id || (request.user as RequestUser).sub || 'anonymous')
-      : 'anonymous';
+    let userId = 'anonymous';
+    if (request.user) {
+      const user = request.user as RequestUser;
+      userId = user.userId || user.sub || 'anonymous';
+
+      // Log the user object for debugging if userId is still anonymous
+      if (userId === 'anonymous') {
+        console.log(
+          'Warning: User object found but userId is anonymous:',
+          user,
+        );
+      }
+    }
 
     // Extract resource ID from params or body
-    const resourceId = request.params?.id ||
+    const resourceId =
+      request.params?.id ||
       (request.body && typeof request.body === 'object'
         ? ((request.body as Record<string, unknown>).id as string | undefined)
         : undefined) ||
       (typeof request.query === 'object'
         ? ((request.query as Record<string, unknown>).id as string | undefined)
-        : undefined) || '';
+        : undefined) ||
+      '';
 
     // Process the request and log after it's complete
     return next.handle().pipe(
       tap(() => {
         // Create log entry
-        this.userLogsService.createLog({
-          userId,
-          action,
-          resourceType,
-          resourceId,
-          details: {
-            method: request.method,
-            path: request.path,
-            query: request.query,
-            body: this.sanitizeBody(request.body as Record<string, unknown>),
-          },
-          request,
-        })
+        this.userLogsService
+          .createLog({
+            userId,
+            action,
+            resourceType,
+            resourceId,
+            details: {
+              method: request.method,
+              path: request.path,
+              query: request.query,
+              body: this.sanitizeBody(request.body as Record<string, unknown>),
+            },
+            request,
+          })
           .catch((err) => {
             console.error('Error creating log entry:', err);
           });

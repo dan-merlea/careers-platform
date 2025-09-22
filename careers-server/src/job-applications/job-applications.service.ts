@@ -135,12 +135,18 @@ export class JobApplicationsService {
   }
 
   async findAll(): Promise<JobApplicationResponseDto[]> {
-    const applications = await this.jobApplicationModel.find().exec();
+    const applications = await this.jobApplicationModel
+      .find()
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .exec();
     return applications.map((app) => this.mapToResponseDto(app));
   }
 
   async findByJob(jobId: string): Promise<JobApplicationResponseDto[]> {
-    const applications = await this.jobApplicationModel.find({ jobId }).exec();
+    const applications = await this.jobApplicationModel
+      .find({ jobId })
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .exec();
     return applications.map((app) => this.mapToResponseDto(app));
   }
 

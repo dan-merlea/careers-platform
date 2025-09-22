@@ -16,6 +16,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { HeadcountRequest } from './headcount-request.model';
 import { UserRole } from '../users/schemas/user.schema';
+import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
 @Controller('headcount-requests')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -26,6 +27,7 @@ export class HeadcountRequestController {
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @LogAction('create_headcount_request', 'headcount_request')
   async create(
     @Body() createHeadcountRequestDto: any,
     @Req() req,
@@ -41,12 +43,18 @@ export class HeadcountRequestController {
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.MANAGER)
   async findAll(@Req() req): Promise<HeadcountRequest[]> {
     // Admin and directors can see all requests for their company
-    if (req.user.role === UserRole.ADMIN || req.user.role === UserRole.DIRECTOR) {
+    if (
+      req.user.role === UserRole.ADMIN ||
+      req.user.role === UserRole.DIRECTOR
+    ) {
       return this.headcountRequestService.findAll({}, req.user.companyId);
     }
 
     // Managers can only see their own requests
-    return this.headcountRequestService.findByUser(req.user.userId, req.user.companyId);
+    return this.headcountRequestService.findByUser(
+      req.user.userId,
+      req.user.companyId,
+    );
   }
 
   @Get(':id')
@@ -55,12 +63,17 @@ export class HeadcountRequestController {
     @Param('id') id: string,
     @Req() req,
   ): Promise<HeadcountRequest> {
-    const headcountRequest = await this.headcountRequestService.findOne(id, req.user.companyId);
+    const headcountRequest = await this.headcountRequestService.findOne(
+      id,
+      req.user.companyId,
+    );
 
     // Check if user has permission to view this request
-    if (req.user.role !== UserRole.ADMIN && 
-        req.user.role !== UserRole.DIRECTOR && 
-        headcountRequest.requestedBy.toString() !== req.user.userId) {
+    if (
+      req.user.role !== UserRole.ADMIN &&
+      req.user.role !== UserRole.DIRECTOR &&
+      headcountRequest.requestedBy.toString() !== req.user.userId
+    ) {
       throw new ForbiddenException(
         'You do not have permission to view this headcount request',
       );
@@ -70,34 +83,48 @@ export class HeadcountRequestController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.MANAGER)
+  @LogAction('update_headcount_request', 'headcount_request')
   async update(
     @Param('id') id: string,
     @Body() updateHeadcountRequestDto: any,
     @Req() req,
   ): Promise<HeadcountRequest> {
-    const headcountRequest = await this.headcountRequestService.findOne(id, req.user.companyId);
+    const headcountRequest = await this.headcountRequestService.findOne(
+      id,
+      req.user.companyId,
+    );
 
     // Only the creator or admin can update a request
-    if (req.user.role !== UserRole.ADMIN && 
-        headcountRequest.requestedBy.toString() !== req.user.userId) {
+    if (
+      req.user.role !== UserRole.ADMIN &&
+      headcountRequest.requestedBy.toString() !== req.user.userId
+    ) {
       throw new ForbiddenException(
         'You do not have permission to update this headcount request',
       );
     }
 
     // Cannot update if already approved/rejected
-    if (headcountRequest.status !== 'pending' && req.user.role !== UserRole.ADMIN) {
+    if (
+      headcountRequest.status !== 'pending' &&
+      req.user.role !== UserRole.ADMIN
+    ) {
       throw new ForbiddenException(
         'Cannot update a headcount request that has already been reviewed',
       );
     }
 
-    return this.headcountRequestService.update(id, updateHeadcountRequestDto, req.user.companyId);
+    return this.headcountRequestService.update(
+      id,
+      updateHeadcountRequestDto,
+      req.user.companyId,
+    );
   }
 
   @Post(':id/approve')
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
+  @LogAction('approve_headcount_request', 'headcount_request')
   async approve(
     @Param('id') id: string,
     @Body('reviewNotes') reviewNotes: string,
@@ -113,6 +140,7 @@ export class HeadcountRequestController {
 
   @Post(':id/reject')
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
+  @LogAction('reject_headcount_request', 'headcount_request')
   async reject(
     @Param('id') id: string,
     @Body('reviewNotes') reviewNotes: string,
@@ -128,10 +156,8 @@ export class HeadcountRequestController {
 
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  async remove(
-    @Param('id') id: string,
-    @Req() req,
-  ): Promise<void> {
+  @LogAction('delete_headcount_request', 'headcount_request')
+  async remove(@Param('id') id: string, @Req() req): Promise<void> {
     return this.headcountRequestService.remove(id, req.user.companyId);
   }
 }

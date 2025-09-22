@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../users/schemas/user.schema';
+import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
 @Controller('job-boards')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -24,6 +25,7 @@ export class JobBoardsController {
 
   @Post()
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @LogAction('create_job_board', 'job_board')
   create(
     @Body() createJobBoardDto: CreateJobBoardDto,
     @Req() req: { user: { companyId: string } },
@@ -54,32 +56,39 @@ export class JobBoardsController {
 
   @Patch(':id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  @LogAction('update_job_board', 'job_board')
   update(
     @Param('id') id: string,
     @Body() updateJobBoardDto: UpdateJobBoardDto,
     @Req() req: { user: { companyId: string } },
   ) {
     // Verify job board belongs to company
-    return this.jobBoardsService.update(id, updateJobBoardDto, req.user.companyId);
+    return this.jobBoardsService.update(
+      id,
+      updateJobBoardDto,
+      req.user.companyId,
+    );
   }
 
   @Delete(':id')
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
-  remove(
-    @Param('id') id: string,
-    @Req() req: { user: { companyId: string } },
-  ) {
+  @LogAction('delete_job_board', 'job_board')
+  remove(@Param('id') id: string, @Req() req: { user: { companyId: string } }) {
     // Verify job board belongs to company
     return this.jobBoardsService.remove(id, req.user.companyId);
   }
 
   @Post('external/:source')
   @Roles(UserRole.ADMIN)
+  @LogAction('create_external_job_board', 'job_board')
   createExternalJobBoard(
     @Param('source') source: 'greenhouse' | 'ashby',
     @Req() req: { user: { companyId: string } },
   ) {
     // Add company ID from authenticated user
-    return this.jobBoardsService.createExternalJobBoard(source, req.user.companyId);
+    return this.jobBoardsService.createExternalJobBoard(
+      source,
+      req.user.companyId,
+    );
   }
 }
