@@ -9,7 +9,8 @@ import {
   ChevronUpIcon,
   CalendarIcon,
   ClockIcon,
-  EyeIcon
+  EyeIcon,
+  UserPlusIcon
 } from '@heroicons/react/24/outline';
 import jobApplicationService, { JobApplicant } from '../../services/jobApplicationService';
 import interviewProcessService from '../../services/interviewProcessService';
@@ -355,9 +356,17 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
               <td className="px-6 py-4 whitespace-nowrap">
                 <div className="flex items-center">
                   <div>
-                    <Link to={`/applicants/${applicant.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">
-                      {applicant.firstName} {applicant.lastName}
-                    </Link>
+                    <div className="flex items-center">
+                      <Link to={`/applicants/${applicant.id}`} className="text-sm font-medium text-blue-600 hover:text-blue-800">
+                        {applicant.firstName} {applicant.lastName}
+                      </Link>
+                      {applicant.isReferral && (
+                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                          <UserPlusIcon className="h-3 w-3 mr-1" />
+                          Referral
+                        </span>
+                      )}
+                    </div>
                     <div className="text-sm text-gray-500">
                       {applicant.email}
                     </div>
@@ -464,6 +473,16 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                         </div>
                       )}
                     </div>
+                    
+                    {applicant.isReferral && applicant.refereeName && (
+                      <div className="p-2 rounded-lg border border-gray-200 bg-green-50">
+                        <span className="text-sm text-gray-500 block font-medium">Referred by:</span>
+                        <div className="text-sm flex items-center">
+                          <UserPlusIcon className="h-4 w-4 mr-1 text-green-600" />
+                          <span>{applicant.refereeName}</span>
+                        </div>
+                      </div>
+                    )}
                     
                     {selectedApplicantId && (
                       <div className="mt-4 border rounded-lg overflow-hidden">

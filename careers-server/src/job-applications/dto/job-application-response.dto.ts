@@ -12,6 +12,11 @@ export class JobApplicationResponseDto {
   jobId: string;
   status: string;
   interviewerVisibility?: boolean;
+  refereeId?: string;
+  refereeName?: string;
+  refereeEmail?: string;
+  refereeRelationship?: string;
+  isReferral?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

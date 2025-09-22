@@ -9,13 +9,11 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import ResumePage from './ResumePage';
 import TabNavigation from '../components/common/TabNavigation';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import EmptyState from '../components/common/EmptyState';
 import ConsiderationsEditor from '../components/interviews/ConsiderationsEditor';
 import { 
   ArrowLeftIcon, 
   CalendarIcon, 
   ClockIcon, 
-  MapPinIcon, 
   UserIcon, 
   DocumentTextIcon,
   ChatBubbleLeftRightIcon,
@@ -25,10 +23,12 @@ import {
   XMarkIcon,
   CheckIcon,
   ArrowTopRightOnSquareIcon as ExternalLinkIcon,
+  BriefcaseIcon
 } from '@heroicons/react/24/outline';
 import { StarIcon } from '@heroicons/react/24/solid';
 import interviewService, { Interview, Interviewer } from '../services/interviewService';
 import jobApplicationService, { JobApplicant } from '../services/jobApplicationService';
+import jobService, { Job } from '../services/jobService';
 import { formatDate, formatTime } from '../utils/dateUtils';
 import { toast } from 'react-toastify';
 
@@ -56,22 +56,24 @@ const InterviewDetailPage: React.FC = () => {
   // State for interview data
   const [interview, setInterview] = useState<Interview | null>(null);
   const [applicant, setApplicant] = useState<JobApplicant | null>(null);
+  const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoadingJob, setIsLoadingJob] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
   // Get tab from URL query params or default to 'info'
-  const getTabFromUrl = useCallback((): 'candidate' | 'resume' | 'feedback' | 'info' => {
+  const getTabFromUrl = useCallback((): 'candidate' | 'resume' | 'feedback' | 'info' | 'job' => {
     const queryParams = new URLSearchParams(location.search);
     const tabParam = queryParams.get('tab');
     
-    if (tabParam === 'resume' || tabParam === 'feedback' || tabParam === 'candidate') {
+    if (tabParam === 'resume' || tabParam === 'feedback' || tabParam === 'candidate' || tabParam === 'job') {
       return tabParam;
     }
     return 'info';
   }, [location.search]);
   
   // State for tabs
-  const [activeTab, setActiveTab] = useState<'candidate' | 'resume' | 'feedback' | 'info'>(getTabFromUrl());
+  const [activeTab, setActiveTab] = useState<'candidate' | 'resume' | 'feedback' | 'info' | 'job'>(getTabFromUrl());
   
   // Update active tab when URL changes
   useEffect(() => {
@@ -80,7 +82,7 @@ const InterviewDetailPage: React.FC = () => {
   
   // Handle tab change
   const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId as 'candidate' | 'resume' | 'feedback' | 'info');
+    setActiveTab(tabId as 'candidate' | 'resume' | 'feedback' | 'info' | 'job');
     navigate(`/interview/${id}?tab=${tabId}`, { replace: true });
   };
   
@@ -179,6 +181,19 @@ const InterviewDetailPage: React.FC = () => {
         if (interviewData.applicantId) {
           const applicantData = await jobApplicationService.getApplication(interviewData.applicantId);
           setApplicant(applicantData);
+          
+          // If we have a job ID from the applicant, pre-fetch the job details
+          if (applicantData.jobId && activeTab === 'job') {
+            setIsLoadingJob(true);
+            try {
+              const jobData = await jobService.getJob(applicantData.jobId);
+              setJob(jobData);
+            } catch (err) {
+              console.error('Error fetching job data:', err);
+            } finally {
+              setIsLoadingJob(false);
+            }
+          }
         }
         
       } catch (err) {
@@ -190,7 +205,7 @@ const InterviewDetailPage: React.FC = () => {
     };
     
     fetchInterviewData();
-  }, [id, userEmail, name, userId, location.search]); // Include location.search to react to URL changes
+  }, [id, userEmail, name, userId, location.search, activeTab]); // Include location.search and activeTab to react to URL changes
   
   // Resume is now handled by the ResumePage component
   
@@ -575,6 +590,11 @@ const InterviewDetailPage: React.FC = () => {
                     icon: <UserIcon className="w-5 h-5" />
                   },
                   {
+                    id: 'job',
+                    label: 'Job Details',
+                    icon: <BriefcaseIcon className="w-5 h-5" />
+                  },
+                  {
                     id: 'resume',
                     label: 'Resume',
                     icon: <DocumentTextIcon className="w-5 h-5" />
@@ -637,6 +657,104 @@ const InterviewDetailPage: React.FC = () => {
                 <div className="p-6 flex flex-col items-center justify-center text-center">
                   <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
                   <p className="text-gray-600">No resume available</p>
+                </div>
+              )}
+              
+              {/* Job Details Tab */}
+              {activeTab === 'job' && (
+                <div>
+                  <h2 className="text-lg font-semibold mb-4 flex items-center">
+                    <BriefcaseIcon className="w-5 h-5 mr-2 text-blue-600" />
+                    Job Details
+                  </h2>
+                  
+                  {isLoadingJob ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                    </div>
+                  ) : job ? (
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-md font-semibold mb-2">Position</h3>
+                        <p className="text-gray-800 text-lg">{job.title}</p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-md font-semibold mb-2">Company</h3>
+                        <p className="text-gray-800">{job.company?.name || 'Not specified'}</p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-md font-semibold mb-2">Location</h3>
+                        <p className="text-gray-800">{job.location || 'Not specified'}</p>
+                      </div>
+                      
+                      {job.departments && job.departments.length > 0 && (
+                        <div>
+                          <h3 className="text-md font-semibold mb-2">Department</h3>
+                          <div className="flex flex-wrap gap-2">
+                            {job.departments.map(dept => (
+                              <span key={dept.id} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                {dept.name}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {job.hiringManager && (
+                        <div>
+                          <h3 className="text-md font-semibold mb-2">Hiring Manager</h3>
+                          <p className="text-gray-800">{job.hiringManager.name}</p>
+                        </div>
+                      )}
+                      
+                      {job.createdBy && (
+                        <div>
+                          <h3 className="text-md font-semibold mb-2">Recruiter</h3>
+                          <div className="flex items-center">
+                            <UserIcon className="h-4 w-4 mr-2 text-blue-600" />
+                            <p className="text-gray-800">{job.createdBy.name}</p>
+                            {job.createdBy.email && (
+                              <a 
+                                href={`mailto:${job.createdBy.email}`} 
+                                className="ml-2 text-blue-600 hover:underline"
+                                title="Send email"
+                              >
+                                {job.createdBy.email}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <h3 className="text-md font-semibold mb-2">Job Description</h3>
+                        <div className="prose max-w-none bg-gray-50 p-4 rounded-md border border-gray-200">
+                          <div dangerouslySetInnerHTML={{ __html: job.content }} />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-6 flex flex-col items-center justify-center text-center">
+                      <BriefcaseIcon className="h-16 w-16 text-gray-400 mb-2" />
+                      <p className="text-gray-600">Job details not available</p>
+                      {applicant?.jobId && (
+                        <button
+                          onClick={() => {
+                            setIsLoadingJob(true);
+                            jobService.getJob(applicant.jobId)
+                              .then(jobData => setJob(jobData))
+                              .catch(err => console.error('Error fetching job data:', err))
+                              .finally(() => setIsLoadingJob(false));
+                          }}
+                          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                          Load Job Details
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               

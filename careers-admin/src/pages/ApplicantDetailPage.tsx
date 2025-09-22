@@ -12,6 +12,7 @@ import {
   UserCircleIcon,
   PaperAirplaneIcon,
   ClipboardDocumentCheckIcon,
+  UserPlusIcon,
 } from '@heroicons/react/24/outline';
 import jobApplicationService, { JobApplicant, Note } from '../services/jobApplicationService';
 import jobService, { Job } from '../services/jobService';
@@ -376,14 +377,14 @@ const ApplicantDetailPage: React.FC = () => {
               icon: <UserCircleIcon className="w-5 h-5" />
             },
             {
-              id: 'debrief',
-              label: 'Interview Debrief',
-              icon: <ClipboardDocumentCheckIcon className="w-5 h-5" />
-            },
-            {
               id: 'resume',
               label: 'Resume',
               icon: <DocumentTextIcon className="w-5 h-5" />
+            },
+            {
+              id: 'debrief',
+              label: 'Interviews Debrief',
+              icon: <ClipboardDocumentCheckIcon className="w-5 h-5" />
             }
           ]}
           activeTab={activeTab}
@@ -426,6 +427,35 @@ const ApplicantDetailPage: React.FC = () => {
                     <p className="font-medium">{applicant.phone || 'Not provided'}</p>
                   </div>
                 </div>
+                
+                {applicant.isReferral && (
+                  <div className="mb-6 bg-green-50 border border-green-100 rounded-lg p-4">
+                    <div className="flex items-center mb-2">
+                      <UserPlusIcon className="h-5 w-5 text-green-600 mr-2" />
+                      <span className="font-semibold text-green-700">Referral</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-3">
+                      <div>
+                        <span className="text-sm text-gray-500">Referred by:</span>
+                        <p className="font-medium">{applicant.refereeName || 'Unknown'}</p>
+                      </div>
+                      {applicant.refereeEmail && (
+                        <div>
+                          <span className="text-sm text-gray-500">Referee Email:</span>
+                          <p className="font-medium">{applicant.refereeEmail}</p>
+                        </div>
+                      )}
+                    </div>
+                    {applicant.refereeRelationship && (
+                      <div>
+                        <span className="text-sm text-gray-500 block mb-1">Relationship & Fit:</span>
+                        <div className="bg-white p-3 rounded border border-green-200">
+                          <p className="text-sm">{applicant.refereeRelationship}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                   <div>

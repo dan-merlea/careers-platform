@@ -28,6 +28,7 @@ interface RequestWithUser extends Request {
 }
 import { JobApplicationsService } from './job-applications.service';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto';
+import { CreateReferralDto } from './dto/create-referral.dto';
 import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { ScheduleInterviewDto } from './dto/schedule-interview.dto';
@@ -97,6 +98,41 @@ export class JobApplicationsController {
     return this.jobApplicationsService.create(createJobApplicationDto, file);
   }
 
+  @Post('referral')
+  @UseGuards(JwtAuthGuard)
+  @LogAction('create_referral', 'job_application')
+  @UseInterceptors(
+    FileInterceptor('resume', {
+      storage: memoryStorage(), // Use memory storage for GridFS
+      fileFilter,
+      limits: {
+        fileSize: 3 * 1024 * 1024, // 3MB limit
+      },
+    }),
+  )
+  async createReferral(
+    @Body() createReferralDto: CreateReferralDto,
+    @UploadedFile() file: MulterFile,
+    @Req() req: RequestWithUser,
+  ) {
+    if (!file) {
+      throw new BadRequestException('Resume file is required');
+    }
+
+    // Verify that the referee ID matches the current user or the user has admin/recruiter role
+    const userId = req.user.userId;
+    if (
+      createReferralDto.refereeId !== userId &&
+      !['admin', 'recruiter'].includes(req.user.role as string)
+    ) {
+      throw new ForbiddenException(
+        'You can only create referrals for yourself',
+      );
+    }
+
+    return this.jobApplicationsService.createReferral(createReferralDto, file);
+  }
+
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
@@ -109,6 +145,13 @@ export class JobApplicationsController {
   @Roles(UserRole.ADMIN, UserRole.RECRUITER, UserRole.MANAGER)
   findByJob(@Param('jobId') jobId: string) {
     return this.jobApplicationsService.findByJob(jobId);
+  }
+
+  @Get('referrals')
+  @UseGuards(JwtAuthGuard)
+  findReferralsByUser(@Req() req: RequestWithUser) {
+    const userId = req.user.userId;
+    return this.jobApplicationsService.findReferralsByRefereeId(userId);
   }
 
   @Get(':id')
@@ -124,7 +167,10 @@ export class JobApplicationsController {
    */
   @Get(':id/interviewer-access')
   @UseGuards(JwtAuthGuard)
-  async findOneForInterviewer(@Param('id') id: string, @Req() req: RequestWithUser) {
+  async findOneForInterviewer(
+    @Param('id') id: string,
+    @Req() req: RequestWithUser,
+  ) {
     const userId = req.user.userId;
     return this.jobApplicationsService.findOneForInterviewer(id, userId);
   }

@@ -28,23 +28,26 @@ export class Interview {
 
   @Prop({ default: '' })
   status: string;
-  
+
   @Prop()
   cancellationReason?: string;
-  
+
   @Prop()
   location?: string;
-  
+
   @Prop()
   onlineMeetingUrl?: string;
-  
+
   @Prop()
   meetingId?: string;
-  
+
   @Prop()
   meetingPassword?: string;
-  
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'InterviewProcess' })
+
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'InterviewProcess',
+  })
   processId?: Types.ObjectId;
 
   @Prop({
@@ -151,6 +154,21 @@ export class JobApplication {
   @Prop({ type: Boolean, default: false })
   interviewerVisibility: boolean;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
+  refereeId?: Types.ObjectId;
+
+  @Prop()
+  refereeName?: string;
+
+  @Prop()
+  refereeEmail?: string;
+
+  @Prop()
+  refereeRelationship?: string;
+
+  @Prop({ type: Boolean, default: false })
+  isReferral: boolean;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 
@@ -179,7 +197,10 @@ export class JobApplication {
         stage: { type: String, default: '' },
         status: { type: String, default: '' },
         cancellationReason: String,
-        processId: { type: MongooseSchema.Types.ObjectId, ref: 'InterviewProcess' },
+        processId: {
+          type: MongooseSchema.Types.ObjectId,
+          ref: 'InterviewProcess',
+        },
         interviewers: [
           {
             userId: {

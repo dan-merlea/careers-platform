@@ -64,8 +64,11 @@ export const apiRequest = async <T>(
 ): Promise<T> => {
   const token = getAuthToken();
   
+  // Don't set Content-Type for FormData, browser will set it with boundary
+  const isFormData = options.body instanceof FormData;
+  
   const headers = {
-    'Content-Type': 'application/json',
+    ...(!isFormData ? { 'Content-Type': 'application/json' } : {}),
     ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
     ...options.headers,
   };
@@ -100,7 +103,7 @@ export const apiRequest = async <T>(
   // For all other successful responses, try to parse JSON
   try {
     return await response.json();
-  } catch (error) {
+  } catch {
     // If parsing fails (e.g., empty body), return empty object
     return {} as T;
   }
@@ -117,7 +120,7 @@ export const api = {
     apiRequest<T>(endpoint, { 
       ...options, 
       method: 'POST',
-      body: data ? JSON.stringify(data) : undefined,
+      body: data instanceof FormData ? data : (data ? JSON.stringify(data) : undefined),
     }),
     
   put: <T>(endpoint: string, data?: any, options?: RequestInit) => 

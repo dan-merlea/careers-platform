@@ -17,6 +17,7 @@ import {
   Interviewer,
 } from './schemas/job-application.schema';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto';
+import { CreateReferralDto } from './dto/create-referral.dto';
 import { JobApplicationResponseDto } from './dto/job-application-response.dto';
 import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
 import { CreateNoteDto } from './dto/create-note.dto';
@@ -71,6 +72,60 @@ export class JobApplicationsService {
       resumeFilename: file.originalname,
       resumeMimeType: file.mimetype,
       consentExpiresAt,
+      status: 'new', // Automatically set status to 'new'
+    });
+
+    // Save to database
+    const savedApplication = await newJobApplication.save();
+
+    return this.mapToResponseDto(savedApplication);
+  }
+
+  /**
+   * Create a job application as a referral
+   * @param createReferralDto The referral data
+   * @param file The resume file
+   * @returns The created job application
+   */
+  async createReferral(
+    createReferralDto: CreateReferralDto,
+    file: MulterFile,
+  ): Promise<JobApplicationResponseDto> {
+    // Calculate consent expiration date
+    const consentExpiresAt = new Date();
+    consentExpiresAt.setMonth(
+      consentExpiresAt.getMonth() + createReferralDto.consentDuration,
+    );
+
+    // Upload file to GridFS
+    const fileId = await this.gridFsService.uploadFile(file, {
+      jobId: createReferralDto.jobId,
+      applicantEmail: createReferralDto.email,
+    });
+
+    // Get referee user information
+    const referee = await this.userModel
+      .findById(createReferralDto.refereeId)
+      .exec();
+    if (!referee) {
+      throw new NotFoundException(
+        `User with ID ${createReferralDto.refereeId} not found`,
+      );
+    }
+
+    // Create new job application
+    const newJobApplication = new this.jobApplicationModel({
+      ...createReferralDto,
+      resumeId: fileId,
+      resumeFilename: file.originalname,
+      resumeMimeType: file.mimetype,
+      consentExpiresAt,
+      status: 'new', // Automatically set status to 'new'
+      isReferral: true,
+      refereeId: new Types.ObjectId(createReferralDto.refereeId),
+      refereeName: referee.name,
+      refereeEmail: referee.email,
+      refereeRelationship: createReferralDto.refereeRelationship,
     });
 
     // Save to database
@@ -86,6 +141,25 @@ export class JobApplicationsService {
 
   async findByJob(jobId: string): Promise<JobApplicationResponseDto[]> {
     const applications = await this.jobApplicationModel.find({ jobId }).exec();
+    return applications.map((app) => this.mapToResponseDto(app));
+  }
+
+  /**
+   * Find all referrals made by a specific user
+   * @param refereeId The ID of the referee user
+   * @returns Array of job applications that were referred by the user
+   */
+  async findReferralsByRefereeId(
+    refereeId: string,
+  ): Promise<JobApplicationResponseDto[]> {
+    const applications = await this.jobApplicationModel
+      .find({
+        refereeId: new Types.ObjectId(refereeId),
+        isReferral: true,
+      })
+      .sort({ createdAt: -1 }) // Sort by newest first
+      .exec();
+
     return applications.map((app) => this.mapToResponseDto(app));
   }
 
@@ -685,6 +759,11 @@ export class JobApplicationsService {
           : application.jobId,
       status: application.status,
       interviewerVisibility: application.interviewerVisibility || false,
+      refereeId: application.refereeId?.toString(),
+      refereeName: application.refereeName,
+      refereeEmail: application.refereeEmail,
+      refereeRelationship: application.refereeRelationship,
+      isReferral: application.isReferral || false,
       createdAt: application.createdAt,
       updatedAt: application.updatedAt,
     };

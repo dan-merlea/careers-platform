@@ -28,6 +28,7 @@ import InterviewProcessEditPage from './pages/InterviewProcessEditPage';
 import InterviewProcessDetailPage from './pages/InterviewProcessDetailPage';
 import InterviewDetailPage from './pages/InterviewDetailPage';
 import ApplicantDetailPage from './pages/ApplicantDetailPage';
+import ReferralPage from './pages/ReferralPage';
 import LogsPage from './pages/LogsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CompanyProvider } from './context/CompanyContext';
@@ -335,6 +336,12 @@ const AppRoutes: React.FC = () => {
                     <ApplicantDetailPage />
                   </RoleGuard>
                 }
+              />
+              
+              {/* Referral Page - accessible to all authenticated users */}
+              <Route
+                path="/referrals"
+                element={<ReferralPage />}
               />
               
               {/* Access control pages */}

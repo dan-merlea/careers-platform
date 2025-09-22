@@ -16,7 +16,8 @@ import {
   BugAntIcon,
   XMarkIcon,
   ClipboardDocumentCheckIcon,
-  ClipboardDocumentListIcon
+  ClipboardDocumentListIcon,
+  UserPlusIcon
 } from '@heroicons/react/24/outline';
 
 interface SidebarLinkProps {
@@ -31,10 +32,10 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, text, isActive, onC
   return (
     <Link 
       to={to} 
-      className={`flex items-center gap-3 rounded-lg transition-colors ${
+      className={`flex items-center gap-3 rounded-lg transition-colors py-2 my-1 px-2 ${
         isActive 
-          ? 'bg-blue-100 text-blue-700 px-5 py-3 m-2' 
-          : 'text-gray-700 hover:bg-gray-100 px-4 py-3 m-2'
+          ? 'bg-blue-100 text-blue-700 px-5' 
+          : 'text-gray-700 hover:bg-gray-100 px-4'
       }`}
       onClick={onClick}
     >
@@ -121,6 +122,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
     { path: '/jobs', text: 'Openings', icon: <BriefcaseIcon />, roles: ['admin', 'director', 'manager'] },
     { path: '/headcount', text: 'Headcount', icon: <UsersIcon />, roles: ['admin', 'director', 'manager'] },
     { path: '/interviews', text: 'Interviews', icon: <ClipboardDocumentCheckIcon />, roles: ['admin', 'director', 'recruiter', 'user'] },
+    { path: '/referrals', text: 'Refer a Candidate', icon: <UserPlusIcon />, roles: ['admin', 'director', 'manager', 'recruiter', 'user'] },
     { path: '/logs', text: 'Activity Logs', icon: <ClipboardDocumentListIcon />, roles: ['admin'] },
     { path: '/analytics', text: 'Analytics', icon: <ChartBarIcon />, roles: ['admin', 'manager'] },
     { path: '/reports', text: 'Reports', icon: <DocumentTextIcon />, roles: ['admin', 'manager', 'recruiter'] },

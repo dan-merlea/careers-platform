@@ -27,6 +27,11 @@ export interface JobApplicant {
   status: string;
   jobId: string;
   interviewerVisibility?: boolean; // Whether interviewers can see each other's feedback
+  refereeId?: string; // ID of the user who referred this applicant
+  refereeName?: string; // Name of the user who referred this applicant
+  refereeEmail?: string; // Email of the user who referred this applicant
+  refereeRelationship?: string; // Description of how the referee knows the applicant and why they're a good fit
+  isReferral?: boolean; // Whether this applicant was referred
 }
 
 export interface Note {
@@ -37,10 +42,30 @@ export interface Note {
   updatedAt: Date;
 }
 
+export interface CreateReferralRequest {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  linkedin?: string;
+  website?: string;
+  consentDuration: number;
+  jobId: string;
+  refereeId: string;
+  refereeRelationship?: string;
+  resume: File;
+}
+
 const jobApplicationService = {
   // Get all applications for a specific job
   getApplicationsByJobId: async (jobId: string): Promise<JobApplicant[]> => {
     const response = await api.get<JobApplicant[]>(`/job-applications/job/${jobId}`);
+    return response;
+  },
+
+  // Get all referrals made by the current user
+  getUserReferrals: async (): Promise<JobApplicant[]> => {
+    const response = await api.get<JobApplicant[]>('/job-applications/referrals');
     return response;
   },
 
@@ -208,6 +233,38 @@ const jobApplicationService = {
       await api.delete(`/job-applications/${applicantId}/notes/${noteIndex}`);
     } catch (error) {
       console.error('Error deleting note:', error);
+      throw error;
+    }
+  },
+  
+  // Create a referral
+  createReferral: async (referralData: CreateReferralRequest): Promise<JobApplicant> => {
+    try {
+      // Create a FormData object to send the file
+      const formData = new FormData();
+      
+      // Append the resume file
+      formData.append('resume', referralData.resume);
+      
+      // Append all other fields
+      formData.append('firstName', referralData.firstName);
+      formData.append('lastName', referralData.lastName);
+      formData.append('email', referralData.email);
+      if (referralData.phone) formData.append('phone', referralData.phone);
+      if (referralData.linkedin) formData.append('linkedin', referralData.linkedin);
+      if (referralData.website) formData.append('website', referralData.website);
+      if (referralData.refereeRelationship) formData.append('refereeRelationship', referralData.refereeRelationship);
+      formData.append('consentDuration', referralData.consentDuration.toString());
+      formData.append('jobId', referralData.jobId);
+      formData.append('refereeId', referralData.refereeId);
+      
+      // Send the request
+      // Don't set Content-Type header for FormData - browser will set it correctly with boundary
+      const response = await api.post<JobApplicant>('/job-applications/referral', formData);
+      
+      return response;
+    } catch (error) {
+      console.error('Error creating referral:', error);
       throw error;
     }
   }
