@@ -26,6 +26,7 @@ import { ScheduleInterviewDto } from './dto/schedule-interview.dto';
 import { InterviewDto } from './dto/get-interview.dto';
 import { User } from '../users/schemas/user.schema';
 import { GridFsService } from '../gridfs/gridfs.service';
+import { NotificationGeneratorService } from '../notifications/notification-generator.service';
 
 interface MulterFile {
   fieldname: string;
@@ -47,6 +48,7 @@ export class JobApplicationsService {
     @InjectModel(User.name) private userModel: Model<User>,
     private readonly gridFsService: GridFsService,
     private readonly calendarProviderService: CalendarProviderService,
+    private readonly notificationGenerator: NotificationGeneratorService,
   ) {}
 
   async create(

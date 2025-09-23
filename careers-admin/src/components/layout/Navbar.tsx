@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { departmentService } from '../../services/departmentService';
 import { 
-  BellIcon, 
   MagnifyingGlassIcon,
   UserCircleIcon,
   Bars3Icon
 } from '@heroicons/react/24/outline';
+import NotificationBell from '../notifications/NotificationBell';
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -67,10 +67,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isMobile }) => {
       </div>
       
       <div className="flex items-center gap-4">
-        <button className="relative p-1 rounded-full text-gray-600 hover:bg-gray-100">
-          <BellIcon className="w-6 h-6" />
-          <span className="absolute top-0 right-0 block h-2 w-2 rounded-full bg-red-500"></span>
-        </button>
+        <NotificationBell />
         
         <Link to="/profile" className="flex items-center gap-2 hover:bg-gray-100 p-2 rounded-lg">
           <UserCircleIcon className="w-8 h-8 text-gray-600" />

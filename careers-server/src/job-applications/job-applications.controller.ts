@@ -19,6 +19,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { LogAction } from '../user-logs/user-logs.interceptor';
+import { NotifyOn } from '../notifications/notification.interceptor';
 import { memoryStorage } from 'multer';
 import type { Response } from 'express';
 
@@ -78,6 +79,7 @@ export class JobApplicationsController {
 
   @Post()
   @LogAction('create_application', 'job_application')
+  @NotifyOn('job_application_created')
   @UseInterceptors(
     FileInterceptor('resume', {
       storage: memoryStorage(), // Use memory storage for GridFS
@@ -101,6 +103,7 @@ export class JobApplicationsController {
   @Post('referral')
   @UseGuards(JwtAuthGuard)
   @LogAction('create_referral', 'job_application')
+  @NotifyOn('job_application_created')
   @UseInterceptors(
     FileInterceptor('resume', {
       storage: memoryStorage(), // Use memory storage for GridFS

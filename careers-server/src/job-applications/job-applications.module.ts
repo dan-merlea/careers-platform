@@ -7,6 +7,7 @@ import { JobApplication, JobApplicationSchema } from './schemas/job-application.
 import { GridFsModule } from '../gridfs/gridfs.module';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { CalendarModule } from '../calendar/calendar.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { CalendarModule } from '../calendar/calendar.module';
     MulterModule.register({}),
     GridFsModule,
     CalendarModule,
+    NotificationsModule,
   ],
   controllers: [JobApplicationsController],
   providers: [JobApplicationsService],

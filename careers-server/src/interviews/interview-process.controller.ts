@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { InterviewProcessService } from './interview-process.service';
+import { LogAction } from '../user-logs/user-logs.interceptor';
 import type {
   InterviewProcessCreateDto,
   InterviewProcessUpdateDto,

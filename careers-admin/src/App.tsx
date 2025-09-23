@@ -32,6 +32,7 @@ import ReferralPage from './pages/ReferralPage';
 import LogsPage from './pages/LogsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CompanyProvider } from './context/CompanyContext';
+import { NotificationProvider } from './context/NotificationContext';
 import RoleGuard from './components/guards/RoleGuard';
 import InterviewAccessGuard from './components/guards/InterviewAccessGuard';
 import SessionExpiredNotification from './components/notifications/SessionExpiredNotification';
@@ -118,8 +119,9 @@ const AppRoutes: React.FC = () => {
       <Route path="/*" element={
         <ProtectedRoute>
           <CompanyProvider>
-            <Layout>
-              <Routes>
+            <NotificationProvider>
+              <Layout>
+                <Routes>
               <Route path="/" element={<HomePage />} />
               
               {/* Admin-only routes */}
@@ -353,8 +355,9 @@ const AppRoutes: React.FC = () => {
               
               {/* Add more role-based routes as needed */}
               <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            </Layout>
+              </Routes>
+              </Layout>
+            </NotificationProvider>
           </CompanyProvider>
         </ProtectedRoute>
       } />
