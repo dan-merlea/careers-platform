@@ -8,6 +8,12 @@ export class UserLog {
   @Prop({ required: true })
   userId: string;
 
+  @Prop()
+  userName?: string;
+
+  @Prop()
+  userEmail?: string;
+
   @Prop({ required: true })
   action: string;
 

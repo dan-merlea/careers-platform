@@ -3,6 +3,8 @@ import { api } from '../utils/api';
 export interface UserLog {
   id: string;
   userId: string;
+  userName?: string;
+  userEmail?: string;
   action: string;
   resourceType: string;
   resourceId?: string;

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserLog, UserLogDocument } from './schemas/user-log.schema';
+import { User, UserDocument } from '../users/schemas/user.schema';
 import { Request } from 'express';
 
 export interface CreateLogDto {
@@ -17,6 +18,7 @@ export interface CreateLogDto {
 export class UserLogsService {
   constructor(
     @InjectModel(UserLog.name) private userLogModel: Model<UserLogDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
   /**
@@ -40,6 +42,20 @@ export class UserLogsService {
     if (request && typeof request === 'object' && 'headers' in request) {
       logData.ip = this.getClientIp(request);
       logData.userAgent = (request.headers['user-agent'] as string) || '';
+    }
+
+    // Fetch user information if userId is provided
+    if (userId && userId !== 'anonymous') {
+      try {
+        const user = await this.userModel.findById(userId).exec();
+        if (user) {
+          logData.userName = user.name;
+          logData.userEmail = user.email;
+        }
+      } catch (error) {
+        console.error('Error fetching user for logging:', error);
+        // Continue with logging even if user fetch fails
+      }
     }
 
     const newLog = new this.userLogModel(logData);

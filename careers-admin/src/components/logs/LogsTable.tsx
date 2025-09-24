@@ -106,7 +106,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
                     </span>
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {log.userId}
+                    {log.userName || log.userEmail || log.userId}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     {formatLogTimestamp(log.createdAt)}
