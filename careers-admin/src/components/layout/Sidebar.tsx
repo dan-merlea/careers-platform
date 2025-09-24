@@ -40,7 +40,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, text, isActive, onC
       onClick={onClick}
     >
       <div className="w-6 h-6">{icon}</div>
-      <span className="font-medium">{text}</span>
+      <span className="font-medium text-sm">{text}</span>
     </Link>
   );
 };
@@ -158,7 +158,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
       <div className="p-4 border-b border-gray-200 flex justify-between items-center">
         <div className="flex items-center">
           <img src="/logo.svg" alt="Hatch Beacon Logo" className="h-8 w-8 mr-2" />
-          <h1 className="text-xl font-bold" style={{ color: '#022427' }}>Hatch Beacon</h1>
+          <h1 className="text-lg font-bold" style={{ color: '#022427' }}>Hatch Beacon</h1>
         </div>
         
         {isMobile && (
@@ -204,7 +204,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
           className="flex items-center gap-3 text-gray-700 hover:text-red-600 transition-colors w-full"
         >
           <ArrowLeftOnRectangleIcon className="w-6 h-6" />
-          <span className="font-medium">Logout</span>
+          <span className="font-medium text-sm">Logout</span>
         </button>
       </div>
     </div>
