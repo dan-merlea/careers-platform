@@ -40,7 +40,7 @@ const InterviewProcessDetailPage: React.FC = () => {
       try {
         await interviewProcessService.deleteProcess(id);
         toast.success('Interview process deleted successfully');
-        navigate('/interviews');
+        navigate('/interviews?tab=processes');
       } catch (err) {
         console.error('Error deleting interview process:', err);
         toast.error('Failed to delete interview process');
@@ -66,7 +66,7 @@ const InterviewProcessDetailPage: React.FC = () => {
         </div>
         <div className="mt-4">
           <button 
-            onClick={() => navigate('/interviews')}
+            onClick={() => navigate('/interviews?tab=processes')}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Back to Interview Processes
@@ -81,7 +81,7 @@ const InterviewProcessDetailPage: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <button 
-            onClick={() => navigate('/interviews')}
+            onClick={() => navigate('/interviews?tab=processes')}
             className="mr-4 p-2 hover:bg-gray-100 rounded-full"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -92,7 +92,7 @@ const InterviewProcessDetailPage: React.FC = () => {
         </div>
         <div className="flex space-x-2">
           <Link
-            to={`/interviews/${id}/edit`}
+            to={`/interview-processes/${id}/edit`}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">

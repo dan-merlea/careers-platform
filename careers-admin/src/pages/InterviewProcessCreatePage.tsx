@@ -13,7 +13,7 @@ const InterviewProcessCreatePage: React.FC = () => {
       // We know this is a create operation, so we can safely cast to InterviewProcessCreateDto
       await interviewProcessService.createProcess(formData as InterviewProcessCreateDto);
       toast.success('Interview process created successfully');
-      navigate('/interviews');
+      navigate('/interviews?tab=processes');
     } catch (err) {
       console.error('Error creating interview process:', err);
       setError('Failed to create interview process. Please try again.');
@@ -24,7 +24,7 @@ const InterviewProcessCreatePage: React.FC = () => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Create Interview Process</h1>
+        <h1 className="text-xl font-bold text-gray-800">Create Interview Process</h1>
         <p className="text-gray-600 mt-1">
           Define a new interview process with multiple stages for a specific job role.
         </p>

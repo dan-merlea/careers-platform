@@ -555,7 +555,7 @@ const InterviewDetailPage: React.FC = () => {
           </button>
           <div>
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-800">
+              <h1 className="text-xl font-bold text-gray-800">
                 {interview.title}
               </h1>
               {interview.status === 'cancelled' && (
@@ -618,7 +618,7 @@ const InterviewDetailPage: React.FC = () => {
               {/* Candidate Information Tab */}
               {activeTab === 'info' && applicant && (
                 <div>
-                  <h2 className="text-lg font-semibold mb-4 flex items-center">
+                  <h2 className="text-base font-semibold mb-4 flex items-center">
                     <UserIcon className="w-5 h-5 mr-2 text-blue-600" />
                     {applicant.firstName} {applicant.lastName}
                   </h2>
@@ -626,24 +626,24 @@ const InterviewDetailPage: React.FC = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                       <span className="text-sm text-gray-500">Email:</span>
-                      <p className="font-medium">{applicant.email}</p>
+                      <p className="font-medium text-sm">{applicant.email}</p>
                     </div>
                     <div>
                       <span className="text-sm text-gray-500">Phone:</span>
-                      <p className="font-medium">{applicant.phone || 'Not provided'}</p>
+                      <p className="font-medium text-sm">{applicant.phone || 'Not provided'}</p>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                       <span className="text-sm text-gray-500">Applied For:</span>
-                      <p className="font-medium">{interview.jobTitle}</p>
+                      <p className="font-medium text-sm">{interview.jobTitle}</p>
                     </div>
                     <div>
                       <span className="text-sm text-gray-500">Application Date:</span>
                       <div className="flex items-center">
                         <CalendarIcon className="h-4 w-4 mr-1 text-gray-500" />
-                        <span className="font-medium">{formatDate(applicant.createdAt)}</span>
+                        <span className="font-medium text-sm">{formatDate(applicant.createdAt)}</span>
                       </div>
                     </div>
                   </div>
@@ -656,14 +656,14 @@ const InterviewDetailPage: React.FC = () => {
               ) : activeTab === 'resume' && (
                 <div className="p-6 flex flex-col items-center justify-center text-center">
                   <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
-                  <p className="text-gray-600">No resume available</p>
+                  <p className="text-gray-600 text-sm">No resume available</p>
                 </div>
               )}
               
               {/* Job Details Tab */}
               {activeTab === 'job' && (
                 <div>
-                  <h2 className="text-lg font-semibold mb-4 flex items-center">
+                  <h2 className="text-base font-semibold mb-4 flex items-center">
                     <BriefcaseIcon className="w-5 h-5 mr-2 text-blue-600" />
                     Job Details
                   </h2>
@@ -675,23 +675,23 @@ const InterviewDetailPage: React.FC = () => {
                   ) : job ? (
                     <div className="space-y-6">
                       <div>
-                        <h3 className="text-md font-semibold mb-2">Position</h3>
-                        <p className="text-gray-800 text-lg">{job.title}</p>
+                        <h3 className="text-sm font-semibold mb-2">Position</h3>
+                        <p className="text-gray-800 text-base">{job.title}</p>
                       </div>
                       
                       <div>
-                        <h3 className="text-md font-semibold mb-2">Company</h3>
-                        <p className="text-gray-800">{job.company?.name || 'Not specified'}</p>
+                        <h3 className="text-sm font-semibold mb-2">Company</h3>
+                        <p className="text-gray-800 text-base">{job.company?.name || 'Not specified'}</p>
                       </div>
                       
                       <div>
-                        <h3 className="text-md font-semibold mb-2">Location</h3>
-                        <p className="text-gray-800">{job.location || 'Not specified'}</p>
+                        <h3 className="text-sm font-semibold mb-2">Location</h3>
+                        <p className="text-gray-800 text-base">{job.location || 'Not specified'}</p>
                       </div>
                       
                       {job.departments && job.departments.length > 0 && (
                         <div>
-                          <h3 className="text-md font-semibold mb-2">Department</h3>
+                          <h3 className="text-sm font-semibold mb-2">Department</h3>
                           <div className="flex flex-wrap gap-2">
                             {job.departments.map(dept => (
                               <span key={dept.id} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
@@ -704,14 +704,14 @@ const InterviewDetailPage: React.FC = () => {
                       
                       {job.hiringManager && (
                         <div>
-                          <h3 className="text-md font-semibold mb-2">Hiring Manager</h3>
+                          <h3 className="text-sm font-semibold mb-2">Hiring Manager</h3>
                           <p className="text-gray-800">{job.hiringManager.name}</p>
                         </div>
                       )}
                       
                       {job.createdBy && (
                         <div>
-                          <h3 className="text-md font-semibold mb-2">Recruiter</h3>
+                          <h3 className="text-sm font-semibold mb-2">Recruiter</h3>
                           <div className="flex items-center">
                             <UserIcon className="h-4 w-4 mr-2 text-blue-600" />
                             <p className="text-gray-800">{job.createdBy.name}</p>
@@ -729,7 +729,7 @@ const InterviewDetailPage: React.FC = () => {
                       )}
                       
                       <div>
-                        <h3 className="text-md font-semibold mb-2">Job Description</h3>
+                        <h3 className="text-sm font-semibold mb-2">Job Description</h3>
                         <div className="prose max-w-none bg-gray-50 p-4 rounded-md border border-gray-200">
                           <div dangerouslySetInnerHTML={{ __html: job.content }} />
                         </div>
@@ -761,7 +761,7 @@ const InterviewDetailPage: React.FC = () => {
               {/* Feedback Tab */}
               {activeTab === 'feedback' && isInterviewer && (
                 <div>
-                  <h2 className="text-lg font-semibold mb-4 flex items-center justify-between">
+                  <h2 className="text-base font-semibold mb-4 flex items-center justify-between">
                     <div className="flex items-center">
                       <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2 text-blue-600" />
                       {hasExistingFeedback && !isEditingFeedback ? 'Your Feedback' : 'Interview Feedback'}
@@ -770,7 +770,7 @@ const InterviewDetailPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setIsEditingFeedback(true)}
-                        className="text-sm bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 flex items-center"
+                        className="text-xs bg-blue-600 text-white py-1 px-2 rounded-md hover:bg-blue-700 flex items-center"
                       >
                         <PencilIcon className="h-4 w-4 mr-1" />
                         Edit Feedback
@@ -785,7 +785,7 @@ const InterviewDetailPage: React.FC = () => {
                   ) : hasExistingFeedback && !isEditingFeedback ? (
                     <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
                       <div className="mb-6">
-                        <h3 className="text-md font-semibold mb-2">Overall Rating</h3>
+                        <h3 className="text-sm font-semibold mb-2">Overall Rating</h3>
                         <div className="flex items-center">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <span
@@ -802,7 +802,7 @@ const InterviewDetailPage: React.FC = () => {
                       </div>
                       
                       <div className="mb-6">
-                        <h3 className="text-md font-semibold mb-2">Decision</h3>
+                        <h3 className="text-sm font-semibold mb-2">Decision</h3>
                         <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium
                           ${feedback.decision === 'definitely_yes' ? 'bg-emerald-100 text-emerald-800' : ''}
                           ${feedback.decision === 'yes' ? 'bg-green-100 text-green-800' : ''}
@@ -819,7 +819,7 @@ const InterviewDetailPage: React.FC = () => {
                       
                       {hasExistingFeedback && !isEditingFeedback && (
                         <div className="mb-6">
-                          <h3 className="text-md font-semibold mb-2">Considerations</h3>
+                          <h3 className="text-sm font-semibold mb-2">Considerations</h3>
                           <ConsiderationsEditor
                             interview={interview}
                             isEditable={false}
@@ -835,7 +835,7 @@ const InterviewDetailPage: React.FC = () => {
                       )}
                       
                       <div className="mb-6">
-                        <h3 className="text-md font-semibold mb-2">Comments</h3>
+                        <h3 className="text-sm font-semibold mb-2">Comments</h3>
                         <div className="prose max-w-none bg-white p-4 rounded-md border border-gray-200" 
                           dangerouslySetInnerHTML={{ __html: feedback.comments || '<p>No comments provided</p>' }}></div>
                       </div>
@@ -843,7 +843,7 @@ const InterviewDetailPage: React.FC = () => {
                   ) : (
                     <>
                       <div className="mb-6">
-                        <h3 className="text-md font-semibold mb-2">Overall Rating</h3>
+                        <h3 className="text-sm font-semibold mb-2">Overall Rating</h3>
                         <div className="flex items-center">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
@@ -881,7 +881,7 @@ const InterviewDetailPage: React.FC = () => {
                       </div>
                     
                       <div className="mb-6">
-                        <h3 className="text-md font-semibold mb-2">Comments</h3>
+                        <h3 className="text-sm font-semibold mb-2">Comments</h3>
                         <ReactQuill
                           theme="snow"
                           value={feedback.comments}
@@ -909,12 +909,12 @@ const InterviewDetailPage: React.FC = () => {
                       </div>
                     
                       <div className="mb-6">
-                        <h3 className="text-md font-semibold mb-2">Final Decision</h3>
+                        <h3 className="text-sm font-semibold mb-2">Final Decision</h3>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                           <button
                             type="button"
                             onClick={() => handleDecisionChange('definitely_no')}
-                            className={`py-2 px-4 rounded-md ${
+                            className={`py-1.5 px-3 text-sm rounded-md ${
                               feedback.decision === 'definitely_no'
                                 ? 'bg-red-600 text-white'
                                 : 'bg-red-100 text-red-800 hover:bg-red-200'
@@ -925,7 +925,7 @@ const InterviewDetailPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleDecisionChange('no')}
-                            className={`py-2 px-4 rounded-md ${
+                            className={`py-1.5 px-3 text-sm rounded-md ${
                               feedback.decision === 'no'
                                 ? 'bg-orange-600 text-white'
                                 : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
@@ -936,7 +936,7 @@ const InterviewDetailPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleDecisionChange('yes')}
-                            className={`py-2 px-4 rounded-md ${
+                            className={`py-1.5 px-3 text-sm rounded-md ${
                               feedback.decision === 'yes'
                                 ? 'bg-green-600 text-white'
                                 : 'bg-green-100 text-green-800 hover:bg-green-200'
@@ -947,7 +947,7 @@ const InterviewDetailPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleDecisionChange('definitely_yes')}
-                            className={`py-2 px-4 rounded-md ${
+                            className={`py-1.5 px-3 text-sm rounded-md ${
                               feedback.decision === 'definitely_yes'
                                 ? 'bg-emerald-600 text-white'
                                 : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
@@ -964,7 +964,7 @@ const InterviewDetailPage: React.FC = () => {
                             type="button"
                             onClick={handleCancelFeedbackEditing}
                             disabled={isSavingFeedback || isLoadingFeedback}
-                            className="border border-gray-300 bg-white text-gray-700 py-2 px-6 rounded-md hover:bg-gray-50 flex items-center"
+                            className="border border-gray-300 bg-white text-gray-700 py-1.5 px-4 text-sm rounded-md hover:bg-gray-50 flex items-center"
                           >
                             <XMarkIcon className="h-4 w-4 mr-1" />
                             Cancel
@@ -974,7 +974,7 @@ const InterviewDetailPage: React.FC = () => {
                           type="button"
                           onClick={handleSubmitFeedback}
                           disabled={isSavingFeedback || isLoadingFeedback}
-                          className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 flex items-center"
+                          className="bg-blue-600 text-white py-1.5 px-4 text-sm rounded-md hover:bg-blue-700 flex items-center"
                         >
                           {isSavingFeedback ? (
                             <>
@@ -1001,7 +1001,7 @@ const InterviewDetailPage: React.FC = () => {
         <div>
           <div className={`${interview.status === 'cancelled' ? 'bg-red-50' : 'bg-white'} shadow rounded-lg overflow-hidden sticky top-6`}>
             <div className={`${interview.status === 'cancelled' ? 'bg-red-600' : 'bg-blue-600'} text-white p-4 flex justify-between items-center`}>
-              <h2 className="text-lg font-semibold">Meeting Details</h2>
+              <h2 className="text-base font-semibold">Meeting Details</h2>
               {interview.status === 'cancelled' && (
                 <span className="px-2 py-1 bg-white text-red-600 text-xs font-bold rounded-md">
                   CANCELLED
@@ -1142,7 +1142,7 @@ const InterviewDetailPage: React.FC = () => {
               <div className="mt-6 pt-4 border-t border-gray-200">
                 <a
                   href={`/applicants/${interview.applicantId}`}
-                  className="block w-full bg-blue-600 text-white text-center py-2 px-4 rounded-md hover:bg-blue-700 mb-3"
+                  className="block w-full bg-blue-600 text-white text-center py-1.5 px-3 text-sm rounded-md hover:bg-blue-700 mb-3"
                 >
                   View Full Candidate Profile
                 </a>
@@ -1165,7 +1165,7 @@ const InterviewDetailPage: React.FC = () => {
                             }
                             setShowRescheduleModal(true);
                           }}
-                          className="bg-amber-100 text-amber-800 hover:bg-amber-200 py-2 px-3 rounded-md flex items-center justify-center"
+                          className="bg-amber-100 text-amber-800 hover:bg-amber-200 py-1.5 px-2 text-sm rounded-md flex items-center justify-center"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
@@ -1174,7 +1174,7 @@ const InterviewDetailPage: React.FC = () => {
                         </button>
                         <button
                           onClick={() => setShowCancelModal(true)}
-                          className="bg-red-100 text-red-800 hover:bg-red-200 py-2 px-3 rounded-md flex items-center justify-center"
+                          className="bg-red-100 text-red-800 hover:bg-red-200 py-1.5 px-2 text-sm rounded-md flex items-center justify-center"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
                             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -1195,11 +1195,11 @@ const InterviewDetailPage: React.FC = () => {
       {showCancelModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Cancel Interview</h3>
+            <h3 className="text-base font-semibold mb-4">Cancel Interview</h3>
             <p className="mb-4 text-gray-600">Are you sure you want to cancel this interview? This action cannot be undone.</p>
             
             <div className="mb-4">
-              <label htmlFor="cancelReason" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="cancelReason" className="block text-xs font-medium text-gray-700 mb-1">
                 Reason for Cancellation *
               </label>
               <textarea
@@ -1251,11 +1251,11 @@ const InterviewDetailPage: React.FC = () => {
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                    <h3 className="text-base leading-6 font-medium text-gray-900 mb-4">
                       Reschedule Interview
                     </h3>
                     <div className="mt-2">
-                      <label htmlFor="newScheduledDate" className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor="newScheduledDate" className="block text-xs font-medium text-gray-700 mb-1">
                         New Date and Time
                       </label>
                       <input
@@ -1263,7 +1263,7 @@ const InterviewDetailPage: React.FC = () => {
                         id="newScheduledDate"
                         value={newScheduledDate}
                         onChange={(e) => setNewScheduledDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -1274,7 +1274,7 @@ const InterviewDetailPage: React.FC = () => {
                   type="button"
                   onClick={handleRescheduleInterview}
                   disabled={isRescheduling}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:bg-blue-300"
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-1.5 bg-blue-600 text-xs font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-xs disabled:bg-blue-300"
                 >
                   {isRescheduling ? 'Rescheduling...' : 'Reschedule'}
                 </button>
@@ -1282,7 +1282,7 @@ const InterviewDetailPage: React.FC = () => {
                   type="button"
                   onClick={() => setShowRescheduleModal(false)}
                   disabled={isRescheduling}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-3 py-1.5 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-xs"
                 >
                   Cancel
                 </button>

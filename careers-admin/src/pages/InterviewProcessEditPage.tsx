@@ -41,7 +41,7 @@ const InterviewProcessEditPage: React.FC = () => {
     try {
       await interviewProcessService.updateProcess(id, formData);
       toast.success('Interview process updated successfully');
-      navigate('/interviews');
+      navigate('/interviews?tab=processes');
     } catch (err) {
       console.error('Error updating interview process:', err);
       setError('Failed to update interview process. Please try again.');
@@ -67,7 +67,7 @@ const InterviewProcessEditPage: React.FC = () => {
         </div>
         <div className="mt-4">
           <button 
-            onClick={() => navigate('/interviews')}
+            onClick={() => navigate('/interviews?tab=processes')}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
             Back to Interview Processes

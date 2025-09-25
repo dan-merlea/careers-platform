@@ -255,19 +255,10 @@ const AppRoutes: React.FC = () => {
                   </RoleGuard>
                 }
               />
-              {/* Edit route removed as per requirements */}
               
               {/* Interview Process routes */}
               <Route
-                path="/interviews"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter', 'user']} showUnauthorized>
-                    <InterviewsPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/interviews/create"
+                path="/interview-processes/create"
                 element={
                   <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
                     <InterviewProcessCreatePage />
@@ -275,7 +266,7 @@ const AppRoutes: React.FC = () => {
                 }
               />
               <Route
-                path="/interviews/:id"
+                path="/interview-processes/:id"
                 element={
                   <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
                     <InterviewProcessDetailPage />
@@ -283,10 +274,20 @@ const AppRoutes: React.FC = () => {
                 }
               />
               <Route
-                path="/interviews/:id/edit"
+                path="/interview-processes/:id/edit"
                 element={
                   <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
                     <InterviewProcessEditPage />
+                  </RoleGuard>
+                }
+              />
+              
+              {/* Interviews routes */}
+              <Route
+                path="/interviews"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter', 'user']} showUnauthorized>
+                    <InterviewsPage />
                   </RoleGuard>
                 }
               />

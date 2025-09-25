@@ -12,7 +12,9 @@ import OfficesSection from '../components/company/details/OfficesSection';
 import DepartmentsSection from '../components/company/details/DepartmentsSection';
 import JobFunctionsSection from '../components/company/details/JobFunctionsSection';
 import JobRolesSection from '../components/company/details/JobRolesSection';
+import TabNavigation, { TabItem } from '../components/common/TabNavigation';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { BuildingOfficeIcon, UserGroupIcon, BriefcaseIcon, Cog6ToothIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 const CompanyDetailsPage: React.FC = () => {
   // React Router hooks
@@ -75,6 +77,46 @@ const CompanyDetailsPage: React.FC = () => {
           : path.includes('/settings')
             ? 'settings'
             : 'profile';
+            
+  // Define tab items for TabNavigation
+  const tabs: TabItem[] = [
+    {
+      id: 'profile',
+      label: 'Company Profile',
+      icon: <DocumentTextIcon className="h-5 w-5" />,
+      href: '/company-details'
+    },
+    {
+      id: 'offices',
+      label: 'Offices',
+      icon: <BuildingOfficeIcon className="h-5 w-5" />,
+      href: '/company-details/offices'
+    },
+    {
+      id: 'job-functions',
+      label: 'Job Functions',
+      icon: <BriefcaseIcon className="h-5 w-5" />,
+      href: '/company-details/job-functions'
+    },
+    {
+      id: 'job-roles',
+      label: 'Job Roles',
+      icon: <BriefcaseIcon className="h-5 w-5" />,
+      href: '/company-details/job-roles'
+    },
+    {
+      id: 'departments',
+      label: 'Departments',
+      icon: <UserGroupIcon className="h-5 w-5" />,
+      href: '/company-details/departments'
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: <Cog6ToothIcon className="h-5 w-5" />,
+      href: '/company-details/settings'
+    }
+  ];
       
   // State for offices section
   const [offices, setOffices] = useState<Office[]>([]);
@@ -594,44 +636,12 @@ const CompanyDetailsPage: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">Company Details</h1>
       
       {/* Navigation Tabs */}
-      <div className="flex border-b mb-6">
-        <button
-          onClick={() => handleSectionChange('profile')}
-          className={`py-2 px-4 mr-2 ${activeSection === 'profile' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
-        >
-          Company Profile
-        </button>
-        <button
-          onClick={() => handleSectionChange('offices')}
-          className={`py-2 px-4 mr-2 ${activeSection === 'offices' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
-        >
-          Offices
-        </button>
-        <button
-          onClick={() => handleSectionChange('job-functions')}
-          className={`py-2 px-4 mr-2 ${activeSection === 'job-functions' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
-        >
-          Job Functions
-        </button>
-        <button
-          onClick={() => handleSectionChange('job-roles')}
-          className={`py-2 px-4 mr-2 ${activeSection === 'job-roles' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
-        >
-          Job Roles
-        </button>
-        <button
-          onClick={() => handleSectionChange('departments')}
-          className={`py-2 px-4 mr-2 ${activeSection === 'departments' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
-        >
-          Departments
-        </button>
-        <button
-          onClick={() => handleSectionChange('settings')}
-          className={`py-2 px-4 ${activeSection === 'settings' ? 'border-b-2 border-blue-500 text-blue-500' : 'text-gray-500 hover:text-gray-700'}`}
-        >
-          Settings
-        </button>
-      </div>
+      <TabNavigation
+        tabs={tabs}
+        activeTab={activeSection}
+        onTabChange={handleSectionChange}
+        className="mb-6"
+      />
       
       {/* Content Area with React Router */}
       <Routes>

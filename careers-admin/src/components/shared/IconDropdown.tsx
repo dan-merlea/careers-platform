@@ -102,7 +102,7 @@ const IconDropdown: React.FC<IconDropdownProps> = ({ selectedIcon, onSelectIcon 
               <span>{selectedIcon}</span>
             </>
           ) : (
-            <span className="text-gray-500">Select an icon</span>
+            <span className="text-gray-500">Icon</span>
           )}
           <i className={`bi bi-chevron-${isDropdownOpen ? 'up' : 'down'} ml-auto`}></i>
         </div>

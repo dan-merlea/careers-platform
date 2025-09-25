@@ -217,7 +217,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
     
     try {
       await onSubmit(formData);
-      navigate('/interviews');
+      navigate('/interviews?tab=processes');
     } catch (err) {
       console.error('Error submitting form:', err);
       toast.error('Failed to save interview process. Please try again.');
@@ -225,7 +225,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
   };
 
   const handleCancel = () => {
-    navigate('/interviews');
+    navigate('/interviews?tab=processes');
   };
 
   if (isLoading) {
@@ -251,11 +251,11 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 className="text-lg font-semibold text-blue-800">Select Job Role</h2>
+          <h2 className="text-base font-semibold text-blue-800">Select Job Role</h2>
         </div>
         
         <div className="mb-2">
-          <label htmlFor="jobRoleId" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="jobRoleId" className="block text-xs font-medium text-gray-700 mb-1">
             Job Role *
           </label>
           <select
@@ -263,7 +263,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
             name="jobRoleId"
             value={formData.jobRoleId || ''}
             onChange={handleInputChange}
-            className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
             required
           >
             <option value="">Select a job role</option>
@@ -275,7 +275,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
           </select>
         </div>
         
-        <p className="text-sm text-gray-500 italic">
+        <p className="text-xs text-gray-500 italic">
           The interview process will be created for the selected job role.
         </p>
       </div>
@@ -289,12 +289,12 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
             </div>
-            <h2 className="text-lg font-semibold text-blue-800">Interview Stages</h2>
+            <h2 className="text-base font-semibold text-blue-800">Interview Stages</h2>
           </div>
           <button
             type="button"
             onClick={handleAddStage}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center shadow-sm"
+            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors flex items-center shadow-sm"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
@@ -316,10 +316,10 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                     >
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
-                          <div className="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center mr-3 flex-shrink-0">
+                          <div className="bg-blue-100 text-blue-800 rounded-full w-6 h-6 text-sm flex items-center justify-center mr-3 flex-shrink-0">
                             {index + 1}
                           </div>
-                          <span className="font-medium">{stage.title || `Stage ${index + 1}`}</span>
+                          <span className="font-medium text-sm">{stage.title || `Stage ${index + 1}`}</span>
                         </div>
                         <div className="flex space-x-1">
                         <button
@@ -371,7 +371,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                 {activeStageIndex !== null && formData.stages && formData.stages[activeStageIndex] ? (
                   <div className="bg-white rounded border border-gray-200 p-4 space-y-4">
                     <div>
-                      <label htmlFor={`stage-title-${activeStageIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor={`stage-title-${activeStageIndex}`} className="block text-xs font-medium text-gray-700 mb-1">
                         Stage Title *
                       </label>
                       <input
@@ -379,27 +379,27 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                         id={`stage-title-${activeStageIndex}`}
                         value={formData.stages?.[activeStageIndex]?.title || ''}
                         onChange={(e) => handleStageInputChange(activeStageIndex, 'title', e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded"
+                        className="w-full p-1.5 text-sm border border-gray-300 rounded"
                         required
                       />
                     </div>
 
                     <div>
-                      <label htmlFor={`stage-description-${activeStageIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor={`stage-description-${activeStageIndex}`} className="block text-xs font-medium text-gray-700 mb-1">
                         Stage Description *
                       </label>
                       <textarea
                         id={`stage-description-${activeStageIndex}`}
                         value={formData.stages?.[activeStageIndex]?.description || ''}
                         onChange={(e) => handleStageInputChange(activeStageIndex, 'description', e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded h-24"
+                        className="w-full p-1.5 text-sm border border-gray-300 rounded h-20"
                         required
                       />
                     </div>
 
                     <div>
                       <div className="flex justify-between items-center mb-2">
-                        <label className="block text-sm font-medium text-gray-700">
+                        <label className="block text-xs font-medium text-gray-700">
                           Interview Considerations
                         </label>
                         <button
@@ -417,7 +417,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                         {formData.stages?.[activeStageIndex]?.considerations?.map((consideration, idx) => (
                           <div key={idx} className="border border-gray-200 rounded-md p-3 bg-gray-50">
                             <div className="flex justify-between items-start mb-2">
-                              <h4 className="text-sm font-medium text-gray-700">Consideration {idx + 1}</h4>
+                              <h4 className="text-xs font-medium text-gray-700">Consideration {idx + 1}</h4>
                               <button
                                 type="button"
                                 onClick={() => handleRemoveConsideration(activeStageIndex, idx)}
@@ -435,7 +435,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                                   type="text"
                                   value={consideration.title}
                                   onChange={(e) => handleConsiderationChange(activeStageIndex, idx, 'title', e.target.value)}
-                                  className="w-full p-2 border border-gray-300 rounded"
+                                  className="w-full p-1.5 text-sm border border-gray-300 rounded"
                                   placeholder="Enter consideration title"
                                 />
                               </div>
@@ -444,7 +444,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                                 <textarea
                                   value={consideration.description}
                                   onChange={(e) => handleConsiderationChange(activeStageIndex, idx, 'description', e.target.value)}
-                                  className="w-full p-2 border border-gray-300 rounded h-20"
+                                  className="w-full p-1.5 text-sm border border-gray-300 rounded h-16"
                                   placeholder="Enter detailed description"
                                 />
                               </div>
@@ -452,13 +452,13 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                           </div>
                         ))}
                         {(formData.stages?.[activeStageIndex]?.considerations?.length || 0) === 0 && (
-                          <p className="text-sm text-gray-500 italic">No considerations added yet.</p>
+                          <p className="text-xs text-gray-500 italic">No considerations added yet.</p>
                         )}
                       </div>
                     </div>
 
                     <div>
-                      <label htmlFor={`stage-email-${activeStageIndex}`} className="block text-sm font-medium text-gray-700 mb-1">
+                      <label htmlFor={`stage-email-${activeStageIndex}`} className="block text-xs font-medium text-gray-700 mb-1">
                         Email Template *
                       </label>
                       <ReactQuill
@@ -489,7 +489,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                       <button
                         type="button"
                         onClick={() => setActiveStageIndex(null)}
-                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors shadow-sm flex items-center"
+                        className="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors shadow-sm flex items-center"
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -521,7 +521,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
         <button
           type="button"
           onClick={handleCancel}
-          className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors shadow-sm flex items-center"
+          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 text-sm hover:bg-gray-50 transition-colors shadow-sm flex items-center"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -530,7 +530,7 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
         </button>
         <button
           type="submit"
-          className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm flex items-center"
+          className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors shadow-sm flex items-center"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
