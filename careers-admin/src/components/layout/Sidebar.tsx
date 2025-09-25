@@ -124,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
     { path: '/interviews', text: 'Interviews', icon: <ClipboardDocumentCheckIcon />, roles: ['admin', 'director', 'recruiter', 'user'] },
     { path: '/referrals', text: 'Refer a Candidate', icon: <UserPlusIcon />, roles: ['admin', 'director', 'manager', 'recruiter', 'user'] },
     { path: '/logs', text: 'Activity Logs', icon: <ClipboardDocumentListIcon />, roles: ['admin'] },
-    { path: '/analytics', text: 'Analytics', icon: <ChartBarIcon />, roles: ['admin', 'manager'] },
+    { path: '/analytics', text: 'Analytics', icon: <ChartBarIcon />, roles: ['admin', 'director', 'manager', 'recruiter'] },
     { path: '/reports', text: 'Reports', icon: <DocumentTextIcon />, roles: ['admin', 'manager', 'recruiter'] },
     { path: '/setup', text: 'Integrations', icon: <Cog6ToothIcon />, roles: ['admin'] },
     // Debug menu item - only visible in development mode

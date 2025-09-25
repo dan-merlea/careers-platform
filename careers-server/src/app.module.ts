@@ -13,9 +13,11 @@ import { JobApplicationsModule } from './job-applications/job-applications.modul
 import { InterviewsModule } from './interviews/interviews.module';
 import { UserLogsModule } from './user-logs/user-logs.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { UserLogsInterceptor } from './user-logs/user-logs.interceptor';
 import { NotificationInterceptor } from './notifications/notification.interceptor';
+import { AnalyticsInterceptor } from './analytics/interceptors/analytics.interceptor';
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { NotificationInterceptor } from './notifications/notification.intercepto
     InterviewsModule,
     UserLogsModule,
     NotificationsModule,
+    AnalyticsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -44,6 +47,10 @@ import { NotificationInterceptor } from './notifications/notification.intercepto
     {
       provide: APP_INTERCEPTOR,
       useClass: NotificationInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: AnalyticsInterceptor,
     },
   ],
 })

@@ -30,6 +30,7 @@ import InterviewDetailPage from './pages/InterviewDetailPage';
 import ApplicantDetailPage from './pages/ApplicantDetailPage';
 import ReferralPage from './pages/ReferralPage';
 import LogsPage from './pages/LogsPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CompanyProvider } from './context/CompanyContext';
 import { NotificationProvider } from './context/NotificationContext';
@@ -309,6 +310,24 @@ const AppRoutes: React.FC = () => {
                   <RoleGuard requiredRoles={['admin']} showUnauthorized>
                     <DebugJobApplications />
                     <DebugUserManagement />
+                  </RoleGuard>
+                }
+              />
+              
+              {/* Analytics Dashboard */}
+              <Route
+                path="/analytics"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                    <AnalyticsPage />
+                  </RoleGuard>
+                }
+              />
+              <Route
+                path="/analytics/:section"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                    <AnalyticsPage />
                   </RoleGuard>
                 }
               />
