@@ -60,6 +60,7 @@ const ReferralPage: React.FC = () => {
         ...data,
         resume: resumeFile,
         refereeId: userId || '',
+        source: 'referral',
       };
 
       await jobApplicationService.createReferral(referralData);

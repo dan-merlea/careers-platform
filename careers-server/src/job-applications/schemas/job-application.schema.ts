@@ -169,6 +169,9 @@ export class JobApplication {
   @Prop({ type: Boolean, default: false })
   isReferral: boolean;
 
+  @Prop({ type: String, default: 'careers-page' })
+  source: string;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 

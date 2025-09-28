@@ -19,10 +19,10 @@ export interface JobPerformance {
   id: string;
   title: string;
   applications: number;
-  interviews: number;
-  offers: number;
+  interviews?: number;
+  offers?: number;
   hires: number;
-  timeToFill: number;
+  timeToFill?: number;
   conversionRate: number;
 }
 
@@ -37,9 +37,9 @@ export interface InterviewMetric {
 export interface SourceMetric {
   source: string;
   applications: number;
-  qualifiedCandidates: number;
+  qualifiedCandidates?: number;
   hires: number;
-  costPerHire: number;
+  costPerHire?: number;
   conversionRate: number;
 }
 

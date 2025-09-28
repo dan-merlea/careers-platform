@@ -3,7 +3,7 @@ import { FilterParams } from '../../pages/AnalyticsPage';
 import analyticsService, { SourceMetric } from '../../services/analyticsService';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-  PieChart, Pie, Cell, ComposedChart, Line
+  PieChart, Pie, Cell
 } from 'recharts';
 
 interface CandidateSourceSectionProps {
@@ -17,12 +17,13 @@ interface PieChartData {
   [key: string]: any;
 }
 
-interface ROIChartData {
-  name: string;
-  costPerHire: number;
-  conversionRate: number;
-  [key: string]: any;
-}
+// TODO(ROI): When ROI per hire is implemented, restore ROIChartData and related UI
+// interface ROIChartData {
+//   name: string;
+//   costPerHire: number;
+//   conversionRate: number;
+//   [key: string]: any;
+// }
 
 const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -92,12 +93,12 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
     value: source.applications
   }));
 
-  // Format data for ROI chart
-  const roiData: ROIChartData[] = sourceData.map(source => ({
-    name: source.source,
-    costPerHire: source.costPerHire,
-    conversionRate: source.conversionRate
-  }));
+  // TODO(ROI): Restore ROI chart data mapping when backend provides costPerHire reliably
+  // const roiData: ROIChartData[] = sourceData.map(source => ({
+  //   name: source.source,
+  //   costPerHire: source.costPerHire,
+  //   conversionRate: source.conversionRate,
+  // }));
 
   if (isLoading) {
     return (
@@ -187,113 +188,76 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
         </div>
       </div>
       
-      {/* Source ROI Analysis */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Source ROI Analysis</h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart
-              data={roiData}
-              margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="name" 
-                angle={-45}
-                textAnchor="end"
-                height={70}
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis yAxisId="left" orientation="left" stroke="#3b82f6" />
-              <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
-              <Tooltip />
-              <Legend />
-              <Bar yAxisId="left" dataKey="costPerHire" name="Cost per Hire ($)" fill="#3b82f6" />
-              <Line yAxisId="right" type="monotone" dataKey="conversionRate" name="Conversion Rate (%)" stroke="#10b981" />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-      
-      {/* Cost Analysis */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Cost Analysis by Source</h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={costAnalysis}
-              margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
-              barSize={20}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="source" 
-                angle={-45}
-                textAnchor="end"
-                height={70}
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="totalSpend" name="Total Spend ($)" fill="#3b82f6" />
-              <Bar dataKey="costPerApplication" name="Cost per Application ($)" fill="#60a5fa" />
-              <Bar dataKey="costPerQualifiedCandidate" name="Cost per Qualified Candidate ($)" fill="#93c5fd" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+      {/* TODO(ROI): Source ROI Analysis panel removed temporarily until ROI/cost data is finalized */}
       
       {/* Quality Metrics */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Quality Metrics by Source</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {qualityMetrics.map((metric, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-              <h4 className="text-lg font-medium text-gray-800 mb-2">{metric.source}</h4>
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <div className="text-sm text-gray-500">Avg. Time to Hire (days)</div>
-                  <div className="text-xl font-semibold text-gray-800">{metric.avgTimeToHire}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">Offer Acceptance Rate (%)</div>
-                  <div className="text-xl font-semibold text-gray-800">{metric.offerAcceptanceRate}%</div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-500">6-Month Retention Rate (%)</div>
-                  <div className="text-xl font-semibold text-gray-800">{metric.retentionRate6Month}%</div>
+      {qualityMetrics.length > 0 ? (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">Quality Metrics by Source</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {qualityMetrics.map((metric, index) => (
+              <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+                <h4 className="text-lg font-medium text-gray-800 mb-2">{metric.source}</h4>
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <div className="text-sm text-gray-500">Avg. Time to Hire (days)</div>
+                    <div className="text-xl font-semibold text-gray-800">{metric.avgTimeToHire}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Offer Acceptance Rate (%)</div>
+                    <div className="text-xl font-semibold text-gray-800">{metric.offerAcceptanceRate}%</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">6-Month Retention Rate (%)</div>
+                    <div className="text-xl font-semibold text-gray-800">{metric.retentionRate6Month}%</div>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+          <h3 className="text-lg font-medium text-gray-800 mb-2">Quality Metrics by Source</h3>
+          <p className="text-sm text-gray-500">
+            No quality metrics available for this period or filters. {/* TODO: Provide real quality metrics from backend when ready */}
+          </p>
+        </div>
+      )}
       
       {/* Monthly Trends */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Monthly Application Trends by Source</h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={monthlyTrends}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="applications.linkedin" stackId="a" name="LinkedIn" fill="#0077B5" />
-              <Bar dataKey="applications.indeed" stackId="a" name="Indeed" fill="#2164f4" />
-              <Bar dataKey="applications.referrals" stackId="a" name="Referrals" fill="#10b981" />
-              <Bar dataKey="applications.website" stackId="a" name="Website" fill="#f59e0b" />
-              <Bar dataKey="applications.jobFairs" stackId="a" name="Job Fairs" fill="#ef4444" />
-              <Bar dataKey="applications.other" stackId="a" name="Other" fill="#8b5cf6" />
-            </BarChart>
-          </ResponsiveContainer>
+      {monthlyTrends.length > 0 ? (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+          <h3 className="text-lg font-medium text-gray-800 mb-4">Monthly Application Trends by Source</h3>
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={monthlyTrends}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="applications.linkedin" stackId="a" name="LinkedIn" fill="#0077B5" />
+                <Bar dataKey="applications.indeed" stackId="a" name="Indeed" fill="#2164f4" />
+                <Bar dataKey="applications.referrals" stackId="a" name="Referrals" fill="#10b981" />
+                <Bar dataKey="applications.website" stackId="a" name="Website" fill="#f59e0b" />
+                <Bar dataKey="applications.jobFairs" stackId="a" name="Job Fairs" fill="#ef4444" />
+                <Bar dataKey="applications.other" stackId="a" name="Other" fill="#8b5cf6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+          <h3 className="text-lg font-medium text-gray-800 mb-2">Monthly Application Trends by Source</h3>
+          <p className="text-sm text-gray-500">
+            No monthly trend data available. {/* TODO: Return monthly source trends from backend when ready */}
+          </p>
+        </div>
+      )}
       
       {/* Source Metrics Table */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
@@ -314,9 +278,10 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Hires
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                {/* TODO(ROI): Re-add Cost per Hire column when backend provides reliable values */}
+                {/* <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Cost per Hire
-                </th>
+                </th> */}
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Conversion Rate
                 </th>
@@ -332,14 +297,15 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
                     {source.applications}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {source.qualifiedCandidates}
+                    {source.qualifiedCandidates ?? 0}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {source.hires}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {/* TODO(ROI): Re-add cost per hire cell once available */}
+                  {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     ${source.costPerHire}
-                  </td>
+                  </td> */}
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center">
                       <div className="w-16 h-2 bg-gray-200 rounded-full mr-2">
@@ -360,6 +326,7 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
       
       {/* Source Insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
         {/* Best Performing Sources */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
           <h3 className="text-lg font-medium text-gray-800 mb-4">Best Performing Sources</h3>
@@ -385,8 +352,8 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
           </div>
         </div>
         
-        {/* Cost-Effective Sources */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        {/* TODO(ROI): Cost-Effective Sources panel removed until cost per hire is available */}
+        {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
           <h3 className="text-lg font-medium text-gray-800 mb-4">Most Cost-Effective Sources</h3>
           <div className="space-y-4">
             {sourceData
@@ -408,72 +375,72 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
                 </div>
               ))}
           </div>
-        </div>
-      </div>
+        </div> */}
       
       {/* Recommendations */}
-      <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-5">
-        <h3 className="text-lg font-medium text-gray-800 mb-4">Recommendations</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Optimize Recruitment Budget</h4>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start">
-                <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Increase investment in referral programs (highest conversion rate)
-              </li>
-              <li className="flex items-start">
-                <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Reduce spending on job fairs (highest cost per hire)
-              </li>
-              <li className="flex items-start">
-                <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Optimize LinkedIn job postings to improve conversion rates
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Improve Candidate Quality</h4>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start">
-                <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Refine job descriptions on Indeed to attract more qualified candidates
-              </li>
-              <li className="flex items-start">
-                <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Enhance company website career page to improve direct application quality
-              </li>
-              <li className="flex items-start">
-                <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Implement pre-screening questions to filter candidates more effectively
-              </li>
-            </ul>
-          </div>
-        </div>
+      {/* <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+      //   <h3 className="text-lg font-medium text-gray-800 mb-4">Recommendations</h3>
+      //   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      //     <div>
+      //       <h4 className="text-sm font-medium text-gray-700 mb-3">Optimize Recruitment Budget</h4>
+      //       <ul className="space-y-2 text-sm text-gray-600">
+      //         <li className="flex items-start">
+      //           <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
+      //             <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+      //               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+      //             </svg>
+      //           </span>
+      //           Increase investment in referral programs (highest conversion rate)
+      //         </li>
+      //         <li className="flex items-start">
+      //           <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
+      //             <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+      //               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+      //             </svg>
+      //           </span>
+      //           Reduce spending on job fairs (highest cost per hire)
+      //         </li>
+      //         <li className="flex items-start">
+      //           <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
+      //             <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+      //               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+      //             </svg>
+      //           </span>
+      //           Optimize LinkedIn job postings to improve conversion rates
+      //         </li>
+      //       </ul>
+      //     </div>
+      //     <div>
+      //       <h4 className="text-sm font-medium text-gray-700 mb-3">Improve Candidate Quality</h4>
+      //       <ul className="space-y-2 text-sm text-gray-600">
+      //         <li className="flex items-start">
+      //           <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
+      //             <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+      //               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+      //             </svg>
+      //           </span>
+      //           Refine job descriptions on Indeed to attract more qualified candidates
+      //         </li>
+      //         <li className="flex items-start">
+      //           <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
+      //             <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+      //               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+      //             </svg>
+      //           </span>
+      //           Enhance company website career page to improve direct application quality
+      //         </li>
+      //         <li className="flex items-start">
+      //           <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
+      //             <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+      //               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+      //             </svg>
+      //           </span>
+      //           Implement pre-screening questions to filter candidates more effectively
+      //         </li>
+      //       </ul>
+      //     </div>
+      //   </div>
+      </div> */}
       </div>
     </div>
   );

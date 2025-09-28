@@ -50,5 +50,9 @@ export class CreateReferralDto {
   @IsString()
   refereeRelationship?: string;
 
+  @IsOptional()
+  @IsString()
+  source?: string;
+
   // The file will be handled separately through the file interceptor
 }

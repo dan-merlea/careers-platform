@@ -103,9 +103,9 @@ const JobPerformanceSection: React.FC<JobPerformanceSectionProps> = ({ filters }
   const chartData: ChartData[] = jobsData.map(job => ({
     name: job.title,
     Applications: job.applications,
-    Interviews: job.interviews,
-    Offers: job.offers,
-    Hires: job.hires
+    Interviews: job.interviews ?? 0,
+    Offers: job.offers ?? 0,
+    Hires: job.hires ?? 0,
   }));
 
   if (isLoading) {

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { FilterParams } from '../../pages/AnalyticsPage';
-import analyticsService, { InterviewMetric } from '../../services/analyticsService';
+import analyticsService, { InterviewMetric, SkillAssessment, InterviewStage, InterviewTrend } from '../../services/analyticsService';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
-  PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+  PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  LineChart, Line, AreaChart, Area
 } from 'recharts';
+import { ArrowUpIcon, ArrowDownIcon, MinusIcon } from '@heroicons/react/24/solid';
 
 interface InterviewAnalyticsSectionProps {
   filters: FilterParams;
@@ -141,8 +143,83 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
     );
   }
 
+  // Calculate summary metrics
+  const calculateSummaryMetrics = () => {
+    if (!interviewData.length) return {
+      totalInterviews: 0,
+      avgPassRate: 0,
+      avgScore: 0,
+      avgDuration: 0
+    };
+
+    const totalInterviews = interviewData.reduce((sum, item) => sum + item.conducted, 0);
+    const weightedPassRate = interviewData.reduce((sum, item) => sum + (item.passRate * item.conducted), 0);
+    const weightedScore = interviewData.reduce((sum, item) => sum + (item.avgScore * item.conducted), 0);
+    const weightedDuration = interviewData.reduce((sum, item) => sum + (item.avgDuration * item.conducted), 0);
+
+    return {
+      totalInterviews,
+      avgPassRate: totalInterviews > 0 ? Math.round((weightedPassRate / totalInterviews) * 10) / 10 : 0,
+      avgScore: totalInterviews > 0 ? Math.round((weightedScore / totalInterviews) * 10) / 10 : 0,
+      avgDuration: totalInterviews > 0 ? Math.round(weightedDuration / totalInterviews) : 0
+    };
+  };
+
+  const summaryMetrics = calculateSummaryMetrics();
+
   return (
     <div>
+      {/* KPI Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Total Interviews</h3>
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-bold text-gray-800">{summaryMetrics.totalInterviews}</p>
+            <div className="p-2 bg-blue-100 rounded-full">
+              <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Average Pass Rate</h3>
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-bold text-gray-800">{summaryMetrics.avgPassRate}%</p>
+            <div className="p-2 bg-green-100 rounded-full">
+              <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Average Score</h3>
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-bold text-gray-800">{summaryMetrics.avgScore}/10</p>
+            <div className="p-2 bg-yellow-100 rounded-full">
+              <svg className="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Average Duration</h3>
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-bold text-gray-800">{summaryMetrics.avgDuration} min</p>
+            <div className="p-2 bg-purple-100 rounded-full">
+              <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Interviewer Performance */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
@@ -215,22 +292,48 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
       {/* Skill Assessments */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Skill Assessments</h3>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={skillAssessments}
-              margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              layout="vertical"
-            >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" domain={[0, 10]} />
-              <YAxis dataKey="skill" type="category" width={150} />
-              <Tooltip formatter={(value) => [`${value}/10`, 'Score']} />
-              <Legend />
-              <Bar dataKey="avgScore" name="Average Score" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="h-80">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={skillAssessments}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                layout="vertical"
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" domain={[0, 10]} />
+                <YAxis dataKey="skill" type="category" width={150} />
+                <Tooltip formatter={(value) => [`${value}/10`, 'Score']} />
+                <Legend />
+                <Bar dataKey="avgScore" name="Average Score" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="h-80">
+            {skillAssessments.length > 0 && (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={skillAssessments}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="skill" />
+                  <PolarRadiusAxis angle={30} domain={[0, 10]} />
+                  <Radar
+                    name="Average Score"
+                    dataKey="avgScore"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.6}
+                  />
+                  <Tooltip formatter={(value) => [`${value}/10`, 'Score']} />
+                  <Legend />
+                </RadarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
+        <p className="text-sm text-gray-500 mt-4 text-center">
+          Average candidate scores across different skill areas assessed during interviews
+        </p>
       </div>
       
       {/* Interview Stages */}
@@ -267,21 +370,45 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
         <h3 className="text-lg font-medium text-gray-800 mb-4">Monthly Interview Trends</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
+            <LineChart
               data={monthlyTrends}
               margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="month" />
               <YAxis yAxisId="left" orientation="left" stroke="#3b82f6" />
-              <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
-              <Tooltip />
+              <YAxis yAxisId="right" orientation="right" stroke="#10b981" domain={[0, 100]} />
+              <Tooltip formatter={(value, name) => [
+                name === 'Pass Rate (%)' ? `${value}%` : value,
+                name
+              ]} />
               <Legend />
-              <Bar yAxisId="left" dataKey="interviews" name="Interviews" fill="#3b82f6" />
-              <Bar yAxisId="right" dataKey="passRate" name="Pass Rate (%)" fill="#10b981" />
-            </BarChart>
+              <Line 
+                yAxisId="left" 
+                type="monotone" 
+                dataKey="interviews" 
+                name="Interviews" 
+                stroke="#3b82f6" 
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+              <Line 
+                yAxisId="right" 
+                type="monotone" 
+                dataKey="passRate" 
+                name="Pass Rate (%)" 
+                stroke="#10b981" 
+                strokeWidth={2}
+                dot={{ r: 4 }}
+                activeDot={{ r: 6 }}
+              />
+            </LineChart>
           </ResponsiveContainer>
         </div>
+        <p className="text-sm text-gray-500 mt-2 text-center">
+          Trend analysis of interview volume and pass rates over time
+        </p>
       </div>
       
       {/* Interviewer Metrics Table */}
@@ -416,7 +543,7 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
         </div>
         
         {/* Recommendations */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
           <h3 className="text-lg font-medium text-gray-800 mb-4">Recommendations</h3>
           <ul className="space-y-3 text-sm text-gray-600">
             <li className="flex items-start">
@@ -460,7 +587,7 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
               Implement structured interview templates to standardize evaluation
             </li>
           </ul>
-        </div>
+        </div> */}
       </div>
     </div>
   );

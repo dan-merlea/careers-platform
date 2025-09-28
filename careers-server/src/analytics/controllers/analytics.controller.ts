@@ -25,7 +25,7 @@ export class AnalyticsController {
     @Query('source') source?: string,
     @Query('comparisonPeriod') comparisonPeriod?: string,
   ) {
-    return this.analyticsService.getDashboardMetrics({
+    return await this.analyticsService.getDashboardMetrics({
       companyId,
       startDate,
       endDate,
@@ -49,7 +49,7 @@ export class AnalyticsController {
     @Query('location') location?: string,
     @Query('source') source?: string,
   ) {
-    return this.analyticsService.getFunnelData({
+    return await this.analyticsService.getFunnelData({
       companyId,
       startDate,
       endDate,
@@ -71,7 +71,7 @@ export class AnalyticsController {
     @Query('jobRole') jobRole?: string,
     @Query('location') location?: string,
   ) {
-    return this.analyticsService.getJobPerformance({
+    return await this.analyticsService.getJobPerformance({
       companyId,
       startDate,
       endDate,
@@ -91,7 +91,7 @@ export class AnalyticsController {
     @Query('department') department?: string,
     @Query('jobRole') jobRole?: string,
   ) {
-    return this.analyticsService.getInterviewAnalytics({
+    return await this.analyticsService.getInterviewAnalytics({
       companyId,
       startDate,
       endDate,
@@ -102,7 +102,7 @@ export class AnalyticsController {
 
   @Get('sources')
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR, UserRole.RECRUITER)
-  @UseInterceptors(CacheInterceptor)
+  // Note: Cache disabled for sources to avoid stale data during development
   async getSourceAnalytics(
     @CompanyId() companyId: string,
     @Query('startDate') startDate?: string,
@@ -111,7 +111,7 @@ export class AnalyticsController {
     @Query('jobRole') jobRole?: string,
     @Query('location') location?: string,
   ) {
-    return this.analyticsService.getSourceAnalytics({
+    return await this.analyticsService.getSourceAnalytics({
       companyId,
       startDate,
       endDate,

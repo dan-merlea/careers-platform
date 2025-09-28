@@ -635,9 +635,9 @@ export class AnalyticsAggregatorService {
       ])
       .exec();
 
-    // Handle the case where source might be null
+    // Handle the case where source might be null or undefined
     return sourceEffectiveness.map((item) => ({
-      source: item.source || 'Direct',
+      source: item.source || 'careers-page',
       applications: item.applications,
       conversionRate: parseFloat(item.conversionRate.toFixed(1)),
     }));
@@ -653,7 +653,7 @@ export class AnalyticsAggregatorService {
   async incrementApplicationCount(
     companyId: string,
     jobId?: string,
-    sourceId?: string,
+    source?: string,
   ) {
     this.logger.log(`Incrementing application count for company ${companyId}`);
 
@@ -711,9 +711,9 @@ export class AnalyticsAggregatorService {
       await this.updateJobApplicationCount(companyId, jobId);
     }
 
-    // If sourceId is provided, update source effectiveness
-    if (sourceId) {
-      await this.updateSourceApplicationCount(companyId, sourceId);
+    // If source is provided, update source effectiveness
+    if (source) {
+      await this.updateSourceApplicationCount(companyId, source);
     }
   }
 
@@ -729,8 +729,58 @@ export class AnalyticsAggregatorService {
    */
   private async updateSourceApplicationCount(
     companyId: string,
-    sourceId: string,
+    source: string,
   ) {
-    // Implementation for updating source application count
+    this.logger.log(`Updating source application count for source ${source}`);
+
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Get current source effectiveness metrics
+    const sourceMetric = await this.metricsModel
+      .findOne({
+        companyId,
+        metricType: 'trend',
+        metricKey: 'source_effectiveness',
+        periodStart: { $gte: thirtyDaysAgo },
+        periodEnd: { $lte: today },
+      })
+      .sort({ date: -1 })
+      .exec();
+
+    if (sourceMetric && sourceMetric.additionalData) {
+      // Type assertion for additionalData
+      interface SourceData {
+        source: string;
+        applications: number;
+        hires: number;
+        conversionRate: number;
+      }
+
+      const sourceData = sourceMetric.additionalData as SourceData[];
+
+      // Find source entry or create it
+      const sourceEntry = sourceData.find((entry) => entry.source === source);
+      if (sourceEntry) {
+        sourceEntry.applications += 1;
+        // Recalculate conversion rate if there are hires
+        if (sourceEntry.hires > 0) {
+          sourceEntry.conversionRate = parseFloat(
+            ((sourceEntry.hires / sourceEntry.applications) * 100).toFixed(1),
+          );
+        }
+      } else {
+        sourceData.push({
+          source,
+          applications: 1,
+          hires: 0,
+          conversionRate: 0,
+        });
+      }
+
+      sourceMetric.additionalData = sourceData;
+      await sourceMetric.save();
+    }
   }
 }

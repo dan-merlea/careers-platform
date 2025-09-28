@@ -17,6 +17,7 @@ export class JobApplicationResponseDto {
   refereeEmail?: string;
   refereeRelationship?: string;
   isReferral?: boolean;
+  source: string;
   createdAt: Date;
   updatedAt: Date;
 }

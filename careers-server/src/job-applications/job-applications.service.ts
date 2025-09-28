@@ -75,6 +75,7 @@ export class JobApplicationsService {
       resumeMimeType: file.mimetype,
       consentExpiresAt,
       status: 'new', // Automatically set status to 'new'
+      source: createJobApplicationDto.source || 'careers-page', // Use provided source or default
     });
 
     // Save to database
@@ -124,6 +125,7 @@ export class JobApplicationsService {
       consentExpiresAt,
       status: 'new', // Automatically set status to 'new'
       isReferral: true,
+      source: createReferralDto.source || 'referral', // Use provided source or default to 'referral'
       refereeId: new Types.ObjectId(createReferralDto.refereeId),
       refereeName: referee.name,
       refereeEmail: referee.email,
@@ -772,6 +774,7 @@ export class JobApplicationsService {
       refereeEmail: application.refereeEmail,
       refereeRelationship: application.refereeRelationship,
       isReferral: application.isReferral || false,
+      source: application.source || 'careers-page',
       createdAt: application.createdAt,
       updatedAt: application.updatedAt,
     };

@@ -1,4 +1,12 @@
-import { IsEmail, IsInt, IsMongoId, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsEmail,
+  IsInt,
+  IsMongoId,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 
 export class CreateJobApplicationDto {
   @IsNotEmpty()
@@ -33,6 +41,10 @@ export class CreateJobApplicationDto {
   @IsNotEmpty()
   @IsMongoId()
   jobId: string;
+
+  @IsOptional()
+  @IsString()
+  source?: string;
 
   // The file will be handled separately through the file interceptor
 }

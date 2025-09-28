@@ -27,7 +27,8 @@ const RecruitmentFunnelSection: React.FC<RecruitmentFunnelSectionProps> = ({ fil
         const data = await analyticsService.getRecruitmentFunnel(filters);
         
         if (data && data.stages) {
-          setFunnelData(data.stages as FunnelStage[]);
+          const normalized = normalizeFunnelData(data.stages as FunnelStage[]);
+          setFunnelData(normalized);
         } else {
           setFunnelData([]);
         }
@@ -58,6 +59,51 @@ const RecruitmentFunnelSection: React.FC<RecruitmentFunnelSectionProps> = ({ fil
     
     fetchData();
   }, [filters]);
+
+  // Normalize funnel: group all 'stage-*' into a single 'Interview' stage and recompute conversion rates
+  const normalizeFunnelData = (stages: FunnelStage[]): FunnelStage[] => {
+    if (!stages || stages.length === 0) return [];
+
+    // Group stages
+    const result: { stage: string; count: number }[] = [];
+    let interviewCount = 0;
+    let insertedInterview = false;
+
+    for (const s of stages) {
+      const name = s.stage || '';
+      if (/^stage[-_\s]?\d+/i.test(name) || /^interview/i.test(name)) {
+        interviewCount += s.count || 0;
+        continue;
+      }
+      // When we hit a non-stage and we have accumulated interviews, insert Interview first
+      if (interviewCount > 0 && !insertedInterview) {
+        result.push({ stage: 'Interview', count: interviewCount });
+        insertedInterview = true;
+        interviewCount = 0;
+      }
+      result.push({ stage: name, count: s.count || 0 });
+    }
+    // If the array ended with only stage-* entries, push Interview
+    if (interviewCount > 0) {
+      result.push({ stage: 'Interview', count: interviewCount });
+    }
+
+    // If Applications stage is missing but we have data, synthesize it by summing all counts
+    const hasApplications = result.some(r => r.stage.toLowerCase().includes('application'));
+    if (!hasApplications) {
+      const total = result.reduce((acc, r) => acc + (r.count || 0), 0);
+      result.unshift({ stage: 'Applications', count: total });
+    }
+
+    // Recompute conversionRate based on counts
+    const withConversion: FunnelStage[] = result.map((r, idx, arr) => {
+      const prev = idx === 0 ? undefined : arr[idx - 1];
+      const conv = idx === 0 || !prev || !prev.count ? 100 : parseFloat(((r.count / prev.count) * 100).toFixed(1));
+      return { stage: r.stage, count: r.count, conversionRate: conv } as FunnelStage;
+    });
+
+    return withConversion;
+  };
 
   if (isLoading) {
     return (
@@ -271,7 +317,7 @@ const RecruitmentFunnelSection: React.FC<RecruitmentFunnelSectionProps> = ({ fil
           </div>
           
           {/* Recommendations */}
-          <div>
+          {/* <div>
             <h4 className="text-sm font-medium text-gray-700 mb-3">Recommendations</h4>
             <ul className="space-y-2 text-sm text-gray-600">
               <li className="flex items-start">
@@ -307,7 +353,7 @@ const RecruitmentFunnelSection: React.FC<RecruitmentFunnelSectionProps> = ({ fil
                 Consider implementing a more structured screening process
               </li>
             </ul>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

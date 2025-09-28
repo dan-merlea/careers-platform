@@ -32,6 +32,7 @@ export interface JobApplicant {
   refereeEmail?: string; // Email of the user who referred this applicant
   refereeRelationship?: string; // Description of how the referee knows the applicant and why they're a good fit
   isReferral?: boolean; // Whether this applicant was referred
+  source?: string; // Source of the application (referral, linkedin, careers-page, etc.)
 }
 
 export interface Note {
@@ -53,6 +54,7 @@ export interface CreateReferralRequest {
   jobId: string;
   refereeId: string;
   refereeRelationship?: string;
+  source?: string;
   resume: File;
 }
 
@@ -254,6 +256,8 @@ const jobApplicationService = {
       if (referralData.linkedin) formData.append('linkedin', referralData.linkedin);
       if (referralData.website) formData.append('website', referralData.website);
       if (referralData.refereeRelationship) formData.append('refereeRelationship', referralData.refereeRelationship);
+      // Set source to 'referral' by default or use the provided value
+      formData.append('source', referralData.source || 'referral');
       formData.append('consentDuration', referralData.consentDuration.toString());
       formData.append('jobId', referralData.jobId);
       formData.append('refereeId', referralData.refereeId);
