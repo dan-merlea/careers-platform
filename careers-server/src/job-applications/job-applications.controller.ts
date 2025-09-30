@@ -33,9 +33,7 @@ import { CreateReferralDto } from './dto/create-referral.dto';
 import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { ScheduleInterviewDto } from './dto/schedule-interview.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard, RolesGuard, Roles } from '../auth';
 import { UserRole } from '../users/schemas/user.schema';
 
 interface MulterFile {

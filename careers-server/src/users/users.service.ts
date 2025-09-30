@@ -148,18 +148,6 @@ export class UsersService {
       throw new Error('Invalid credentials');
     }
 
-    // Get company information if available
-    let companyData: { id: string; name: string } | null = null;
-    if (user.companyId) {
-      const company = await this.companyModel.findById(user.companyId).exec();
-      if (company) {
-        companyData = {
-          id: String(company._id),
-          name: company.name,
-        };
-      }
-    }
-
     // Generate JWT token with role information and company ID
     const token = this.authService.generateToken({
       sub: user._id,
@@ -168,18 +156,8 @@ export class UsersService {
       companyId: user.companyId,
     });
 
-    return {
-      token,
-      user: {
-        id: user._id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        departmentId: user.departmentId,
-        companyId: user.companyId,
-      },
-      company: companyData,
-    };
+    // Return only the token; the client should call /auth/me to fetch user details
+    return { token };
   }
 
   async resetPassword(email: string): Promise<{ message: string }> {

@@ -9,6 +9,8 @@ const CompanySettingsPage: React.FC = () => {
     approvalType: 'headcount',
     emailCalendarProvider: 'other'
   });
+  const [allowedDomains, setAllowedDomains] = useState<string[]>([]);
+  const [newDomain, setNewDomain] = useState<string>('');
   const [saving, setSaving] = useState<boolean>(false);
 
   // Use company data from context
@@ -19,6 +21,9 @@ const CompanySettingsPage: React.FC = () => {
         approvalType: company.settings.approvalType || 'headcount',
         emailCalendarProvider: company.settings.emailCalendarProvider || 'other'
       });
+      // allowedDomains may be top-level or under settings depending on backend response
+      const domains = (company.allowedDomains || (company.settings as any)?.allowedDomains || []) as string[];
+      setAllowedDomains(domains);
     }
   }, [company]);
 
@@ -44,7 +49,7 @@ const CompanySettingsPage: React.FC = () => {
       console.log('Saving settings:', settings);
       
       // Use the direct API endpoint for settings
-      await companyService.saveCompanySettings(settings);
+      await companyService.saveCompanySettings({ ...settings, allowedDomains });
       toast.success('Settings saved successfully');
       
       // Refresh company data
@@ -58,6 +63,30 @@ const CompanySettingsPage: React.FC = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const isValidDomain = (value: string) => {
+    // Simple domain validation: must contain a dot and no spaces
+    const v = value.trim().toLowerCase();
+    return v.length > 0 && v.includes('.') && !v.includes(' ');
+  };
+
+  const handleAddDomain = () => {
+    const v = newDomain.trim().toLowerCase();
+    if (!isValidDomain(v)) {
+      toast.error('Please enter a valid domain (e.g., acme.com)');
+      return;
+    }
+    if (allowedDomains.includes(v)) {
+      toast.info('Domain already added');
+      return;
+    }
+    setAllowedDomains((prev) => [...prev, v]);
+    setNewDomain('');
+  };
+
+  const handleRemoveDomain = (domain: string) => {
+    setAllowedDomains((prev) => prev.filter((d) => d !== domain));
   };
 
   if (companyLoading) {
@@ -176,6 +205,48 @@ const CompanySettingsPage: React.FC = () => {
               </a>
             </p>
           </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-2">Allowed Email Domains for SSO</h2>
+          <p className="text-gray-500 mb-4">Employees using these domains can request access via IT if they do not already have an account.</p>
+
+          <div className="flex gap-2 mb-4">
+            <input
+              type="text"
+              value={newDomain}
+              onChange={(e) => setNewDomain(e.target.value)}
+              placeholder="e.g., acme.com"
+              className="flex-1 mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+            />
+            <button
+              type="button"
+              onClick={handleAddDomain}
+              className="px-3 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 text-sm"
+            >
+              Add
+            </button>
+          </div>
+
+          {allowedDomains.length === 0 ? (
+            <p className="text-sm text-gray-500">No domains added yet.</p>
+          ) : (
+            <ul className="flex flex-wrap gap-2">
+              {allowedDomains.map((domain) => (
+                <li key={domain} className="flex items-center gap-2 bg-gray-100 border border-gray-300 rounded-full px-3 py-1 text-sm">
+                  <span>{domain}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveDomain(domain)}
+                    className="text-red-600 hover:text-red-800"
+                    aria-label={`Remove ${domain}`}
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         <div className="mt-6">

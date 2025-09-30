@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional, IsArray, IsString } from 'class-validator';
 
 export enum ApprovalType {
   HEADCOUNT = 'headcount',
@@ -19,4 +19,10 @@ export class CompanySettingsDto {
   @IsEnum(EmailCalendarProvider)
   @IsOptional()
   emailCalendarProvider?: EmailCalendarProvider;
+
+  // Not technically part of the nested settings object in the schema, but we allow updating it via the same endpoint
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  allowedDomains?: string[];
 }

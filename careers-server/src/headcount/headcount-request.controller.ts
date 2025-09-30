@@ -11,9 +11,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { HeadcountRequestService } from './headcount-request.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard, RolesGuard, Roles } from '../auth';
 import { HeadcountRequest } from './headcount-request.model';
 import { UserRole } from '../users/schemas/user.schema';
 import { LogAction } from 'src/user-logs/user-logs.interceptor';

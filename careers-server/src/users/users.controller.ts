@@ -13,6 +13,10 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard, Roles } from '../auth';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from './schemas/user.schema';
+import { Company } from '../company/company.schema';
 import { UserRole } from './schemas/user.schema';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -25,7 +29,11 @@ import { LogAction } from '../user-logs/user-logs.interceptor';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    @InjectModel(User.name) private readonly userModel: Model<User>,
+    @InjectModel(Company.name) private readonly companyModel: Model<Company>,
+  ) {}
 
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -39,6 +47,42 @@ export class UsersController {
       }
       throw new HttpException('An error occurred', HttpStatus.BAD_REQUEST);
     }
+  }
+
+  // Current authenticated user profile
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async me(@Request() req: { user: { userId: string } }) {
+    const userId = req.user?.userId;
+    const user = await this.userModel.findById(userId).lean().exec();
+    if (!user) {
+      console.log('User not found');
+      throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+    }
+
+    let company: any = null;
+    if (user.companyId) {
+      company = await this.companyModel.findById(user.companyId).lean().exec();
+      console.log('Company found:', company);
+    }
+
+    return {
+      user: {
+        id: String(user._id),
+        email: user.email,
+        role: user.role,
+        isAdmin: user.role === UserRole.ADMIN,
+        name: (user as any).name || '',
+        departmentId: (user as any).departmentId || '',
+        companyId: user.companyId ? String(user.companyId) : null,
+      },
+      company: company
+        ? {
+            id: String(company._id),
+            name: company.name || '',
+          }
+        : null,
+    };
   }
 
   @Patch(':id/role')

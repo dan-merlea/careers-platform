@@ -2,7 +2,10 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { google, calendar_v3 } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
-import { CalendarEvent, CalendarInviteResult } from './calendar-provider.service';
+import {
+  CalendarEvent,
+  CalendarInviteResult,
+} from './calendar-provider.service';
 import { CalendarCredentialsService } from './calendar-credentials.service';
 import { CalendarIntegrationType } from './dto/calendar-credentials.dto';
 
@@ -15,43 +18,48 @@ export class GoogleCalendarService {
 
   constructor(
     private readonly configService: ConfigService,
-    private readonly calendarCredentialsService: CalendarCredentialsService
+    private readonly calendarCredentialsService: CalendarCredentialsService,
   ) {}
 
   private async initializeGoogleClient(): Promise<void> {
     try {
       // Try to get credentials from database first
-      const credentials = await this.calendarCredentialsService.findByType(CalendarIntegrationType.GOOGLE)
+      const credentials = await this.calendarCredentialsService
+        .findByType(CalendarIntegrationType.GOOGLE)
         .catch(() => null);
-      
+
       if (credentials) {
         // Use credentials from database
         this.oauth2Client = new google.auth.OAuth2(
           credentials.clientId,
           credentials.clientSecret,
-          credentials.redirectUri
+          credentials.redirectUri,
         );
-        
+
         // Set credentials
         this.oauth2Client.setCredentials({
           refresh_token: credentials.refreshToken,
         });
       } else {
         // Fall back to environment variables
-        this.logger.warn('No Google Calendar credentials found in database, falling back to environment variables');
+        this.logger.warn(
+          'No Google Calendar credentials found in database, falling back to environment variables',
+        );
         this.oauth2Client = new google.auth.OAuth2(
           this.configService.get<string>('GOOGLE_CLIENT_ID'),
           this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
-          this.configService.get<string>('GOOGLE_REDIRECT_URI')
+          this.configService.get<string>('GOOGLE_REDIRECT_URI'),
         );
-        
+
         // Set credentials
-        const refreshToken = this.configService.get<string>('GOOGLE_REFRESH_TOKEN');
+        const refreshToken = this.configService.get<string>(
+          'GOOGLE_REFRESH_TOKEN',
+        );
         this.oauth2Client.setCredentials({
           refresh_token: refreshToken,
         });
       }
-      
+
       // Create calendar client
       this.calendar = google.calendar({
         version: 'v3',
@@ -79,7 +87,7 @@ export class GoogleCalendarService {
       }
 
       // Format attendees for Google Calendar API
-      const attendees = event.attendees.map(attendee => ({
+      const attendees = event.attendees.map((attendee) => ({
         email: attendee.email,
         displayName: attendee.name,
         responseStatus: 'needsAction',
@@ -121,7 +129,11 @@ export class GoogleCalendarService {
       const googleEventId = response.data.id || `google-${Date.now()}`;
       const eventLink = response.data.htmlLink || '';
       // Use the event's original UID to ensure consistency when re-downloading
-      const icsContent = this.generateIcsWithGoogleLink(event, event.uid || `interview-${googleEventId}@careers-platform`, eventLink);
+      const icsContent = this.generateIcsWithGoogleLink(
+        event,
+        event.uid || `interview-${googleEventId}@careers-platform`,
+        eventLink,
+      );
 
       return {
         content: icsContent,
@@ -130,7 +142,7 @@ export class GoogleCalendarService {
       };
     } catch (error) {
       console.error('Error creating Google Calendar event:', error);
-      
+
       // Fall back to standard ICS format
       return this.generateFallbackIcs(event);
     }
@@ -140,9 +152,9 @@ export class GoogleCalendarService {
    * Generate an ICS file with Google Calendar link
    */
   private generateIcsWithGoogleLink(
-    event: CalendarEvent, 
-    googleEventId: string, 
-    googleEventLink: string
+    event: CalendarEvent,
+    googleEventId: string,
+    googleEventLink: string,
   ): string {
     // Format dates for iCalendar (YYYYMMDDTHHMMSSZ)
     const formatDate = (date: Date): string => {
@@ -150,23 +162,23 @@ export class GoogleCalendarService {
     };
 
     // Create the attendees list
-    const attendees = event.attendees.map(attendee => {
+    const attendees = event.attendees.map((attendee) => {
       const role = attendee.role || 'REQ-PARTICIPANT';
       return `ATTENDEE;ROLE=${role};PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=${attendee.name}:mailto:${attendee.email}`;
     });
 
     // Add Google Calendar specific properties and meeting details
     let description = `${event.description}\n\nView in Google Calendar: ${googleEventLink}`;
-    
+
     // Add meeting details if available
     if (event.onlineMeetingUrl) {
       description += `\n\nMeeting URL: ${event.onlineMeetingUrl}`;
     }
-    
+
     if (event.meetingId) {
       description += `\n\nMeeting ID: ${event.meetingId}`;
     }
-    
+
     if (event.meetingPassword) {
       description += `\n\nPassword: ${event.meetingPassword}`;
     }
@@ -195,7 +207,9 @@ export class GoogleCalendarService {
       'END:VALARM',
       'END:VEVENT',
       'END:VCALENDAR',
-    ].filter(line => line !== '').join('\r\n');
+    ]
+      .filter((line) => line !== '')
+      .join('\r\n');
 
     return iCalContent;
   }
@@ -210,27 +224,27 @@ export class GoogleCalendarService {
     };
 
     // Create the attendees list
-    const attendees = event.attendees.map(attendee => {
+    const attendees = event.attendees.map((attendee) => {
       const role = attendee.role || 'REQ-PARTICIPANT';
       return `ATTENDEE;ROLE=${role};PARTSTAT=NEEDS-ACTION;RSVP=TRUE;CN=${attendee.name}:mailto:${attendee.email}`;
     });
 
     // Enhance description with meeting details if available
     let enhancedDescription = event.description;
-    
+
     // Add meeting details if available
     if (event.onlineMeetingUrl) {
       enhancedDescription += `\n\nMeeting URL: ${event.onlineMeetingUrl}`;
     }
-    
+
     if (event.meetingId) {
       enhancedDescription += `\n\nMeeting ID: ${event.meetingId}`;
     }
-    
+
     if (event.meetingPassword) {
       enhancedDescription += `\n\nPassword: ${event.meetingPassword}`;
     }
-    
+
     // Create the iCalendar content
     const iCalContent = [
       'BEGIN:VCALENDAR',
@@ -255,7 +269,9 @@ export class GoogleCalendarService {
       'END:VALARM',
       'END:VEVENT',
       'END:VCALENDAR',
-    ].filter(line => line !== '').join('\r\n');
+    ]
+      .filter((line) => line !== '')
+      .join('\r\n');
 
     return {
       content: iCalContent,

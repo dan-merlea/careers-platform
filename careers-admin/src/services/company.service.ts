@@ -15,6 +15,7 @@ export interface CompanyValue {
 export interface CompanySettings {
   approvalType: 'headcount' | 'job-opening';
   emailCalendarProvider?: 'google' | 'microsoft' | 'other';
+  allowedDomains?: string[];
 }
 
 export interface CompanyDetails {
@@ -32,6 +33,7 @@ export interface CompanyDetails {
   vision: string;
   values: CompanyValue[];
   settings?: CompanySettings;
+  allowedDomains?: string[];
 }
 
 export const companyService = {
@@ -61,7 +63,8 @@ export const companyService = {
           },
           mission: '',
           vision: '',
-          values: []
+          values: [],
+          allowedDomains: [],
         };
       }
       throw error;

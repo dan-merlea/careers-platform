@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth';
 import { InterviewsService } from './interviews.service';
 import type { Request } from 'express';
 import { LogAction } from 'src/user-logs/user-logs.interceptor';

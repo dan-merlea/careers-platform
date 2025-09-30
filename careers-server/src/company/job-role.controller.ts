@@ -13,7 +13,7 @@ import {
 import { JobRoleService } from './job-role.service';
 import { CreateJobRoleDto } from './dto/create-job-role.dto';
 import { UpdateJobRoleDto } from './dto/update-job-role.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth';
 import { JobRole } from './job-role.model';
 import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
@@ -26,12 +26,12 @@ export class JobRoleController {
   @LogAction('create_job_role', 'job_role')
   async create(
     @Body() createJobRoleDto: CreateJobRoleDto,
-    @Req() req: { user: { companyId: string } }
+    @Req() req: { user: { companyId: string } },
   ): Promise<JobRole> {
     // Add company ID from authenticated user
     return this.jobRoleService.create({
       ...createJobRoleDto,
-      companyId: req.user.companyId
+      companyId: req.user.companyId,
     } as any);
   }
 
@@ -42,7 +42,10 @@ export class JobRoleController {
   ): Promise<JobRole[]> {
     // Always filter by company ID
     if (jobFunctionId) {
-      return this.jobRoleService.findByJobFunction(jobFunctionId, req.user.companyId);
+      return this.jobRoleService.findByJobFunction(
+        jobFunctionId,
+        req.user.companyId,
+      );
     }
     return this.jobRoleService.findByCompany(req.user.companyId);
   }

@@ -12,7 +12,7 @@ import {
 import { JobFunctionService } from './job-function.service';
 import { CreateJobFunctionDto } from './dto/create-job-function.dto';
 import { UpdateJobFunctionDto } from './dto/update-job-function.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth';
 import { JobFunction } from './job-function.model';
 import { LogAction } from 'src/user-logs/user-logs.interceptor';
 

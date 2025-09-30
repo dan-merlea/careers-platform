@@ -211,7 +211,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setImpersonatedBy(null);
       
       // We can't use navigate here, so we'll redirect manually
-      window.location.href = '/login';
+      // window.location.href = '/login';
     };
     
     // Add event listener
@@ -234,44 +234,52 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return requiredRoles.includes(userRole);
   };
 
-  // Login function
+  // Login function: expect token-only response, then fetch profile via /auth/me
   const login = async (email: string, password: string) => {
     setLoading(true);
     
     try {
-      const data = await api.post<AuthResponse>('/users/login', { email, password });
-      
-      // Store auth data
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('userId', data.user.id);
-      localStorage.setItem('userEmail', email);
-      localStorage.setItem('isAdmin', data.user.isAdmin ? 'true' : 'false');
-      localStorage.setItem('userRole', data.user.role);
-      localStorage.setItem('userDepartment', data.user.departmentId || '');
-      localStorage.setItem('name', data.user.name || '');
-      
-      console.log('Storing user ID:', data.user.id);
-      
-      // Store company data if available
-      if (data.user.companyId) {
-        localStorage.setItem('companyId', data.user.companyId);
+      const tokenResp = await api.post<{ token: string }>('/users/login', { email, password });
+      const tokenValue = (tokenResp as any)?.token;
+      if (!tokenValue) {
+        throw new Error('No token returned from login');
       }
-      
-      if (data.company) {
-        localStorage.setItem('companyName', data.company.name);
+
+      // Store token first so the api util includes Authorization header
+      localStorage.setItem('token', tokenValue);
+      setToken(tokenValue);
+
+      // Fetch authenticated user profile
+      const me = await api.get<{ user: { id: string; email: string; role: string; name?: string; departmentId?: string; companyId?: string }, company?: { id: string; name: string } | null }>('/users/me');
+
+      const { user: meUser, company: meCompany } = me || ({} as any);
+      if (!meUser) {
+        throw new Error('Unable to fetch user profile');
       }
-      
+
+      console.log('User profile:', meUser);
+      console.log('Company profile:', meCompany);
+
+      // Persist user/company details
+      localStorage.setItem('userId', meUser.id);
+      localStorage.setItem('userEmail', meUser.email);
+      localStorage.setItem('isAdmin', meUser.role === 'admin' ? 'true' : 'false');
+      localStorage.setItem('userRole', meUser.role || '');
+      localStorage.setItem('userDepartment', meUser.departmentId || '');
+      localStorage.setItem('name', meUser.name || '');
+      if (meUser.companyId) localStorage.setItem('companyId', meUser.companyId);
+      if (meCompany) localStorage.setItem('companyName', meCompany.name || '');
+
       // Update state
       setIsAuthenticated(true);
-      setToken(data.token);
-      setUserId(data.user.id);
-      setUserEmail(email);
-      setIsAdmin(data.user.isAdmin);
-      setUserRole(data.user.role);
-      setUserDepartment(data.user.departmentId || null);
-      setCompanyId(data.user.companyId || null);
-      setCompany(data.company || null);
-      setName(data.user.name || null);
+      setUserId(meUser.id);
+      setUserEmail(meUser.email);
+      setIsAdmin(meUser.role === 'admin');
+      setUserRole(meUser.role || null);
+      setUserDepartment(meUser.departmentId || null);
+      setCompanyId(meUser.companyId || null);
+      setCompany(meCompany || null);
+      setName(meUser.name || null);
     } finally {
       setLoading(false);
     }

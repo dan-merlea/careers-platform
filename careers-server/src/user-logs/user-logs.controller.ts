@@ -1,14 +1,6 @@
-import {
-  Controller,
-  Get,
-  Query,
-  Param,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, Param, UseGuards } from '@nestjs/common';
 import { UserLogsService } from './user-logs.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
+import { JwtAuthGuard, RolesGuard, Roles } from '../auth';
 import { UserRole } from '../users/schemas/user.schema';
 
 @Controller('user-logs')
@@ -21,10 +13,7 @@ export class UserLogsController {
    * Get all logs with pagination
    */
   @Get()
-  async getAllLogs(
-    @Query('page') page = '1',
-    @Query('limit') limit = '20',
-  ) {
+  async getAllLogs(@Query('page') page = '1', @Query('limit') limit = '20') {
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     return this.userLogsService.getAllLogs(pageNum, limitNum);

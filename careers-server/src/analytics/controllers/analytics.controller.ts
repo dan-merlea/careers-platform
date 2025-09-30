@@ -1,7 +1,11 @@
-import { Controller, Get, Query, UseGuards, UseInterceptors } from '@nestjs/common';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import {
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
+import { JwtAuthGuard, RolesGuard, Roles } from '../../auth';
 import { UserRole } from '../../users/schemas/user.schema';
 import { AnalyticsService } from '../services/analytics.service';
 import { CompanyId } from '../../company/decorators/company-id.decorator';

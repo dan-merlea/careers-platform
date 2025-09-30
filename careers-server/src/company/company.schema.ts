@@ -71,6 +71,9 @@ export class Company extends Document {
 
   @Prop({ type: CompanySettings, default: { approvalType: 'headcount' } })
   settings: CompanySettings;
+
+  @Prop({ type: [String], default: [] })
+  allowedDomains: string[];
 }
 
 export const CompanySchema = SchemaFactory.createForClass(Company);

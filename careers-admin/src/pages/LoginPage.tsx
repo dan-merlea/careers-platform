@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { API_URL } from "../config";
+import { api } from "../utils/api";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -12,6 +14,55 @@ const LoginPage: React.FC = () => {
 
   // Check if there was a redirect from a protected route
   useEffect(() => {
+    // Handle backend redirect query params for Google SSO
+    const params = new URLSearchParams(location.search);
+    const tokenFromSSO = params.get("token");
+    const errorFromSSO = params.get("error");
+    const emailPrefill = params.get("email");
+
+    if (errorFromSSO) {
+      setError(errorFromSSO);
+    }
+
+    if (emailPrefill) {
+      setEmail(emailPrefill);
+    }
+
+    if (tokenFromSSO) {
+      // Persist token so api util sends it
+      localStorage.setItem("token", tokenFromSSO);
+      
+      // Fetch authenticated user profile to hydrate localStorage like a normal login
+      api
+        .get<{ user: { id: string; email: string; role: string; name?: string; departmentId?: string; companyId?: string }; company?: { id: string; name: string } | null }>(
+          "/users/me"
+        )
+        .then((data) => {
+          console.log("User profile data:", data);
+          const { user, company } = data || ({} as any);
+          if (user) {
+            localStorage.setItem("userId", user.id);
+            localStorage.setItem("userEmail", user.email);
+            localStorage.setItem("isAdmin", user.role === "admin" ? "true" : "false");
+            localStorage.setItem("userRole", user.role || "");
+            localStorage.setItem("userDepartment", user.departmentId || "");
+            localStorage.setItem("name", user.name || "");
+            if (user.companyId) localStorage.setItem("companyId", user.companyId);
+          }
+          if (company) {
+            localStorage.setItem("companyName", company.name || "");
+          }
+        })
+        .catch(() => {
+          // If /auth/me fails, proceed with token only; AuthProvider may still validate later
+        })
+        .finally(() => {
+          // Redirect to dashboard (root) – a full reload ensures context picks it up
+          window.location.href = "/";
+        });
+      return;
+    }
+
     const from = location.state?.from?.pathname;
     if (from) {
       setError(`You need to sign in to access ${from}`);
@@ -119,6 +170,21 @@ const LoginPage: React.FC = () => {
               </button>
             </div>
           </form>
+
+          <div className="mt-4">
+            <a
+              href={`${API_URL}/auth/google`}
+              className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="h-5 w-5">
+                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.4 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34.2 6.1 29.4 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.2 16.2 18.7 12 24 12c3 0 5.7 1.1 7.8 2.9l5.7-5.7C34.2 6.1 29.4 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                <path fill="#4CAF50" d="M24 44c5.2 0 10-2 13.6-5.2l-6.3-5.3C29.2 35.6 26.7 36 24 36c-5.3 0-9.7-3.6-11.3-8.5l-6.6 5.1C9.4 39.7 16.1 44 24 44z"/>
+                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.1 3.2-3.5 5.7-6.7 7.3l6.3 5.3C37.1 38.7 40 32.9 40 26c0-1.3-.1-2.7-.4-3.5z"/>
+              </svg>
+              Sign in with Google
+            </a>
+          </div>
 
           <div className="mt-6">
             <div className="relative">

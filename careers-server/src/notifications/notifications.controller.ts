@@ -9,7 +9,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth';
 import { LogAction } from '../user-logs/user-logs.interceptor';
 
 @Controller('notifications')

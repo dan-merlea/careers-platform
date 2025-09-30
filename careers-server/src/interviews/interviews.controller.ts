@@ -8,7 +8,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { InterviewsService } from './interviews.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../auth';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
@@ -34,7 +34,7 @@ export class InterviewsController {
   async getUpcomingInterviews() {
     return this.interviewsService.getUpcomingInterviews();
   }
-  
+
   @Get('user')
   @ApiOperation({ summary: 'Get interviews for the current user' })
   @ApiResponse({
@@ -71,25 +71,37 @@ export class InterviewsController {
 
   @Put(':id/reschedule')
   @ApiOperation({ summary: 'Reschedule an interview' })
-  @ApiResponse({ status: 200, description: 'Interview rescheduled successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Interview rescheduled successfully',
+  })
   @ApiResponse({ status: 404, description: 'Interview not found' })
   @LogAction('reschedule_interview', 'interview')
   async rescheduleInterview(
     @Param('id') id: string,
     @Body() rescheduleData: { scheduledDate: string },
   ) {
-    return this.interviewsService.rescheduleInterview(id, new Date(rescheduleData.scheduledDate));
+    return this.interviewsService.rescheduleInterview(
+      id,
+      new Date(rescheduleData.scheduledDate),
+    );
   }
 
   @Put(':id/interviewers')
   @ApiOperation({ summary: 'Update interviewers for an interview' })
-  @ApiResponse({ status: 200, description: 'Interviewers updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Interviewers updated successfully',
+  })
   @ApiResponse({ status: 404, description: 'Interview not found' })
   @LogAction('update_interviewers', 'interview')
   async updateInterviewers(
     @Param('id') id: string,
     @Body() updateData: { interviewers: { userId: string; name: string }[] },
   ) {
-    return this.interviewsService.updateInterviewers(id, updateData.interviewers);
+    return this.interviewsService.updateInterviewers(
+      id,
+      updateData.interviewers,
+    );
   }
 }

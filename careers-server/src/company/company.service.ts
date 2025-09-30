@@ -73,20 +73,22 @@ export class CompanyService {
     const currentSettings = company.settings || {};
     const updatedSettings = { ...currentSettings, ...settingsDto };
 
-    // Update company with new settings
-    // Use $set to explicitly set each field in the settings object
+    // Build update object
+    const updatePayload: any = {
+      $set: {
+        'settings.approvalType': updatedSettings.approvalType,
+        'settings.emailCalendarProvider': updatedSettings.emailCalendarProvider,
+      },
+    };
+
+    // Optionally update allowedDomains if provided
+    if (Array.isArray(settingsDto.allowedDomains)) {
+      updatePayload.$set.allowedDomains = settingsDto.allowedDomains.map((d) => d.toLowerCase());
+    }
+
+    // Update company with new settings and optional allowedDomains
     const updated = await this.companyModel
-      .findByIdAndUpdate(
-        company._id,
-        {
-          $set: {
-            'settings.approvalType': updatedSettings.approvalType,
-            'settings.emailCalendarProvider':
-              updatedSettings.emailCalendarProvider,
-          },
-        },
-        { new: true },
-      )
+      .findByIdAndUpdate(company._id, updatePayload, { new: true })
       .exec();
 
     if (!updated) {
