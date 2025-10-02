@@ -11,6 +11,7 @@ type SelectProps = {
   disabled?: boolean;
   ariaLabel?: string;
   allowEmpty?: boolean;
+  searchable?: boolean;
 };
 
 const Select: React.FC<SelectProps> = ({
@@ -22,10 +23,12 @@ const Select: React.FC<SelectProps> = ({
   disabled,
   ariaLabel = 'Select',
   allowEmpty = false,
+  searchable = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const [query, setQuery] = useState('');
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -92,6 +95,7 @@ const Select: React.FC<SelectProps> = ({
   useEffect(() => {
     if (open) {
       setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
+      setQuery('');
     }
   }, [open, currentIndex]);
 
@@ -100,8 +104,14 @@ const Select: React.FC<SelectProps> = ({
     return found?.label ?? (allowEmpty && !value ? placeholder : value ?? placeholder);
   }, [options, value, placeholder, allowEmpty]);
 
+  const filtered = useMemo(() => {
+    if (!searchable || !query.trim()) return options;
+    const q = query.toLowerCase();
+    return options.filter(o => o.label.toLowerCase().includes(q));
+  }, [options, query, searchable]);
+
   return (
-    <div className={`relative inline-block text-left ${className ?? ''}`}>
+    <div className={`relative inline-block text-left w-full ${className ?? ''}`}>
       <style>{`
         @keyframes slc-in { from { opacity: 0; transform: scale(0.97) } to { opacity: 1; transform: scale(1) } }
         @keyframes slc-out { from { opacity: 1; transform: scale(1) } to { opacity: 0; transform: scale(0.98) } }
@@ -122,7 +132,7 @@ const Select: React.FC<SelectProps> = ({
           if (open) closeWithAnimation();
           else setOpen(true);
         }}
-        className={`block w-28 pl-3 pr-10 py-2 bg-white border border-gray-300 rounded-md text-left text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 ${
+        className={`block w-full pl-3 pr-10 py-2 bg-white border border-gray-300 rounded-md text-left text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 ${
           open ? 'ring-2 ring-blue-500 border-blue-500' : ''
         }`}
       >
@@ -148,9 +158,21 @@ const Select: React.FC<SelectProps> = ({
       {(open || exiting) && (
         <div
           ref={menuRef}
-          className={`${open ? 'slc-enter' : 'slc-exit'} absolute mt-1 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20`}
+          className={`${open ? 'slc-enter' : 'slc-exit'} absolute mt-1 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20`}
           role="listbox"
         >
+          {searchable && (
+            <div className="p-2 border-b border-gray-200">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search..."
+                className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                aria-label="Search options"
+              />
+            </div>
+          )}
           <div className="max-h-60 overflow-auto py-1">
             {allowEmpty && (
               <button
@@ -169,7 +191,7 @@ const Select: React.FC<SelectProps> = ({
                 {placeholder}
               </button>
             )}
-            {options.map((opt, idx) => (
+            {filtered.map((opt, idx) => (
               <button
                 type="button"
                 key={opt.value}

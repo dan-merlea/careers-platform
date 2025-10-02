@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { CompanySettings, companyService } from '../services/company.service';
 import { useCompany } from '../context/CompanyContext';
+import Select from '../components/common/Select';
 
 const CompanySettingsPage: React.FC = () => {
-  const { company, loading: companyLoading, updateCompany } = useCompany();
+  const { company, loading: companyLoading } = useCompany();
   const [settings, setSettings] = useState<CompanySettings>({
     approvalType: 'headcount',
     emailCalendarProvider: 'other'
@@ -34,14 +35,7 @@ const CompanySettingsPage: React.FC = () => {
     });
   };
 
-  const handleProviderChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    console.log('Provider changed to:', event.target.value);
-    setSettings({
-      ...settings,
-      emailCalendarProvider: event.target.value as 'google' | 'microsoft' | 'other',
-    });
-    console.log('Updated settings:', { ...settings, emailCalendarProvider: event.target.value });
-  };
+  // Provider change handled via Select onChange above
 
   const handleSave = async () => {
     setSaving(true);
@@ -167,22 +161,21 @@ const CompanySettingsPage: React.FC = () => {
               Provider
             </label>
             <div className="relative rounded-md shadow-sm">
-              <select
-                id="emailCalendarProvider"
-                name="emailCalendarProvider"
+              <Select
                 value={settings.emailCalendarProvider || 'other'}
-                onChange={handleProviderChange}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md appearance-none"
-              >
-                <option value="google">Google Workspace</option>
-                <option value="microsoft">Microsoft 365</option>
-                <option value="other">Other</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-              </div>
+                onChange={(val) =>
+                  setSettings({
+                    ...settings,
+                    emailCalendarProvider: (val as 'google' | 'microsoft' | 'other') || 'other',
+                  })
+                }
+                className="w-full"
+                options={[
+                  { label: 'Google Workspace', value: 'google' },
+                  { label: 'Microsoft 365', value: 'microsoft' },
+                  { label: 'Other', value: 'other' },
+                ]}
+              />
             </div>
             <p className="mt-2 text-sm text-gray-500">
               {settings.emailCalendarProvider === 'google' && (

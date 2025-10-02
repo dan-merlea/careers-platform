@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { useLocation, useNavigate } from 'react-router-dom';
 import jobService from '../services/jobService';
 import jobApplicationService, { CreateReferralRequest } from '../services/jobApplicationService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import TabNavigation from '../components/common/TabNavigation';
 import MyReferralsList from '../components/referrals/MyReferralsList';
+import Select from '../components/common/Select';
 import { UserPlusIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 
 const ReferralPage: React.FC = () => {
@@ -22,6 +23,7 @@ const ReferralPage: React.FC = () => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<Omit<CreateReferralRequest, 'resume' | 'refereeId'>>();
 
@@ -185,34 +187,46 @@ const ReferralPage: React.FC = () => {
 
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">Job Position <span className="text-red-500">*</span></label>
-            <select 
-              {...register('jobId', { required: 'Please select a job position' })}
-              className={`w-full px-3 py-2 border ${errors.jobId ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-            >
-              <option value="">Select job position</option>
-              {jobs.map((job) => (
-                <option key={job.id} value={job.id}>
-                  {job.title}
-                </option>
-              ))}
-            </select>
+            <Controller
+              name="jobId"
+              control={control}
+              rules={{ required: 'Please select a job position' }}
+              render={({ field }) => (
+                <Select
+                  value={field.value || undefined}
+                  onChange={(val) => field.onChange(val || '')}
+                  allowEmpty
+                  placeholder="Select job position"
+                  className={`w-full ${errors.jobId ? 'ring-1 ring-red-500' : ''}`}
+                  searchable
+                  options={jobs.map((job) => ({ label: job.title, value: String(job.id) }))}
+                />
+              )}
+            />
             {errors.jobId && <p className="text-red-500 text-sm mt-1">{errors.jobId.message}</p>}
           </div>
 
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">Consent Duration (months) <span className="text-red-500">*</span></label>
-            <select 
-              {...register('consentDuration', { 
-                required: 'Please select a consent duration',
-                valueAsNumber: true
-              })}
-              className={`w-full px-3 py-2 border ${errors.consentDuration ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
-            >
-              <option value="">Select consent duration</option>
-              <option value={3}>3 months</option>
-              <option value={6}>6 months</option>
-              <option value={12}>12 months</option>
-            </select>
+            <Controller
+              name="consentDuration"
+              control={control}
+              rules={{ required: 'Please select a consent duration' }}
+              render={({ field }) => (
+                <Select
+                  value={field.value ? String(field.value) : undefined}
+                  onChange={(val) => field.onChange(val ? parseInt(val, 10) : undefined)}
+                  allowEmpty
+                  placeholder="Select consent duration"
+                  className={`w-full ${errors.consentDuration ? 'ring-1 ring-red-500' : ''}`}
+                  options={[
+                    { label: '3 months', value: '3' },
+                    { label: '6 months', value: '6' },
+                    { label: '12 months', value: '12' },
+                  ]}
+                />
+              )}
+            />
             {errors.consentDuration && <p className="text-red-500 text-sm mt-1">{errors.consentDuration.message}</p>}
             <p className="text-sm text-gray-500 mt-1">
               How long we can keep the candidate's information in our database

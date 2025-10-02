@@ -134,6 +134,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
           allowEmpty
           placeholder="No parent (top-level department)"
           className="w-full"
+          searchable
           options={getAvailableParents().map(dept => ({ label: dept.title, value: String(dept.id) }))}
         />
         <p className="mt-1 text-sm text-gray-500">
@@ -169,6 +170,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
           onChange={(vals) => setFormData(prev => ({ ...prev, jobRoles: vals }))}
           options={jobRoles.map(role => ({ label: `${role.title} (${role.jobFunction.title})`, value: role._id }))}
           disabled={isSubmitting || loadingJobRoles}
+          searchable
         />
         <p className="mt-1 text-sm text-gray-500">
           Hold Ctrl/Cmd to select multiple job roles relevant for this department

@@ -1,5 +1,6 @@
 import React from 'react';
 import { CompanyDetails } from '../../services/company.service';
+import Select from '../common/Select';
 
 interface CompanyProfileSectionProps {
   companyDetails: CompanyDetails;
@@ -118,22 +119,24 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
               <label htmlFor="size" className="block text-sm font-medium text-gray-700">
                 Company Size
               </label>
-              <select
-                id="size"
-                name="size"
-                value={companyDetails.size}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select size</option>
-                <option value="1-10">1-10 employees</option>
-                <option value="11-50">11-50 employees</option>
-                <option value="51-200">51-200 employees</option>
-                <option value="201-500">201-500 employees</option>
-                <option value="501-1000">501-1000 employees</option>
-                <option value="1001-5000">1001-5000 employees</option>
-                <option value="5001+">5001+ employees</option>
-              </select>
+              <Select
+                value={companyDetails.size || undefined}
+                onChange={(val) =>
+                  handleInputChange({ target: { name: 'size', value: val || '' } } as any)
+                }
+                allowEmpty
+                placeholder="Select size"
+                className="w-full"
+                options={[
+                  { label: '1-10 employees', value: '1-10' },
+                  { label: '11-50 employees', value: '11-50' },
+                  { label: '51-200 employees', value: '51-200' },
+                  { label: '201-500 employees', value: '201-500' },
+                  { label: '501-1000 employees', value: '501-1000' },
+                  { label: '1001-5000 employees', value: '1001-5000' },
+                  { label: '5001+ employees', value: '5001+' },
+                ]}
+              />
             </div>
             
             <div>

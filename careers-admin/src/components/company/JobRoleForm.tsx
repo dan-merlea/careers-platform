@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { JobRole, CreateJobRoleDto, UpdateJobRoleDto } from '../../services/jobRoleService';
 import { JobFunction } from '../../services/jobFunctionService';
+import Select from '../common/Select';
 
 interface JobRoleFormProps {
   jobRole?: JobRole;
@@ -91,31 +92,19 @@ const JobRoleForm: React.FC<JobRoleFormProps> = ({
         <label htmlFor="jobFunction" className="block text-sm font-medium text-gray-700 mb-1">
           Job Function <span className="text-red-500">*</span>
         </label>
-        <select
-          id="jobFunction"
-          value={jobFunction ? jobFunction._id : ''}
-          onChange={(e) => {
-            const selectedFunction = jobFunctions.find(jf => jf._id === e.target.value);
+        <Select
+          value={jobFunction?._id || undefined}
+          onChange={(val) => {
+            const selectedFunction = jobFunctions.find(jf => jf._id === val);
             setJobFunction(selectedFunction);
           }}
-          className={`w-full px-3 py-2 border rounded-md ${
-            errors.jobFunction ? 'border-red-500' : 'border-gray-300'
-          }`}
+          allowEmpty
+          placeholder={jobFunctions.length === 0 ? 'No job functions available' : 'Select a job function'}
+          className={`w-full ${errors.jobFunction ? 'ring-1 ring-red-500' : ''}`}
           disabled={isSubmitting || jobFunctions.length === 0}
-        >
-          {jobFunctions.length === 0 ? (
-            <option value="">No job functions available</option>
-          ) : (
-            <>
-              <option value="">Select a job function</option>
-              {jobFunctions.map((jf) => (
-                <option key={jf._id} value={jf._id}>
-                  {jf.title}
-                </option>
-              ))}
-            </>
-          )}
-        </select>
+          searchable
+          options={jobFunctions.map((jf) => ({ label: jf.title, value: jf._id }))}
+        />
         {errors.jobFunction && <p className="mt-1 text-sm text-red-500">{errors.jobFunction}</p>}
       </div>
 

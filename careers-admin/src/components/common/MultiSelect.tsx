@@ -10,6 +10,7 @@ type MultiSelectProps = {
   className?: string;
   disabled?: boolean;
   ariaLabel?: string;
+  searchable?: boolean;
 };
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -20,10 +21,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   className,
   disabled,
   ariaLabel = 'Multi select',
+  searchable = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const [query, setQuery] = useState('');
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -45,6 +48,12 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
     [values, onChange]
   );
 
+  const filtered = useMemo(() => {
+    if (!searchable || !query.trim()) return options;
+    const q = query.toLowerCase();
+    return options.filter(o => o.label.toLowerCase().includes(q));
+  }, [options, query, searchable]);
+
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
@@ -65,21 +74,21 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setActiveIndex((i) => {
-          const next = i < options.length - 1 ? i + 1 : 0;
+          const next = i < filtered.length - 1 ? i + 1 : 0;
           return next;
         });
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault();
         setActiveIndex((i) => {
-          const prev = i > 0 ? i - 1 : options.length - 1;
+          const prev = i > 0 ? i - 1 : filtered.length - 1;
           return prev;
         });
       }
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
-        if (activeIndex >= 0 && activeIndex < options.length) {
-          const v = options[activeIndex]?.value;
+        if (activeIndex >= 0 && activeIndex < filtered.length) {
+          const v = filtered[activeIndex]?.value;
           toggleValue(v);
         }
       }
@@ -90,10 +99,13 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('keydown', onKey);
     };
-  }, [open, activeIndex, options, toggleValue]);
+  }, [open, activeIndex, toggleValue, filtered]);
 
   useEffect(() => {
-    if (open) setActiveIndex(0);
+    if (open) {
+      setActiveIndex(0);
+      setQuery('');
+    }
   }, [open]);
 
   const selectedOptions = useMemo(() => {
@@ -172,8 +184,20 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           className={`${open ? 'mslc-enter' : 'mslc-exit'} absolute mt-1 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20`}
           role="listbox"
         >
+          {searchable && (
+            <div className="p-2 border-b border-gray-200">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search..."
+                className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                aria-label="Search options"
+              />
+            </div>
+          )}
           <div className="max-h-60 overflow-auto py-1">
-            {options.map((opt, idx) => {
+            {filtered.map((opt, idx) => {
               const checked = values.includes(opt.value);
               const active = idx === activeIndex;
               return (
