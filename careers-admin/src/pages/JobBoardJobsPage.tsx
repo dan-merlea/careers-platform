@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PlusIcon, EyeIcon, PencilIcon, TrashIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, EyeIcon, PencilIcon, TrashIcon, ArrowLeftIcon, EllipsisHorizontalIcon, CheckCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
 import jobService, { Job, JobStatus } from '../services/jobService';
 import { getStatusBadgeClass } from '../utils/jobStatusUtils';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ScrollableTable from '../components/common/ScrollableTable';
+import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 import { useCompany } from '../context/CompanyContext';
 
 const JobBoardJobsPage: React.FC = () => {
@@ -20,6 +21,7 @@ const JobBoardJobsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
+  // Actions menu handled by reusable component
   
   // Check if approval workflow is set to headcount
   const isHeadcountApprovalWorkflow = company?.settings?.approvalType === 'headcount';
@@ -250,59 +252,37 @@ const JobBoardJobsPage: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(job.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex justify-end space-x-2">
-                      <button
-                        onClick={() => handleViewJob(job.id)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        <EyeIcon className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleEditJob(job.id)}
-                        className="text-gray-600 hover:text-gray-900"
-                      >
-                        <PencilIcon className="w-5 h-5" />
-                      </button>
-                      {job.status === 'draft' && (
-                        <button
-                          onClick={() => handleSubmitForApproval(job.id)}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="Submit for Approval"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </button>
-                      )}
-                      {job.status === 'approved' && (
-                        <button
-                          onClick={() => handlePublishJob(job.id)}
-                          className="text-green-600 hover:text-green-900"
-                          title="Publish"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                        </button>
-                      )}
-                      {job.status === 'published' && (
-                        <button
-                          onClick={() => handleArchiveJob(job.id)}
-                          className="text-yellow-600 hover:text-yellow-900"
-                          title="Archive"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                          </svg>
-                        </button>
-                      )}
-                      <button
-                        onClick={() => openDeleteModal(job)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <TrashIcon className="w-5 h-5" />
-                      </button>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                    <div className="flex justify-end">
+                      <ActionsMenu
+                        buttonAriaLabel="Job actions"
+                        buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
+                        align="right"
+                        menuWidthPx={192}
+                        items={(() => {
+                          const items: ActionsMenuItem[] = [
+                            { label: 'View', onClick: () => handleViewJob(job.id), icon: <EyeIcon className="w-4 h-4" /> },
+                          ];
+                          if (jobBoard && !jobBoard.isExternal) {
+                            items.push({ label: 'Edit', onClick: () => handleEditJob(job.id), icon: <PencilIcon className="w-4 h-4" /> });
+                            if (job.status === 'draft') {
+                              items.push({ label: 'Submit for approval', onClick: () => handleSubmitForApproval(job.id), icon: <ClockIcon className="w-4 h-4" /> });
+                            }
+                            if (job.status === 'approved') {
+                              items.push({ label: 'Publish', onClick: () => handlePublishJob(job.id), icon: <CheckCircleIcon className="w-4 h-4" /> });
+                            }
+                            if (job.status === 'published') {
+                              items.push({ label: 'Archive', onClick: () => handleArchiveJob(job.id), icon: (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg>
+                              ) });
+                            }
+                            items.push({ label: 'Delete', onClick: () => openDeleteModal(job), icon: <TrashIcon className="w-4 h-4" />, variant: 'danger' });
+                          }
+                          return items;
+                        })()}
+                      />
                     </div>
                   </td>
                 </tr>

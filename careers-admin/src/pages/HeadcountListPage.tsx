@@ -4,12 +4,15 @@ import { toast } from 'react-toastify';
 import headcountService, { HeadcountRequest } from '../services/headcountService';
 import { useAuth } from '../context/AuthContext';
 import ScrollableTable from '../components/common/ScrollableTable';
+import { EllipsisHorizontalIcon, EyeIcon, CheckCircleIcon, XCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 const HeadcountListPage: React.FC = () => {
   const [headcountRequests, setHeadcountRequests] = useState<HeadcountRequest[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { userRole, userEmail } = useAuth();
   const navigate = useNavigate();
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   
   // Check if user is a director or admin (can approve/reject)
   const canApprove = userRole === 'director' || userRole === 'admin';
@@ -30,6 +33,26 @@ const HeadcountListPage: React.FC = () => {
 
     fetchHeadcountRequests();
   }, []);
+
+  useEffect(() => {
+    if (!openMenuId) return;
+    const onDown = () => {
+      setOpenMenuId(null);
+      setMenuPos(null);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpenMenuId(null);
+        setMenuPos(null);
+      }
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [openMenuId]);
 
   const handleApprove = async (id: string) => {
     try {
@@ -207,47 +230,63 @@ const HeadcountListPage: React.FC = () => {
                     {new Date(request.createdAt).toLocaleDateString()}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={handleActionClick}>
-                  <Link 
-                    to={`/headcount/${request._id}`} 
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    <i className="bi bi-eye me-1"></i> View
-                  </Link>
-                  
-                  {canApprove && request.status === 'pending' && (
-                    <>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleApprove(request._id);
-                        }}
-                        className="text-green-600 hover:text-green-900 mr-4"
-                      >
-                        <i className="bi bi-check-circle me-1"></i> Approve
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleReject(request._id);
-                        }}
-                        className="text-red-600 hover:text-red-900 mr-4"
-                      >
-                        <i className="bi bi-x-circle me-1"></i> Reject
-                      </button>
-                    </>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative" onClick={handleActionClick}>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      aria-haspopup="menu"
+                      aria-expanded={openMenuId === request._id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const btn = e.currentTarget as HTMLButtonElement;
+                        const r = btn.getBoundingClientRect();
+                        const menuWidth = 224; // w-56
+                        setOpenMenuId(prev => prev === request._id ? null : request._id);
+                        setMenuPos({ top: r.bottom + window.scrollY + 4, left: r.right + window.scrollX - menuWidth });
+                      }}
+                      className="inline-flex items-center p-2 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />
+                    </button>
+                  </div>
+                  {openMenuId === request._id && menuPos && (
+                    <div className="fixed w-56 bg-white border border-gray-200 rounded-md shadow-lg z-[1000]" role="menu" style={{ top: menuPos.top, left: menuPos.left }}>
+                      <div className="py-1">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); setMenuPos(null); navigate(`/headcount/${request._id}`); }}
+                          className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          role="menuitem"
+                        >
+                          <EyeIcon className="w-4 h-4" /> View
+                        </button>
+                        {canApprove && request.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); setMenuPos(null); handleApprove(request._id); }}
+                              className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-green-700 hover:bg-green-50"
+                              role="menuitem"
+                            >
+                              <CheckCircleIcon className="w-4 h-4" /> Approve
+                            </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); setMenuPos(null); handleReject(request._id); }}
+                              className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                              role="menuitem"
+                            >
+                              <XCircleIcon className="w-4 h-4" /> Reject
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setOpenMenuId(null); setMenuPos(null); handleRemove(request._id); }}
+                          className="w-full text-left flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                          role="menuitem"
+                        >
+                          <TrashIcon className="w-4 h-4" /> Remove
+                        </button>
+                      </div>
+                    </div>
                   )}
-                  
-                  {/* Remove button - available for all requests */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemove(request._id);
-                    }}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    <i className="bi bi-trash me-1"></i> Remove
-                  </button>
                 </td>
               </tr>
             ))}  

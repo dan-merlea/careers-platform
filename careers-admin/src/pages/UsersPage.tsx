@@ -3,7 +3,8 @@ import { UserRole, User, authService } from '../services/auth.service';
 import { useAuth } from '../context/AuthContext';
 import { departmentService, Department } from '../services/departmentService';
 import ScrollableTable from '../components/common/ScrollableTable';
-import KebabMenu from '../components/common/KebabMenu';
+import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
+import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import Select from '../components/common/Select';
 
 // User interface is now imported from auth.service.ts
@@ -254,28 +255,27 @@ const UsersPage: React.FC = () => {
                         ) : (
                           <div className="relative inline-block text-left">
                             {isAdmin ? (
-                              <KebabMenu
-                                items={[
-                                  {
-                                    label: 'Edit User',
-                                    onSelect: () => setEditingUser(user),
-                                  },
-                                  ...(user.role === 'director' || user.role === 'manager'
-                                    ? [
-                                        {
-                                          label: 'Edit Department',
-                                          onSelect: () =>
-                                            setEditingUser({
-                                              ...user,
-                                              departmentId: user.departmentId || undefined,
-                                            }),
-                                        },
-                                      ]
-                                    : []),
-                                  {
+                              <ActionsMenu
+                                buttonAriaLabel="User actions"
+                                buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
+                                align="right"
+                                menuWidthPx={224}
+                                items={(() => {
+                                  const items: ActionsMenuItem[] = [
+                                    { label: 'Edit User', onClick: () => setEditingUser(user) },
+                                  ];
+                                  if (user.role === 'director' || user.role === 'manager') {
+                                    items.push({
+                                      label: 'Edit Department',
+                                      onClick: () => setEditingUser({
+                                        ...user,
+                                        departmentId: user.departmentId || undefined,
+                                      }),
+                                    });
+                                  }
+                                  items.push({
                                     label: impersonating ? 'Signing in…' : 'Sign in as',
-                                    disabled: impersonating,
-                                    onSelect: async () => {
+                                    onClick: async () => {
                                       try {
                                         setImpersonating(true);
                                         await impersonateUser(user.id);
@@ -285,8 +285,10 @@ const UsersPage: React.FC = () => {
                                         alert('Failed to impersonate user. Please try again.');
                                       }
                                     },
-                                  },
-                                ]}
+                                    disabled: impersonating,
+                                  });
+                                  return items;
+                                })()}
                               />
                             ) : (
                               <span className="text-gray-500">View Only</span>

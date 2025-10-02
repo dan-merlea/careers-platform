@@ -81,9 +81,9 @@ const ScrollableTable: React.FC<ScrollableTableProps> = ({
     <div className={`relative ${className}`}>
       {/* Custom scroll indicator - only shown when scrolling is needed */}
       {isScrollingNeeded() && (
-        <div className="relative h-1 bg-gray-200 w-full mb-1 rounded">
+        <div className="relative h-0.5 bg-gray-200 w-full rounded">
           <div 
-            className="absolute h-1 bg-blue-400 rounded-full" 
+            className="absolute h-0.5 bg-blue-400 rounded-full" 
             style={getScrollIndicatorStyles()}
           ></div>
         </div>
@@ -97,15 +97,19 @@ const ScrollableTable: React.FC<ScrollableTableProps> = ({
       {isScrollingNeeded() && showRightGradient && (
         <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-gray-100 to-transparent pointer-events-none z-10"></div>
       )}
-      <div 
-        id="tableContainer"
-        className={`bg-white ${isScrollingNeeded() ? 'shadow' : ''} rounded overflow-auto`}
+      <div
+        className={`bg-white rounded overflow-y-auto overflow-x-visible ${isScrollingNeeded() ? 'shadow' : ''}`}
         style={{ maxHeight }}
-        onScroll={handleTableScroll}
       >
-        <table className="min-w-full divide-y divide-gray-200">
-          {children}
-        </table>
+        <div
+          id="tableContainer"
+          className="overflow-x-auto overflow-y-visible"
+          onScroll={handleTableScroll}
+        >
+          <table className="min-w-full divide-y divide-gray-200">
+            {children}
+          </table>
+        </div>
       </div>
     </div>
   );

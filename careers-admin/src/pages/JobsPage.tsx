@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { PencilIcon, TrashIcon, EyeIcon, ArchiveBoxIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, EyeIcon, ArchiveBoxIcon, CheckCircleIcon, XCircleIcon, ClockIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { useCompany } from '../context/CompanyContext';
 import jobService, { Job, JobStatus } from '../services/jobService';
@@ -9,6 +9,7 @@ import { departmentService, Department } from '../services/departmentService';
 import { getStatusBadgeClass, getPrettyStatus } from '../utils/jobStatusUtils';
 import { formatDate } from '../utils/dateUtils';
 import ScrollableTable from '../components/common/ScrollableTable';
+import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 import Select from '../components/common/Select';
 
 const JobsPage: React.FC = () => {
@@ -26,6 +27,7 @@ const JobsPage: React.FC = () => {
   const [rejectionReason, setRejectionReason] = useState<string>('');
   const [jobToReject, setJobToReject] = useState<Job | null>(null);
   const [isRejecting, setIsRejecting] = useState<boolean>(false);
+  // Actions menu handled by reusable component
   
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -416,88 +418,36 @@ const JobsPage: React.FC = () => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {formatDate(viewMode === 'pending' ? job.updatedAt : job.createdAt)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <div className="flex justify-end space-x-2">
-                    {/* Show different actions based on view mode */}
-                    {viewMode === 'all' ? (
-                      <>
-                        <Link
-                          to={`/jobs/${job.id}`}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="View"
-                        >
-                          <EyeIcon className="w-5 h-5" />
-                        </Link>
-                        <Link
-                          to={`/jobs/${job.id}/edit`}
-                          className="text-indigo-600 hover:text-indigo-900"
-                          title="Edit"
-                        >
-                          <PencilIcon className="h-5 w-5" />
-                        </Link>
-                        {job.status === JobStatus.DRAFT && (
-                          <button
-                            onClick={() => handleStatusChange(job, 'submit')}
-                            className="text-blue-600 hover:text-blue-900"
-                            title="Submit for Approval"
-                          >
-                            <ClockIcon className="h-5 w-5" />
-                          </button>
-                        )}
-                        {job.status === JobStatus.APPROVED && (
-                          <button
-                            onClick={() => handleStatusChange(job, 'publish')}
-                            className="text-green-600 hover:text-green-900"
-                            title="Publish"
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                          </button>
-                        )}
-                        {job.status !== JobStatus.ARCHIVED && job.status !== JobStatus.DRAFT && (
-                          <button
-                            onClick={() => handleStatusChange(job, 'archive')}
-                            className="text-gray-600 hover:text-gray-900"
-                            title="Archive"
-                          >
-                            <ArchiveBoxIcon className="w-5 h-5" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => openDeleteModal(job)}
-                          className="text-red-600 hover:text-red-900"
-                          title="Delete"
-                        >
-                          <TrashIcon className="h-5 w-5" />
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        {/* Only show view, approve, reject in requests tab */}
-                        <Link
-                          to={`/jobs/${job.id}`}
-                          className="text-blue-600 hover:text-blue-900"
-                          title="View"
-                        >
-                          <EyeIcon className="w-5 h-5" />
-                        </Link>
-                        <button
-                          onClick={() => handleStatusChange(job, 'approve')}
-                          className="text-green-600 hover:text-green-900"
-                          title="Approve"
-                        >
-                          <CheckCircleIcon className="h-5 w-5" />
-                        </button>
-                        <button
-                          onClick={() => openRejectModal(job)}
-                          className="text-red-600 hover:text-red-900"
-                          title="Reject"
-                        >
-                          <XCircleIcon className="h-5 w-5" />
-                        </button>
-                      </>
-                    )}
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                  <div className="flex justify-end">
+                    <ActionsMenu
+                      buttonAriaLabel="Job actions"
+                      buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
+                      align="right"
+                      menuWidthPx={192}
+                      items={(() => {
+                        const items: ActionsMenuItem[] = [
+                          { label: 'View', href: `/jobs/${job.id}`, icon: <EyeIcon className="w-4 h-4" /> },
+                        ];
+                        if (viewMode === 'all') {
+                          items.push({ label: 'Edit', href: `/jobs/${job.id}/edit`, icon: <PencilIcon className="w-4 h-4" /> });
+                          if (job.status === JobStatus.DRAFT) {
+                            items.push({ label: 'Submit for approval', onClick: () => handleStatusChange(job, 'submit'), icon: <ClockIcon className="w-4 h-4" /> });
+                          }
+                          if (job.status === JobStatus.APPROVED) {
+                            items.push({ label: 'Publish', onClick: () => handleStatusChange(job, 'publish'), icon: <CheckCircleIcon className="w-4 h-4" /> });
+                          }
+                          if (job.status !== JobStatus.ARCHIVED && job.status !== JobStatus.DRAFT) {
+                            items.push({ label: 'Archive', onClick: () => handleStatusChange(job, 'archive'), icon: <ArchiveBoxIcon className="w-4 h-4" /> });
+                          }
+                          items.push({ label: 'Delete', onClick: () => openDeleteModal(job), icon: <TrashIcon className="w-4 h-4" />, variant: 'danger' });
+                        } else {
+                          items.push({ label: 'Approve', onClick: () => handleStatusChange(job, 'approve'), icon: <CheckCircleIcon className="w-4 h-4" />, variant: 'success' });
+                          items.push({ label: 'Reject', onClick: () => openRejectModal(job), icon: <XCircleIcon className="w-4 h-4" />, variant: 'danger' });
+                        }
+                        return items;
+                      })()}
+                    />
                   </div>
                 </td>
               </tr>
