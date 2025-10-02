@@ -99,9 +99,6 @@ const LoginPage: React.FC = () => {
         <p className="mt-2 text-center text-sm text-gray-400">
           The beacon for hiring success
         </p>
-        <p className="mt-2 text-center text-sm text-gray-400">
-          Restricted access - Administrators only
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">

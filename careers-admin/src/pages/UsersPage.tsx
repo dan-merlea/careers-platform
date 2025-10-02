@@ -13,6 +13,7 @@ const UsersPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [impersonating, setImpersonating] = useState<boolean>(false);
+  const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
   const { token, userRole, impersonateUser } = useAuth();
   
   // Only admins should be able to access this page
@@ -246,52 +247,87 @@ const UsersPage: React.FC = () => {
                             </button>
                           </div>
                         ) : (
-                          <div className="flex space-x-3">
-                            {isAdmin && (
+                          <div className="relative inline-block text-left">
+                            {isAdmin ? (
                               <>
                                 <button
                                   type="button"
-                                  className="text-blue-600 hover:text-blue-900"
-                                  onClick={() => setEditingUser(user)}
+                                  className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                  aria-haspopup="true"
+                                  aria-expanded={openMenuUserId === user.id}
+                                  onClick={() =>
+                                    setOpenMenuUserId((prev) => (prev === user.id ? null : user.id))
+                                  }
                                 >
-                                  Edit User
-                                </button>
-                                {(user.role === 'director' || user.role === 'manager') && (
-                                  <button
-                                    type="button"
-                                    className="text-green-600 hover:text-green-900"
-                                    onClick={() => {
-                                      setEditingUser({
-                                        ...user,
-                                        departmentId: user.departmentId || undefined
-                                      });
-                                    }}
+                                  <svg
+                                    className="w-5 h-5 text-gray-600"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                    aria-hidden="true"
                                   >
-                                    Edit Department
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  className="text-purple-600 hover:text-purple-900"
-                                  onClick={async () => {
-                                    try {
-                                      setImpersonating(true);
-                                      await impersonateUser(user.id);
-                                      // The page will reload with the new user context
-                                    } catch (error) {
-                                      console.error('Error impersonating user:', error);
-                                      setImpersonating(false);
-                                      // Show error message
-                                      alert('Failed to impersonate user. Please try again.');
-                                    }
-                                  }}
-                                  disabled={impersonating}
-                                >
-                                  {impersonating ? 'Signing in...' : 'Sign in as'}
+                                    <path d="M7.5 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm6 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm6 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+                                  </svg>
                                 </button>
+
+                                {openMenuUserId === user.id && (
+                                  <div
+                                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
+                                    role="menu"
+                                    aria-orientation="vertical"
+                                  >
+                                    <div className="py-1 flex flex-col" role="none">
+                                      <button
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                        role="menuitem"
+                                        onClick={() => {
+                                          setEditingUser(user);
+                                          setOpenMenuUserId(null);
+                                        }}
+                                      >
+                                        Edit User
+                                      </button>
+
+                                      {(user.role === 'director' || user.role === 'manager') && (
+                                        <button
+                                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                          role="menuitem"
+                                          onClick={() => {
+                                            setEditingUser({
+                                              ...user,
+                                              departmentId: user.departmentId || undefined,
+                                            });
+                                            setOpenMenuUserId(null);
+                                          }}
+                                        >
+                                          Edit Department
+                                        </button>
+                                      )}
+
+                                      <button
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                                        role="menuitem"
+                                        disabled={impersonating}
+                                        onClick={async () => {
+                                          try {
+                                            setImpersonating(true);
+                                            setOpenMenuUserId(null);
+                                            await impersonateUser(user.id);
+                                            // The page will reload with the new user context
+                                          } catch (error) {
+                                            console.error('Error impersonating user:', error);
+                                            setImpersonating(false);
+                                            alert('Failed to impersonate user. Please try again.');
+                                          }
+                                        }}
+                                      >
+                                        {impersonating ? 'Signing in…' : 'Sign in as'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
                               </>
-                            )}
-                            {!isAdmin && (
+                            ) : (
                               <span className="text-gray-500">View Only</span>
                             )}
                           </div>
