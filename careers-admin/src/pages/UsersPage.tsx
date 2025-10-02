@@ -3,6 +3,8 @@ import { UserRole, User, authService } from '../services/auth.service';
 import { useAuth } from '../context/AuthContext';
 import { departmentService, Department } from '../services/departmentService';
 import ScrollableTable from '../components/common/ScrollableTable';
+import KebabMenu from '../components/common/KebabMenu';
+import Select from '../components/common/Select';
 
 // User interface is now imported from auth.service.ts
 
@@ -13,7 +15,6 @@ const UsersPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [impersonating, setImpersonating] = useState<boolean>(false);
-  const [openMenuUserId, setOpenMenuUserId] = useState<string | null>(null);
   const { token, userRole, impersonateUser } = useAuth();
   
   // Only admins should be able to access this page
@@ -196,17 +197,19 @@ const UsersPage: React.FC = () => {
                         {editingUser?.id === user.id ? (
                           <div className="flex flex-col space-y-3">
                             <div className="flex items-center space-x-2">
-                              <select
-                                className="block w-28 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                              <Select
                                 value={editingUser.role}
-                                onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value as UserRole })}
-                              >
-                                <option value="admin">Admin</option>
-                                <option value="director">Director</option>
-                                <option value="manager">Manager</option>
-                                <option value="recruiter">Recruiter</option>
-                                <option value="user">User</option>
-                              </select>
+                                onChange={(val) =>
+                                  setEditingUser({ ...editingUser, role: (val as UserRole) || editingUser.role })
+                                }
+                                options={[
+                                  { label: 'Admin', value: 'admin' },
+                                  { label: 'Director', value: 'director' },
+                                  { label: 'Manager', value: 'manager' },
+                                  { label: 'Recruiter', value: 'recruiter' },
+                                  { label: 'User', value: 'user' },
+                                ]}
+                              />
                               <button
                                 type="button"
                                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -218,16 +221,18 @@ const UsersPage: React.FC = () => {
                             
                             {['director', 'manager', 'admin'].includes(editingUser.role) && isAdmin && (
                               <div className="flex items-center space-x-2">
-                                <select
-                                  className="block w-28 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                                  value={editingUser.departmentId || ''}
-                                  onChange={(e) => setEditingUser({ ...editingUser, departmentId: e.target.value || undefined })}
-                                >
-                                  <option value="">No Department</option>
-                                  {departments.map(dept => (
-                                    <option key={dept.id || dept._id} value={dept.id || dept._id}>{dept.title}</option>
-                                  ))}
-                                </select>
+                                <Select
+                                  value={editingUser.departmentId || undefined}
+                                  onChange={(val) =>
+                                    setEditingUser({ ...editingUser, departmentId: val || undefined })
+                                  }
+                                  allowEmpty
+                                  placeholder="No Department"
+                                  options={departments.map((dept) => ({
+                                    label: dept.title,
+                                    value: (dept.id || (dept as any)._id) as string,
+                                  }))}
+                                />
                                 <button
                                   type="button"
                                   className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
@@ -249,84 +254,40 @@ const UsersPage: React.FC = () => {
                         ) : (
                           <div className="relative inline-block text-left">
                             {isAdmin ? (
-                              <>
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center justify-center w-8 h-8 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                  aria-haspopup="true"
-                                  aria-expanded={openMenuUserId === user.id}
-                                  onClick={() =>
-                                    setOpenMenuUserId((prev) => (prev === user.id ? null : user.id))
-                                  }
-                                >
-                                  <svg
-                                    className="w-5 h-5 text-gray-600"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                    aria-hidden="true"
-                                  >
-                                    <path d="M7.5 12a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm6 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm6 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-                                  </svg>
-                                </button>
-
-                                {openMenuUserId === user.id && (
-                                  <div
-                                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
-                                    role="menu"
-                                    aria-orientation="vertical"
-                                  >
-                                    <div className="py-1 flex flex-col" role="none">
-                                      <button
-                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                        role="menuitem"
-                                        onClick={() => {
-                                          setEditingUser(user);
-                                          setOpenMenuUserId(null);
-                                        }}
-                                      >
-                                        Edit User
-                                      </button>
-
-                                      {(user.role === 'director' || user.role === 'manager') && (
-                                        <button
-                                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                          role="menuitem"
-                                          onClick={() => {
+                              <KebabMenu
+                                items={[
+                                  {
+                                    label: 'Edit User',
+                                    onSelect: () => setEditingUser(user),
+                                  },
+                                  ...(user.role === 'director' || user.role === 'manager'
+                                    ? [
+                                        {
+                                          label: 'Edit Department',
+                                          onSelect: () =>
                                             setEditingUser({
                                               ...user,
                                               departmentId: user.departmentId || undefined,
-                                            });
-                                            setOpenMenuUserId(null);
-                                          }}
-                                        >
-                                          Edit Department
-                                        </button>
-                                      )}
-
-                                      <button
-                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                        role="menuitem"
-                                        disabled={impersonating}
-                                        onClick={async () => {
-                                          try {
-                                            setImpersonating(true);
-                                            setOpenMenuUserId(null);
-                                            await impersonateUser(user.id);
-                                            // The page will reload with the new user context
-                                          } catch (error) {
-                                            console.error('Error impersonating user:', error);
-                                            setImpersonating(false);
-                                            alert('Failed to impersonate user. Please try again.');
-                                          }
-                                        }}
-                                      >
-                                        {impersonating ? 'Signing in…' : 'Sign in as'}
-                                      </button>
-                                    </div>
-                                  </div>
-                                )}
-                              </>
+                                            }),
+                                        },
+                                      ]
+                                    : []),
+                                  {
+                                    label: impersonating ? 'Signing in…' : 'Sign in as',
+                                    disabled: impersonating,
+                                    onSelect: async () => {
+                                      try {
+                                        setImpersonating(true);
+                                        await impersonateUser(user.id);
+                                      } catch (error) {
+                                        console.error('Error impersonating user:', error);
+                                        setImpersonating(false);
+                                        alert('Failed to impersonate user. Please try again.');
+                                      }
+                                    },
+                                  },
+                                ]}
+                              />
                             ) : (
                               <span className="text-gray-500">View Only</span>
                             )}

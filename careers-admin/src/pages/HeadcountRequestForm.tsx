@@ -9,6 +9,7 @@ import { jobRoleService, JobRole } from '../services/jobRoleService';
 import { departmentService, Department } from '../services/departmentService';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { formatDate } from '../utils/dateUtils';
+import Select from '../components/common/Select';
 
 const HeadcountRequestForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -555,22 +556,31 @@ const HeadcountRequestForm: React.FC = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="department">
               Department *
             </label>
-            <select
-              id="department"
-              name="department"
-              value={formData.department}
-              onChange={handleInputChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
+            <Select
+              value={formData.department || undefined}
+              onChange={(val) => {
+                const value = val || '';
+                // Mimic handleDepartmentChange behavior
+                setFormData({ ...formData, department: value, role: '' });
+                const selectedDept = departments.find(dept => dept.title === value);
+                if (selectedDept && selectedDept._id && selectedDept.jobRoles && selectedDept.jobRoles.length > 0) {
+                  const departmentRoles = allJobRoles.filter(role =>
+                    selectedDept.jobRoles?.includes(role.id || role._id || '')
+                  );
+                  setFilteredJobRoles(departmentRoles);
+                } else {
+                  setFilteredJobRoles(allJobRoles);
+                }
+              }}
+              allowEmpty
+              placeholder="Select a department..."
+              className="w-full"
               disabled={isLoadingOptions}
-            >
-              <option value="">Select a department...</option>
-              {departments.map((department) => (
-                <option key={department.id || department._id} value={department.title}>
-                  {department.title}
-                </option>
-              ))}
-            </select>
+              options={departments.map((department) => ({
+                label: department.title,
+                value: department.title,
+              }))}
+            />
             {isLoadingOptions && (
               <p className="text-sm text-gray-500 mt-1">Loading departments...</p>
             )}
@@ -580,22 +590,15 @@ const HeadcountRequestForm: React.FC = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="role">
               Role *
             </label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleInputChange}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              required
+            <Select
+              value={formData.role || undefined}
+              onChange={(val) => setFormData({ ...formData, role: val || '' })}
+              allowEmpty
+              placeholder="Select a role..."
+              className="w-full"
               disabled={isLoadingOptions || !formData.department}
-            >
-              <option value="">Select a role...</option>
-              {filteredJobRoles.map((role) => (
-                <option key={role.id || role._id} value={role.title}>
-                  {role.title}
-                </option>
-              ))}
-            </select>
+              options={filteredJobRoles.map((role) => ({ label: role.title, value: role.title }))}
+            />
             {isLoadingOptions ? (
               <p className="text-sm text-gray-500 mt-1">Loading roles...</p>
             ) : !formData.department ? (

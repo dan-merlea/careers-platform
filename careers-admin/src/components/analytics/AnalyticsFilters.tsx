@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FilterParams } from '../../pages/AnalyticsPage';
 import { AdjustmentsHorizontalIcon, CalendarIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import Select from '../common/Select';
 
 interface AnalyticsFiltersProps {
   filters: FilterParams;
@@ -130,16 +131,14 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterCh
             {/* Date range selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-              <div className="flex items-center">
-                <CalendarIcon className="h-5 w-5 text-gray-400 mr-2" />
-                <select 
-                  className="form-select rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm"
-                  onChange={(e) => handleDateRangeChange(e.target.value)}
-                >
-                  {dateRanges.map(range => (
-                    <option key={range.value} value={range.value}>{range.label}</option>
-                  ))}
-                </select>
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5 text-gray-400" />
+                <Select
+                  onChange={(val) => val && handleDateRangeChange(val)}
+                  options={dateRanges.map(dr => ({ label: dr.label, value: dr.value }))}
+                  placeholder={dateRanges[1].label}
+                  className="min-w-[180px]"
+                />
               </div>
             </div>
             
@@ -170,34 +169,36 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterCh
             {/* Comparison period */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Compare To</label>
-              <select
-                name="comparisonPeriod"
+              <Select
                 value={localFilters.comparisonPeriod}
-                onChange={handleInputChange}
-                className="form-select rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm w-full"
-              >
-                {comparisonPeriods.map(period => (
-                  <option key={period.value} value={period.value}>{period.label}</option>
-                ))}
-              </select>
+                onChange={(val) =>
+                  setLocalFilters({
+                    ...localFilters,
+                    comparisonPeriod: (val as 'previous_period' | 'previous_year' | 'none') ?? localFilters.comparisonPeriod,
+                  })
+                }
+                options={comparisonPeriods.map(cp => ({ label: cp.label, value: cp.value }))}
+                className="w-full"
+              />
             </div>
             
             {/* Department filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-              <select
-                name="department"
-                value={localFilters.department || ''}
-                onChange={handleInputChange}
-                className="form-select rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm w-full"
-              >
-                <option value="">All Departments</option>
-                <option value="engineering">Engineering</option>
-                <option value="marketing">Marketing</option>
-                <option value="sales">Sales</option>
-                <option value="product">Product</option>
-                <option value="design">Design</option>
-              </select>
+              <Select
+                value={localFilters.department || undefined}
+                onChange={(val) => setLocalFilters({ ...localFilters, department: val || '' })}
+                allowEmpty
+                placeholder="All Departments"
+                options={[
+                  { label: 'Engineering', value: 'engineering' },
+                  { label: 'Marketing', value: 'marketing' },
+                  { label: 'Sales', value: 'sales' },
+                  { label: 'Product', value: 'product' },
+                  { label: 'Design', value: 'design' },
+                ]}
+                className="w-full"
+              />
             </div>
           </div>
           
@@ -206,52 +207,55 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterCh
             {/* Job role filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Job Role</label>
-              <select
-                name="jobRole"
-                value={localFilters.jobRole || ''}
-                onChange={handleInputChange}
-                className="form-select rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm w-full"
-              >
-                <option value="">All Roles</option>
-                <option value="developer">Developer</option>
-                <option value="designer">Designer</option>
-                <option value="manager">Manager</option>
-                <option value="analyst">Analyst</option>
-              </select>
+              <Select
+                value={localFilters.jobRole || undefined}
+                onChange={(val) => setLocalFilters({ ...localFilters, jobRole: val || '' })}
+                allowEmpty
+                placeholder="All Roles"
+                options={[
+                  { label: 'Developer', value: 'developer' },
+                  { label: 'Designer', value: 'designer' },
+                  { label: 'Manager', value: 'manager' },
+                  { label: 'Analyst', value: 'analyst' },
+                ]}
+                className="w-full"
+              />
             </div>
             
             {/* Location filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-              <select
-                name="location"
-                value={localFilters.location || ''}
-                onChange={handleInputChange}
-                className="form-select rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm w-full"
-              >
-                <option value="">All Locations</option>
-                <option value="remote">Remote</option>
-                <option value="san-francisco">San Francisco</option>
-                <option value="new-york">New York</option>
-                <option value="london">London</option>
-              </select>
+              <Select
+                value={localFilters.location || undefined}
+                onChange={(val) => setLocalFilters({ ...localFilters, location: val || '' })}
+                allowEmpty
+                placeholder="All Locations"
+                options={[
+                  { label: 'Remote', value: 'remote' },
+                  { label: 'San Francisco', value: 'san-francisco' },
+                  { label: 'New York', value: 'new-york' },
+                  { label: 'London', value: 'london' },
+                ]}
+                className="w-full"
+              />
             </div>
             
             {/* Source filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Source</label>
-              <select
-                name="source"
-                value={localFilters.source || ''}
-                onChange={handleInputChange}
-                className="form-select rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm w-full"
-              >
-                <option value="">All Sources</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="indeed">Indeed</option>
-                <option value="referral">Referral</option>
-                <option value="website">Company Website</option>
-              </select>
+              <Select
+                value={localFilters.source || undefined}
+                onChange={(val) => setLocalFilters({ ...localFilters, source: val || '' })}
+                allowEmpty
+                placeholder="All Sources"
+                options={[
+                  { label: 'LinkedIn', value: 'linkedin' },
+                  { label: 'Indeed', value: 'indeed' },
+                  { label: 'Referral', value: 'referral' },
+                  { label: 'Company Website', value: 'website' },
+                ]}
+                className="w-full"
+              />
             </div>
           </div>
           

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { LogsFilter as LogsFilterType } from '../../services/logsService';
+import Select from '../common/Select';
 
 interface LogsFilterProps {
   onFilterChange: (filter: LogsFilterType) => void;
@@ -68,19 +69,14 @@ const LogsFilter: React.FC<LogsFilterProps> = ({
           <label htmlFor="userFilter" className="block text-sm font-medium text-gray-700 mb-1">
             User
           </label>
-          <select
-            id="userFilter"
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-            value={filter.userId || ''}
-            onChange={(e) => handleFilterChange('userId', e.target.value)}
-          >
-            <option value="">All Users</option>
-            {users.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name}
-              </option>
-            ))}
-          </select>
+          <Select
+            value={filter.userId || undefined}
+            onChange={(val) => handleFilterChange('userId', val || '')}
+            allowEmpty
+            placeholder="All Users"
+            className="w-full"
+            options={users.map(u => ({ label: u.name, value: u.id }))}
+          />
         </div>
         
         {/* Resource Type Filter */}
@@ -88,19 +84,14 @@ const LogsFilter: React.FC<LogsFilterProps> = ({
           <label htmlFor="resourceTypeFilter" className="block text-sm font-medium text-gray-700 mb-1">
             Resource Type
           </label>
-          <select
-            id="resourceTypeFilter"
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-            value={filter.resourceType || ''}
-            onChange={(e) => handleFilterChange('resourceType', e.target.value)}
-          >
-            <option value="">All Resource Types</option>
-            {resourceTypes.map((type) => (
-              <option key={type} value={type}>
-                {formatResourceType(type)}
-              </option>
-            ))}
-          </select>
+          <Select
+            value={filter.resourceType || undefined}
+            onChange={(val) => handleFilterChange('resourceType', val || '')}
+            allowEmpty
+            placeholder="All Resource Types"
+            className="w-full"
+            options={resourceTypes.map(rt => ({ label: formatResourceType(rt), value: rt }))}
+          />
         </div>
         
         {/* Action Type Filter */}
@@ -108,19 +99,14 @@ const LogsFilter: React.FC<LogsFilterProps> = ({
           <label htmlFor="actionFilter" className="block text-sm font-medium text-gray-700 mb-1">
             Action
           </label>
-          <select
-            id="actionFilter"
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-            value={filter.action || ''}
-            onChange={(e) => handleFilterChange('action', e.target.value)}
-          >
-            <option value="">All Actions</option>
-            {actionTypes.map((action) => (
-              <option key={action} value={action}>
-                {formatActionType(action)}
-              </option>
-            ))}
-          </select>
+          <Select
+            value={filter.action || undefined}
+            onChange={(val) => handleFilterChange('action', val || '')}
+            allowEmpty
+            placeholder="All Actions"
+            className="w-full"
+            options={actionTypes.map(a => ({ label: formatActionType(a), value: a }))}
+          />
         </div>
         
         {/* Resource ID Filter */}

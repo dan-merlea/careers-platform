@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { PencilIcon, TrashIcon, EyeIcon, ArchiveBoxIcon, CheckCircleIcon, XCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +9,7 @@ import { departmentService, Department } from '../services/departmentService';
 import { getStatusBadgeClass, getPrettyStatus } from '../utils/jobStatusUtils';
 import { formatDate } from '../utils/dateUtils';
 import ScrollableTable from '../components/common/ScrollableTable';
+import Select from '../components/common/Select';
 
 const JobsPage: React.FC = () => {
   const { userRole } = useAuth();
@@ -73,7 +74,7 @@ const JobsPage: React.FC = () => {
   };
 
   // Apply filters to jobs
-  const applyFilters = (jobsToFilter: Job[]) => {
+  const applyFilters = useCallback((jobsToFilter: Job[]) => {
     return jobsToFilter.filter(job => {
       // Filter by status
       if (statusFilter !== 'all' && job.status !== statusFilter) {
@@ -96,7 +97,7 @@ const JobsPage: React.FC = () => {
       
       return true;
     });
-  };
+  }, [statusFilter, jobBoardFilter, departmentFilter]);
   
   // Fetch jobs based on view mode
   const fetchJobs = async () => {
@@ -133,7 +134,7 @@ const JobsPage: React.FC = () => {
     if (jobs.length > 0) {
       setFilteredJobs(applyFilters(jobs));
     }
-  }, [statusFilter, jobBoardFilter, departmentFilter, jobs]);
+  }, [statusFilter, jobBoardFilter, departmentFilter, jobs, applyFilters]);
 
   // Open delete confirmation modal
   const openDeleteModal = (job: Job) => {
@@ -258,19 +259,20 @@ const JobsPage: React.FC = () => {
               <label htmlFor="statusFilter" className="block text-xs font-medium text-gray-700 mb-1">
                 Status
               </label>
-              <select
-                id="statusFilter"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded text-sm"
-              >
-                <option value="all">All Statuses</option>
-                <option value={JobStatus.DRAFT}>Draft</option>
-                <option value={JobStatus.PENDING_APPROVAL}>Pending Approval</option>
-                <option value={JobStatus.APPROVED}>Approved</option>
-                <option value={JobStatus.PUBLISHED}>Published</option>
-                <option value={JobStatus.ARCHIVED}>Archived</option>
-              </select>
+              <Select
+                value={statusFilter === 'all' ? undefined : statusFilter}
+                onChange={(val) => setStatusFilter(val || 'all')}
+                allowEmpty
+                placeholder="All Statuses"
+                className="w-full"
+                options={[
+                  { label: 'Draft', value: JobStatus.DRAFT },
+                  { label: 'Pending Approval', value: JobStatus.PENDING_APPROVAL },
+                  { label: 'Approved', value: JobStatus.APPROVED },
+                  { label: 'Published', value: JobStatus.PUBLISHED },
+                  { label: 'Archived', value: JobStatus.ARCHIVED },
+                ]}
+              />
             </div>
 
             {/* Job Board Filter */}
@@ -278,19 +280,14 @@ const JobsPage: React.FC = () => {
               <label htmlFor="jobBoardFilter" className="block text-xs font-medium text-gray-700 mb-1">
                 Job Board
               </label>
-              <select
-                id="jobBoardFilter"
-                value={jobBoardFilter}
-                onChange={(e) => setJobBoardFilter(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded text-sm"
-              >
-                <option value="all">All Job Boards</option>
-                {Array.from(jobBoards.values()).map(board => (
-                  <option key={board._id} value={board._id}>
-                    {board.title}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={jobBoardFilter === 'all' ? undefined : jobBoardFilter}
+                onChange={(val) => setJobBoardFilter(val || 'all')}
+                allowEmpty
+                placeholder="All Job Boards"
+                className="w-full"
+                options={Array.from(jobBoards.values()).map(board => ({ label: board.title, value: String(board._id ?? '') }))}
+              />
             </div>
 
             {/* Department Filter */}
@@ -298,19 +295,14 @@ const JobsPage: React.FC = () => {
               <label htmlFor="departmentFilter" className="block text-xs font-medium text-gray-700 mb-1">
                 Department
               </label>
-              <select
-                id="departmentFilter"
-                value={departmentFilter}
-                onChange={(e) => setDepartmentFilter(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded text-sm"
-              >
-                <option value="all">All Departments</option>
-                {departments.map(dept => (
-                  <option key={dept._id} value={dept._id}>
-                    {dept.title}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={departmentFilter === 'all' ? undefined : departmentFilter}
+                onChange={(val) => setDepartmentFilter(val || 'all')}
+                allowEmpty
+                placeholder="All Departments"
+                className="w-full"
+                options={departments.map(dept => ({ label: dept.title, value: String((dept as any)._id ?? (dept as any).id ?? '') }))}
+              />
             </div>
           </div>
         </div>

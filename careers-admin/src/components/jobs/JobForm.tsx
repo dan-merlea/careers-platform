@@ -13,6 +13,8 @@ import jobBoardsService, { JobBoard } from '../../services/jobBoardsService';
 import { userService, User } from '../../services/userService';
 import SaveTemplateModal from './SaveTemplateModal';
 import { format } from 'date-fns';
+import Select from '../common/Select';
+import MultiSelect from '../common/MultiSelect';
 
 interface JobFormProps {
   initialData?: JobCreateDto | JobUpdateDto;
@@ -408,50 +410,36 @@ const JobForm: React.FC<JobFormProps> = ({
           <label htmlFor="department" className="block text-sm font-medium text-gray-700 mb-1">
             Department *
           </label>
-          <select
-            id="department"
-            value={selectedDepartment}
-            onChange={(e) => {
-              setSelectedDepartment(e.target.value);
+          <Select
+            value={selectedDepartment || undefined}
+            onChange={(val) => {
+              setSelectedDepartment(val || '');
               setSelectedJobRole(''); // Reset job role when department changes
             }}
-            className={`w-full p-2 border border-gray-300 rounded ${lockedFields.department ? 'bg-gray-100' : ''}`}
-            required
-            disabled={lockedFields.department}
-          >
-            <option value="">Select a department</option>
-            {departments.map(department => (
-              <option key={department._id} value={department._id}>
-                {department.title}
-              </option>
-            ))}
-          </select>
+            placeholder="Select a department"
+            allowEmpty
+            className="w-full"
+            disabled={!!lockedFields.department}
+            options={departments.map((department) => ({
+              label: department.title,
+              value: String((department as any)._id ?? (department as any).id ?? ''),
+            }))}
+          />
         </div>
         
         <div>
           <label htmlFor="jobRole" className="block text-sm font-medium text-gray-700 mb-1">
             Job Role
           </label>
-          <select
-            id="jobRole"
-            value={selectedJobRole}
-            onChange={(e) => setSelectedJobRole(e.target.value)}
-            className={`w-full p-2 border border-gray-300 rounded ${lockedFields.jobRole ? 'bg-gray-100' : ''}`}
-            disabled={!selectedDepartment || isLoadingJobRoles || lockedFields.jobRole}
-          >
-            <option value="">Select a job role (optional)</option>
-            {isLoadingJobRoles ? (
-              <option value="" disabled>Loading job roles...</option>
-            ) : jobRoles.length === 0 ? (
-              <option value="" disabled>No job roles available for this department</option>
-            ) : (
-              jobRoles.map(role => (
-                <option key={role._id} value={role._id}>
-                  {role.title}
-                </option>
-              ))
-            )}
-          </select>
+          <Select
+            value={selectedJobRole || undefined}
+            onChange={(val) => setSelectedJobRole(val || '')}
+            placeholder={isLoadingJobRoles ? 'Loading job roles...' : jobRoles.length ? 'Select a job role (optional)' : 'No job roles available'}
+            allowEmpty
+            className={`w-full ${lockedFields.jobRole ? 'opacity-60' : ''}`}
+            disabled={!selectedDepartment || isLoadingJobRoles || !!lockedFields.jobRole}
+            options={jobRoles.map((role) => ({ label: role.title, value: role._id }))}
+          />
         </div>
       </div>
       
@@ -488,125 +476,59 @@ const JobForm: React.FC<JobFormProps> = ({
               />
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="hiringManagerId" className="block text-sm font-medium text-gray-700 mb-1">
-                Hiring Manager <span className="text-gray-500 text-xs">(optional)</span>
-              </label>
-              <select
-                id="hiringManagerId"
-                name="hiringManagerId"
-                value={formData.hiringManagerId || ''}
-                onChange={handleInputChange}
-                className="w-full p-2 border border-gray-300 rounded"
-                disabled={isLoadingHiringManagers}
-              >
-                <option value="">Select a hiring manager...</option>
-                {hiringManagers.map(manager => (
-                  <option key={manager.id} value={manager.id}>
-                    {manager.name} ({manager.role})
-                  </option>
-                ))}
-              </select>
-              {isLoadingHiringManagers && (
-                <p className="text-sm text-gray-500 mt-1">Loading hiring managers...</p>
-              )}
-            </div>
-          </div>
-
-          {/* Job Board Selector */}
-          <div className="mb-4">
-            <label htmlFor="jobBoardId" className="block text-sm font-medium text-gray-700 mb-1">
-              Job Board *
-            </label>
-            <select
-              id="jobBoardId"
-              name="jobBoardId"
-              value={formData.jobBoardId || ''}
-              onChange={handleInputChange}
-              className="w-full p-2 border border-gray-300 rounded"
-              required
-              disabled={isLoadingJobBoards || lockedFields.jobBoard}
-            >
-              <option value="">Select a job board...</option>
-              {jobBoards.map(board => (
-                <option key={board._id} value={board._id}>
-                  {board.title}
-                </option>
-              ))}
-            </select>
-            {isLoadingJobBoards && (
-              <p className="text-sm text-gray-500 mt-1">Loading job boards...</p>
-            )}
-          </div>
 
           <div>
-            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-              Location *
+            <label htmlFor="location" className="block text-sm font-medium text-gray-700">
+              Location
             </label>
-            
             <div className="space-y-3">
-              {/* Office selection with work arrangement */}
               {!useCustomLocation && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
-                    <select
-                      id="office-select"
-                      value={selectedOffice}
-                      onChange={(e) => {
-                        setSelectedOffice(e.target.value);
-                        if (e.target.value) {
-                          const office = offices.find(o => o._id === e.target.value);
+                    <Select
+                      value={selectedOffice || undefined}
+                      onChange={(val) => {
+                        setSelectedOffice(val || '');
+                        if (val) {
+                          const office = offices.find((o) => o._id === val);
                           if (office) {
-                            // Update location based on selected office and work arrangement
                             const newLocation = `${office.address} (${workArrangement})`;
-                            setFormData({
-                              ...formData,
-                              location: newLocation
-                            });
+                            setFormData({ ...formData, location: newLocation });
                           }
                         }
                       }}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    >
-                      {offices.map(office => (
-                        <option key={office._id} value={office._id}>
-                          {office.name} - {office.address}
-                        </option>
-                      ))}
-                    </select>
+                      className="w-full"
+                      options={offices.map((office) => ({
+                        label: `${office.name} - ${office.address}`,
+                        value: office._id,
+                      }))}
+                    />
                   </div>
-                  
                   <div>
-                    <select
-                      id="work-arrangement"
+                    <Select
                       value={workArrangement}
-                      onChange={(e) => {
-                        setWorkArrangement(e.target.value);
+                      onChange={(val) => {
+                        const v = val || 'onsite';
+                        setWorkArrangement(v);
                         if (selectedOffice) {
-                          const office = offices.find(o => o._id === selectedOffice);
+                          const office = offices.find((o) => o._id === selectedOffice);
                           if (office) {
-                            // Update location based on selected office and work arrangement
-                            const newLocation = `${office.address} (${e.target.value})`;
-                            setFormData({
-                              ...formData,
-                              location: newLocation
-                            });
+                            const newLocation = `${office.address} (${v})`;
+                            setFormData({ ...formData, location: newLocation });
                           }
                         }
                       }}
-                      className="w-full p-2 border border-gray-300 rounded"
-                    >
-                      <option value="onsite">Onsite</option>
-                      <option value="hybrid">Hybrid</option>
-                      <option value="remote">Remote</option>
-                    </select>
+                      className="w-full"
+                      options={[
+                        { label: 'Onsite', value: 'onsite' },
+                        { label: 'Hybrid', value: 'hybrid' },
+                        { label: 'Remote', value: 'remote' },
+                      ]}
+                    />
                   </div>
                 </div>
               )}
-              
-              {/* Custom location input */}
+
               {useCustomLocation && (
                 <input
                   type="text"
@@ -618,8 +540,7 @@ const JobForm: React.FC<JobFormProps> = ({
                   required
                 />
               )}
-              
-              {/* Toggle between dropdown and custom input */}
+
               <div className="flex items-center">
                 <input
                   type="checkbox"
@@ -628,11 +549,9 @@ const JobForm: React.FC<JobFormProps> = ({
                   onChange={() => {
                     setUseCustomLocation(!useCustomLocation);
                     if (!useCustomLocation) {
-                      // Switching to custom input
                       setSelectedOffice('');
                       setWorkArrangement('onsite');
                     } else {
-                      // Switching to dropdown
                       setFormData({
                         ...formData,
                         location: ''
@@ -653,20 +572,14 @@ const JobForm: React.FC<JobFormProps> = ({
               <label htmlFor="officeIds" className="block text-sm font-medium text-gray-700 mb-1">
                 Offices
               </label>
-              <select
-                id="officeIds"
-                name="officeIds"
-                multiple
-                value={formData.officeIds || []}
-                onChange={handleMultiSelectChange}
-                className="w-full p-2 border border-gray-300 rounded h-32"
-              >
-                {offices.map(office => (
-                  <option key={office._id} value={office._id}>
-                    {office.name} - {office.address}
-                  </option>
-                ))}
-              </select>
+              <MultiSelect
+                values={formData.officeIds || []}
+                onChange={(vals) => setFormData({ ...formData, officeIds: vals })}
+                options={offices.map((office) => ({
+                  label: `${office.name} - ${office.address}`,
+                  value: office._id,
+                }))}
+              />
               <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
             </div>
           </div>
@@ -681,26 +594,22 @@ const JobForm: React.FC<JobFormProps> = ({
                   {isLoadingTemplates ? (
                     <span className="text-sm text-gray-500">Loading templates...</span>
                   ) : templates.length > 0 ? (
-                    <select
-                      className="p-1 text-sm border border-gray-300 rounded bg-white text-gray-700"
-                      onChange={(e) => {
-                        const templateId = e.target.value;
-                        if (templateId) {
-                          const template = templates.find(t => t.id === templateId);
+                    <Select
+                      value={undefined}
+                      onChange={(val) => {
+                        if (val) {
+                          const template = templates.find((t) => t.id === val);
                           if (template) loadTemplate(template);
                         }
-                        // Reset select after selection
-                        e.target.value = '';
                       }}
-                      defaultValue=""
-                    >
-                      <option value="" disabled>Load template...</option>
-                      {templates.map(template => (
-                        <option key={template.id} value={template.id}>
-                          {template.name} ({format(new Date(template.createdAt), 'MMM d, yyyy')})
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="Load template..."
+                      allowEmpty
+                      className="p-1 text-sm"
+                      options={templates.map((template) => ({
+                        label: `${template.name} (${format(new Date(template.createdAt), 'MMM d, yyyy')})`,
+                        value: template.id,
+                      }))}
+                    />
                   ) : (
                     <span className="text-sm text-gray-500">No templates available</span>
                   )}

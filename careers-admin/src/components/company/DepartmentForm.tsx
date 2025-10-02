@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Department, CreateDepartmentDto, UpdateDepartmentDto } from '../../services/departmentService';
 import { UserRole } from '../../services/auth.service';
 import { JobRole, jobRoleService } from '../../services/jobRoleService';
+import Select from '../common/Select';
+import MultiSelect from '../common/MultiSelect';
 
 interface DepartmentFormProps {
   department?: Department;
@@ -73,14 +75,7 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
     }
   };
   
-  // Handle job role selection
-  const handleJobRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
-    setFormData(prev => ({
-      ...prev,
-      jobRoles: selectedOptions
-    }));
-  };
+  // MultiSelect handles job role changes; no native select handler needed
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,20 +126,16 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
         <label htmlFor="parentDepartment" className="block text-sm font-medium text-gray-700 mb-1">
           Parent Department
         </label>
-        <select
-          id="parentDepartment"
-          name="parentDepartment"
-          value={formData.parentDepartment || ''}
-          onChange={handleInputChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="">No parent (top-level department)</option>
-          {getAvailableParents().map((dept) => (
-            <option key={dept.id} value={dept.id}>
-              {dept.title}
-            </option>
-          ))}
-        </select>
+        <Select
+          value={formData.parentDepartment || undefined}
+          onChange={(val) =>
+            setFormData(prev => ({ ...prev, parentDepartment: val && val.length > 0 ? val : null }))
+          }
+          allowEmpty
+          placeholder="No parent (top-level department)"
+          className="w-full"
+          options={getAvailableParents().map(dept => ({ label: dept.title, value: String(dept.id) }))}
+        />
         <p className="mt-1 text-sm text-gray-500">
           Select a parent department or leave empty for a top-level department
         </p>
@@ -154,18 +145,16 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
         <label htmlFor="approvalRole" className="block text-sm font-medium text-gray-700 mb-1">
           Approval Role *
         </label>
-        <select
-          id="approvalRole"
-          name="approvalRole"
+        <Select
           value={formData.approvalRole || UserRole.DIRECTOR}
-          onChange={handleInputChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          required
-        >
-          <option value={UserRole.ADMIN}>Admin</option>
-          <option value={UserRole.DIRECTOR}>Director</option>
-          <option value={UserRole.MANAGER}>Manager</option>
-        </select>
+          onChange={(val) => setFormData(prev => ({ ...prev, approvalRole: (val as UserRole) || UserRole.DIRECTOR }))}
+          options={[
+            { label: 'Admin', value: UserRole.ADMIN },
+            { label: 'Director', value: UserRole.DIRECTOR },
+            { label: 'Manager', value: UserRole.MANAGER },
+          ]}
+          className="w-full"
+        />
         <p className="mt-1 text-sm text-gray-500">
           Select the role required to approve jobs for this department
         </p>
@@ -175,28 +164,12 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
         <label htmlFor="jobRoles" className="block text-sm font-medium text-gray-700 mb-1">
           Job Roles
         </label>
-        <select
-          id="jobRoles"
-          name="jobRoles"
-          multiple
-          value={formData.jobRoles || []}
-          onChange={handleJobRoleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-          size={5}
+        <MultiSelect
+          values={formData.jobRoles || []}
+          onChange={(vals) => setFormData(prev => ({ ...prev, jobRoles: vals }))}
+          options={jobRoles.map(role => ({ label: `${role.title} (${role.jobFunction.title})`, value: role._id }))}
           disabled={isSubmitting || loadingJobRoles}
-        >
-          {loadingJobRoles ? (
-            <option disabled>Loading job roles...</option>
-          ) : jobRoles.length === 0 ? (
-            <option disabled>No job roles available</option>
-          ) : (
-            jobRoles.map((role) => (
-              <option key={role._id} value={role._id}>
-                {role.title} ({role.jobFunction.title})
-              </option>
-            ))
-          )}
-        </select>
+        />
         <p className="mt-1 text-sm text-gray-500">
           Hold Ctrl/Cmd to select multiple job roles relevant for this department
         </p>
