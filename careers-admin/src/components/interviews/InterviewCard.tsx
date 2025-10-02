@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarIcon, ClockIcon, UserIcon } from '@heroicons/react/24/solid';
+import { CalendarIcon, ClockIcon, UserIcon as UserIconSolid } from '@heroicons/react/24/solid';
+import { EllipsisHorizontalIcon, EyeIcon, UserIcon as UserIconOutline } from '@heroicons/react/24/outline';
+import ActionsMenu, { ActionsMenuItem } from '../common/ActionsMenu';
 import { Interview } from '../../services/interviewService';
 
 interface InterviewCardProps {
@@ -19,77 +21,99 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
   formatTime
 }) => {
   const isActive = variant === 'active';
-  const accentColor = isActive ? 'blue' : 'purple';
+  // Map statuses to explicit Tailwind classes to avoid JIT issues
+  const statusStyles: Record<string, { border: string; chipBg: string; chipText: string; titleText: string }> = {
+    scheduled:   { border: 'border-blue-500',  chipBg: 'bg-blue-100',  chipText: 'text-blue-800',  titleText: 'text-blue-800' },
+    pending:     { border: 'border-amber-500', chipBg: 'bg-amber-100', chipText: 'text-amber-800', titleText: 'text-amber-800' },
+    rescheduled: { border: 'border-yellow-500',chipBg: 'bg-yellow-100',chipText: 'text-yellow-800',titleText: 'text-yellow-800' },
+    in_progress: { border: 'border-indigo-500',chipBg: 'bg-indigo-100',chipText: 'text-indigo-800',titleText: 'text-indigo-800' },
+    completed:   { border: 'border-green-500', chipBg: 'bg-green-100', chipText: 'text-green-800', titleText: 'text-green-800' },
+    cancelled:   { border: 'border-red-500',   chipBg: 'bg-red-100',   chipText: 'text-red-800',   titleText: 'text-red-800' },
+    canceled:    { border: 'border-red-500',   chipBg: 'bg-red-100',   chipText: 'text-red-800',   titleText: 'text-red-800' },
+    default:     { border: 'border-gray-400',  chipBg: 'bg-gray-100',  chipText: 'text-gray-800',  titleText: 'text-gray-800' },
+  };
+  const statusKey = (interview.status || 'default').toLowerCase();
+  const styles = statusStyles[statusKey] || statusStyles.default;
   
   return (
     <div className="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className={`border-l-4 border-${accentColor}-500 p-4`}>
-        <div className="flex justify-between items-start">
-          <div>
+      <div className={`border-l-4 ${styles.border} p-4`}>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
             <Link to={`/interview/${interview.id}`}>
-              <h2 className={`text-l font-semibold mb-2 text-${accentColor}-800`}>{interview.title}</h2>
+              <h2 className={`text-l font-semibold mb-2 ${styles.titleText} truncate`}>{interview.title}</h2>
             </Link>
             <div className="flex items-center mb-2">
-              <div className={`bg-${accentColor}-100 text-${accentColor}-800 rounded-full px-2 py-0.5 text-xs font-semibold mr-2`}>
+              <div className={`${styles.chipBg} ${styles.chipText} rounded-full px-2 py-0.5 text-xs font-semibold mr-2`}>
                 {interview.status.toUpperCase()}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-500 truncate">
                 {interview.jobTitle}
               </div>
             </div>
-          </div>
-          <div className="flex space-x-2">
-            <Link
-              to={`/interview/${interview.id}`}
-              className={`px-2 py-1 bg-${accentColor}-600 text-white text-sm rounded-md hover:bg-${accentColor}-700 transition-colors flex items-center`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-              </svg>
-              View
-            </Link>
-            {isActive && (
-              <Link
-                to={`/applicants/${interview.applicantId}`}
-                className="px-2 py-1 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                </svg>
-                Applicant
-              </Link>
+            {interview.description && (
+              <div className="text-xs text-gray-600 line-clamp-2">
+                {interview.description}
+              </div>
             )}
           </div>
+
+          <div className="hidden md:flex flex-col gap-1 text-xs text-gray-600 w-64 shrink-0">
+            <div className="flex items-center">
+              <UserIconSolid className="h-3 w-3 mr-1" />
+              <span className="font-medium">Applicant:</span>
+              <span className="ml-1 truncate" title={interview.applicantName}>{interview.applicantName}</span>
+            </div>
+            <div className="flex items-center">
+              <CalendarIcon className="h-3 w-3 mr-1" />
+              <span className="font-medium">Date:</span>
+              <span className="ml-1">{formatDate(interview.scheduledDate)}</span>
+            </div>
+            <div className="flex items-center">
+              <ClockIcon className="h-3 w-3 mr-1" />
+              <span className="font-medium">Time:</span>
+              <span className="ml-1">{formatTime(interview.scheduledDate)}</span>
+            </div>
+          </div>
+
+          <div className="flex items-start">
+            <ActionsMenu
+              buttonAriaLabel="Interview actions"
+              buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
+              align="right"
+              menuWidthPx={192}
+              items={(() => {
+                const items: ActionsMenuItem[] = [
+                  { label: 'View', href: `/interview/${interview.id}`, icon: <EyeIcon className="w-4 h-4" /> },
+                ];
+                if (isActive) {
+                  items.push({ label: 'Applicant', href: `/applicants/${interview.applicantId}`, icon: <UserIconOutline className="w-4 h-4" /> });
+                }
+                return items;
+              })()}
+            />
+          </div>
         </div>
-        
-        <div className="mt-3">
+
+        {/* Info rows for small screens */}
+        <div className="mt-3 md:hidden">
           <div className="flex items-center text-xs text-gray-600 mb-1">
-            <UserIcon className="h-3 w-3 mr-1" />
+            <UserIconSolid className="h-3 w-3 mr-1" />
             <span className="font-medium">Applicant:</span>
             <span className="ml-1">{interview.applicantName}</span>
           </div>
-          
           <div className="flex items-center text-xs text-gray-600 mb-1">
             <CalendarIcon className="h-3 w-3 mr-1" />
             <span className="font-medium">Date:</span>
             <span className="ml-1">{formatDate(interview.scheduledDate)}</span>
           </div>
-          
           <div className="flex items-center text-xs text-gray-600 mb-1">
             <ClockIcon className="h-3 w-3 mr-1" />
             <span className="font-medium">Time:</span>
             <span className="ml-1">{formatTime(interview.scheduledDate)}</span>
           </div>
         </div>
-        
-        {interview.description && (
-          <div className="mt-2 text-xs text-gray-600">
-            <p className="font-medium">Description:</p>
-            <p className="mt-0.5">{interview.description}</p>
-          </div>
-        )}
-        
+
         <div className="mt-3">
           <p className="text-xs font-medium text-gray-600">
             {isActive ? 'Interviewers:' : 'Other Interviewers:'}
@@ -98,11 +122,11 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
             {interview.interviewers
               .filter(interviewer => !userId || interviewer.userId !== userId)
               .map((interviewer) => (
-                <span 
-                  key={interviewer.userId} 
+                <span
+                  key={interviewer.userId}
                   className="inline-flex items-center bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded-full"
                 >
-                  <UserIcon className="h-2 w-2 mr-1" />
+                  <UserIconSolid className="h-2 w-2 mr-1" />
                   {interviewer.name}
                 </span>
               ))}

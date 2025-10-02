@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
+import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
 
 const JobBoardsPage: React.FC = () => {
@@ -200,25 +201,20 @@ const JobBoardsPage: React.FC = () => {
             >
               <div className="flex justify-between items-start">
                 <h2 className="text-xl font-semibold text-gray-800">{jobBoard.title}</h2>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEditModal(jobBoard);
-                    }}
-                    className="p-1 text-gray-500 hover:text-blue-600"
-                  >
-                    <PencilIcon className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openDeleteModal(jobBoard);
-                    }}
-                    className="p-1 text-gray-500 hover:text-red-600"
-                  >
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
+                <div onClick={(e) => e.stopPropagation()}>
+                  <ActionsMenu
+                    buttonAriaLabel="Job board actions"
+                    buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
+                    align="right"
+                    menuWidthPx={192}
+                    items={(() => {
+                      const items: ActionsMenuItem[] = [
+                        { label: 'Edit', onClick: () => openEditModal(jobBoard), icon: <PencilIcon className="w-4 h-4" /> },
+                        { label: 'Delete', onClick: () => openDeleteModal(jobBoard), icon: <TrashIcon className="w-4 h-4" />, variant: 'danger' },
+                      ];
+                      return items;
+                    })()}
+                  />
                 </div>
               </div>
               

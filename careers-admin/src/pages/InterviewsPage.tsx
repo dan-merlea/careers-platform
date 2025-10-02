@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import TabNavigation from '../components/common/TabNavigation';
+import Select from '../components/common/Select';
 import interviewProcessService, { InterviewProcess } from '../services/interviewProcessService';
 import interviewService, { Interview } from '../services/interviewService';
 import { toast } from 'react-toastify';
@@ -37,6 +39,11 @@ const InterviewsPage: React.FC = () => {
   
   // Active interviews state
   const [activeInterviews, setActiveInterviews] = useState<Interview[]>([]);
+  const [activeFiltersOpen, setActiveFiltersOpen] = useState<boolean>(false);
+  const [activeSearch, setActiveSearch] = useState<string>('');
+  const [activeStatus, setActiveStatus] = useState<string>('all');
+  const [activeFrom, setActiveFrom] = useState<string>('');
+  const [activeTo, setActiveTo] = useState<string>('');
   const [isLoadingInterviews, setIsLoadingInterviews] = useState<boolean>(true);
   const [interviewsError, setInterviewsError] = useState<string | null>(null);
   
@@ -157,6 +164,35 @@ const InterviewsPage: React.FC = () => {
   const isLoading = (activeTab === 'processes' && isLoadingProcesses) || 
                    (activeTab === 'active' && isLoadingInterviews) ||
                    (activeTab === 'my-interviews' && isLoadingUserInterviews);
+
+  // Derived filtered list for Active tab
+  const filteredActiveInterviews = React.useMemo(() => {
+    if (activeTab !== 'active') return [] as Interview[];
+    const q = activeSearch.trim().toLowerCase();
+    const fromTs = activeFrom ? new Date(activeFrom).getTime() : null;
+    const toTs = activeTo ? new Date(activeTo).getTime() : null;
+    return activeInterviews.filter((iv) => {
+      // search by title, applicantName, jobTitle
+      if (q) {
+        const hay = `${iv.title} ${iv.applicantName} ${iv.jobTitle}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      // status filter
+      if (activeStatus !== 'all') {
+        if ((iv.status || '').toLowerCase() !== activeStatus.toLowerCase()) return false;
+      }
+      // date range
+      const ts = new Date(iv.scheduledDate).getTime();
+      if (fromTs && ts < fromTs) return false;
+      if (toTs) {
+        // Include the whole day for 'to'
+        const endOfDay = new Date(activeTo);
+        endOfDay.setHours(23,59,59,999);
+        if (ts > endOfDay.getTime()) return false;
+      }
+      return true;
+    });
+  }, [activeTab, activeInterviews, activeSearch, activeStatus, activeFrom, activeTo]);
   
   if (isLoading) {
     return (
@@ -188,56 +224,26 @@ const InterviewsPage: React.FC = () => {
       </div>
       
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
-          {!isUser && (
-            <Link
-              to="/interviews?tab=active"
-              className={`${activeTab === 'active' 
-                ? 'border-blue-500 text-blue-600' 
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
-                whitespace-nowrap py-3 px-1 border-b-2 font-medium text-xs`}
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveTab('active');
-                navigate('/interviews?tab=active', { replace: true });
-              }}
-            >
-              Active Applicant Interviews
-            </Link>
-          )}
-          <Link
-            to="/interviews?tab=my-interviews"
-            className={`${activeTab === 'my-interviews' 
-              ? 'border-blue-500 text-blue-600' 
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
-              whitespace-nowrap py-3 px-1 border-b-2 font-medium text-xs`}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('my-interviews');
-              navigate('/interviews?tab=my-interviews', { replace: true });
-            }}
-          >
-            My Interviews
-          </Link>
-          {!isUser && (
-            <Link
-              to="/interviews?tab=processes"
-              className={`${activeTab === 'processes' 
-                ? 'border-blue-500 text-blue-600' 
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} 
-                whitespace-nowrap py-3 px-1 border-b-2 font-medium text-xs`}
-              onClick={(e) => {
-                e.preventDefault();
-                setActiveTab('processes');
-                navigate('/interviews?tab=processes', { replace: true });
-              }}
-            >
-              Interview Processes
-            </Link>
-          )}
-        </nav>
-      </div>
+      <TabNavigation
+        className="mb-6"
+        tabs={(() => {
+          const tabs = [] as { id: string; label: string; href: string }[];
+          if (!isUser) {
+            tabs.push({ id: 'active', label: 'All Active Interviews', href: '/interviews?tab=active' });
+          }
+          tabs.push({ id: 'my-interviews', label: 'My Interviews', href: '/interviews?tab=my-interviews' });
+          if (!isUser) {
+            tabs.push({ id: 'processes', label: 'Interview Processes', href: '/interviews?tab=processes' });
+          }
+          return tabs;
+        })()}
+        activeTab={activeTab}
+        onTabChange={(tabId) => {
+          const id = tabId as 'processes' | 'active' | 'my-interviews';
+          setActiveTab(id);
+          navigate(`/interviews?tab=${id}`, { replace: true });
+        }}
+      />
 
       {/* Error messages */}
       {activeTab === 'processes' && processesError && (
@@ -340,18 +346,93 @@ const InterviewsPage: React.FC = () => {
               <p className="text-gray-500">No active interviews found.</p>
             </div>
           ) : (
-            <div className="space-y-4">
-              {activeInterviews.map((interview) => (
-                <InterviewCard
-                  key={interview.id}
-                  interview={interview}
-                  userId={null}
-                  variant="active"
-                  formatDate={formatDate}
-                  formatTime={formatTime}
-                />
-              ))}
-            </div>
+            <>
+              {/* Filters toggle */}
+              <div className="mb-3 flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => setActiveFiltersOpen(v => !v)}
+                  className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {activeFiltersOpen ? 'Hide Filters' : 'Show Filters'}
+                </button>
+              </div>
+
+              {/* Filters */}
+              {activeFiltersOpen && (
+                <div className="mb-6 bg-gray-50 p-4 rounded-lg">
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Filters</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Search</label>
+                      <input
+                        type="text"
+                        value={activeSearch}
+                        onChange={(e) => setActiveSearch(e.target.value)}
+                        placeholder="Title, applicant, job title"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                      <Select
+                        value={activeStatus === 'all' ? undefined : activeStatus}
+                        onChange={(val) => setActiveStatus(val || 'all')}
+                        allowEmpty
+                        placeholder="All Statuses"
+                        className="w-full"
+                        options={[
+                          { label: 'Scheduled', value: 'scheduled' },
+                          { label: 'Pending', value: 'pending' },
+                          { label: 'Rescheduled', value: 'rescheduled' },
+                          { label: 'In Progress', value: 'in_progress' },
+                          { label: 'Completed', value: 'completed' },
+                          { label: 'Cancelled', value: 'cancelled' },
+                        ]}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">From</label>
+                      <input
+                        type="date"
+                        value={activeFrom}
+                        onChange={(e) => setActiveFrom(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 mb-1">To</label>
+                      <input
+                        type="date"
+                        value={activeTo}
+                        onChange={(e) => setActiveTo(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Results */}
+              <div className="space-y-4">
+                {filteredActiveInterviews.length === 0 ? (
+                  <div className="bg-white shadow rounded-lg p-6 text-center">
+                    <p className="text-gray-500">No interviews match your filters.</p>
+                  </div>
+                ) : (
+                  filteredActiveInterviews.map((interview) => (
+                    <InterviewCard
+                      key={interview.id}
+                      interview={interview}
+                      userId={null}
+                      variant="active"
+                      formatDate={formatDate}
+                      formatTime={formatTime}
+                    />
+                  ))
+                )}
+              </div>
+            </>
           )}
         </>
       )}
