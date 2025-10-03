@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../common/Button';
+import Input from '../common/Input';
 import { IntegrationType } from '../../services/apiKeys.service';
 
 interface ApiKeyFormProps {
@@ -64,9 +65,9 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({
   };
 
   return (
-    <div className="border-t border-gray-200 pt-6">
-      <h3 className="text-md font-medium text-gray-800 mb-2">{title}</h3>
-      <p className="text-sm text-gray-600 mb-4">{description}</p>
+    <div className="border border-gray-200 rounded-lg p-6">
+      <h3 className="text-lg font-medium text-gray-800 mb-2">{title}</h3>
+      <p className="text-gray-600 mb-6">{description}</p>
 
       {error && (
         <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
@@ -91,12 +92,11 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({
               'Your Greenhouse API key for authentication' : 
               'Your Ashby API key with candidatesWrite permission'}
           </div>
-          <div className="flex">
-            <input
+          <div className="relative">
+            <Input
               type={showApiKey ? 'text' : 'password'}
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder={type === IntegrationType.GREENHOUSE ? 
                 "Enter Greenhouse API key" : 
                 "Enter Ashby API key"}
@@ -106,7 +106,7 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({
             <button
               type="button"
               onClick={() => setShowApiKey(!showApiKey)}
-              className="px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm font-medium text-gray-700 hover:bg-gray-200"
+              className="absolute inset-y-0 right-0 px-3 text-sm text-gray-500 hover:text-gray-700"
               disabled={isLoading || isSaving}
             >
               {showApiKey ? 'Hide' : 'Show'}
@@ -124,19 +124,18 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({
               'Additional authentication secret if required by your Greenhouse setup' : 
               'Additional authentication secret if required by your Ashby setup'}
           </div>
-          <div className="flex">
-            <input
+          <div className="relative">
+            <Input
               type={showApiSecret ? 'text' : 'password'}
               value={apiSecret}
               onChange={(e) => setApiSecret(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter API secret (if required)"
               disabled={isLoading || isSaving}
             />
             <button
               type="button"
               onClick={() => setShowApiSecret(!showApiSecret)}
-              className="px-4 py-2 bg-gray-100 border border-l-0 border-gray-300 rounded-r-md text-sm font-medium text-gray-700 hover:bg-gray-200"
+              className="absolute inset-y-0 right-0 px-3 text-sm text-gray-500 hover:text-gray-700"
               disabled={isLoading || isSaving}
             >
               {showApiSecret ? 'Hide' : 'Show'}
@@ -154,11 +153,10 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({
               'Default: https://boards-api.greenhouse.io/v1/boards/' : 
               'Default: https://api.ashbyhq.com/posting-api/job-board/'}
           </div>
-          <input
+          <Input
             type="text"
             value={baseUrl}
             onChange={(e) => setBaseUrl(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             placeholder={type === IntegrationType.GREENHOUSE ? 
               "https://boards-api.greenhouse.io/v1/boards/" : 
               "https://api.ashbyhq.com/posting-api/job-board/"}
@@ -176,11 +174,10 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({
               'Your Greenhouse board ID found in the URL: https://boards-api.greenhouse.io/v1/boards/{board-id}/jobs' : 
               'Your Ashby company name found in the URL: https://jobs.ashbyhq.com/{company-id}'}
           </div>
-          <input
+          <Input
             type="text"
             value={companyId}
             onChange={(e) => setCompanyId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             placeholder={type === IntegrationType.GREENHOUSE ? 
               "e.g., acme" : 
               "e.g., Ashby"}
