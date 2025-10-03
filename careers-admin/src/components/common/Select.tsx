@@ -12,6 +12,7 @@ type SelectProps = {
   ariaLabel?: string;
   allowEmpty?: boolean;
   searchable?: boolean;
+  popUpward?: boolean;
 };
 
 const Select: React.FC<SelectProps> = ({
@@ -24,6 +25,7 @@ const Select: React.FC<SelectProps> = ({
   ariaLabel = 'Select',
   allowEmpty = false,
   searchable = false,
+  popUpward = false,
 }) => {
   const [open, setOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
@@ -158,7 +160,7 @@ const Select: React.FC<SelectProps> = ({
       {(open || exiting) && (
         <div
           ref={menuRef}
-          className={`${open ? 'slc-enter' : 'slc-exit'} absolute mt-1 w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20`}
+          className={`${open ? 'slc-enter' : 'slc-exit'} absolute ${popUpward ? 'bottom-full mb-1' : 'mt-1'} w-full rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20`}
           role="listbox"
         >
           {searchable && (

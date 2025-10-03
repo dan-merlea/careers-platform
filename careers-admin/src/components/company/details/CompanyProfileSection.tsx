@@ -1,9 +1,10 @@
 import React from 'react';
 import { CompanyDetails } from '../../../services/company.service';
-import IconDropdown from '../../shared/IconDropdown';
+import IconDropdown from '../../common/IconDropdown';
 import Select from '../../common/Select';
 import Input from '../../common/Input';
 import Button from '../../common/Button';
+import Card from '../../common/Card';
 
 interface CompanyProfileSectionProps {
   companyDetails: CompanyDetails;
@@ -41,7 +42,7 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
   handleRemoveValue
 }) => {
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
+    <Card>
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <p className="text-gray-500">Loading company details...</p>
@@ -274,7 +275,7 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
           </div>
         </form>
       )}
-    </div>
+    </Card>
   );
 };
 

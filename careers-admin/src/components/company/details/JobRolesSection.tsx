@@ -3,6 +3,7 @@ import { JobRole, CreateJobRoleDto, UpdateJobRoleDto } from '../../../services/j
 import { JobFunction } from '../../../services/jobFunctionService';
 import JobRoleForm from '../../company/JobRoleForm';
 import Button from '../../common/Button';
+import Card from '../../common/Card';
 
 interface JobRolesSectionProps {
   jobRoles: JobRole[];
@@ -37,7 +38,7 @@ const JobRolesSection: React.FC<JobRolesSectionProps> = ({
 }) => {
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
+    <Card>
       {showJobRoleForm ? (
         <JobRoleForm
           jobRole={selectedJobRole}
@@ -134,7 +135,7 @@ const JobRolesSection: React.FC<JobRolesSectionProps> = ({
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 };
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { JobFunction, CreateJobFunctionDto, UpdateJobFunctionDto } from '../../../services/jobFunctionService';
 import JobFunctionForm from '../JobFunctionForm';
 import Button from '../../common/Button';
+import Card from '../../common/Card';
 
 interface JobFunctionsSectionProps {
   jobFunctions: JobFunction[];
@@ -33,7 +34,7 @@ const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
   handleDeleteJobFunction
 }) => {
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
+    <Card>
       {showJobFunctionForm ? (
         <JobFunctionForm
           jobFunction={selectedJobFunction}
@@ -123,7 +124,7 @@ const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 };
 

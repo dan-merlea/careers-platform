@@ -3,6 +3,7 @@ import { Office, CreateOfficeDto, UpdateOfficeDto } from '../../../services/offi
 import OfficesList from '../OfficesList';
 import OfficesForm from '../OfficesForm';
 import Button from '../../common/Button';
+import Card from '../../common/Card';
 
 interface OfficesSectionProps {
   offices: Office[];
@@ -34,7 +35,7 @@ const OfficesSection: React.FC<OfficesSectionProps> = ({
   handleDeleteOffice
 }) => {
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
+    <Card>
       {showOfficeForm ? (
         <OfficesForm
           office={selectedOffice}
@@ -77,7 +78,7 @@ const OfficesSection: React.FC<OfficesSectionProps> = ({
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 };
 

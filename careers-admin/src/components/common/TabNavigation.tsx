@@ -68,7 +68,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
         className="overflow-x-auto"
         onScroll={checkForScrollShadows}
       >
-        <div className="inline-flex bg-white/50 rounded-lg p-1 min-w-max">
+        <div className="inline-flex bg-white/50 border border-white rounded-lg p-1 min-w-max">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             const tabClasses = `

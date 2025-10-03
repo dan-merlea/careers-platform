@@ -3,6 +3,7 @@ import { Department, CreateDepartmentDto, UpdateDepartmentDto } from '../../../s
 import DepartmentTree from '../DepartmentTree';
 import DepartmentForm from '../DepartmentForm';
 import Button from '../../common/Button';
+import Card from '../../common/Card';
 
 interface DepartmentsSectionProps {
   departments: Department[];
@@ -34,7 +35,7 @@ const DepartmentsSection: React.FC<DepartmentsSectionProps> = ({
   handleDeleteDepartment
 }) => {
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
+    <Card>
       {showDeptForm ? (
         <DepartmentForm
           department={selectedDept}
@@ -77,7 +78,7 @@ const DepartmentsSection: React.FC<DepartmentsSectionProps> = ({
           )}
         </>
       )}
-    </div>
+    </Card>
   );
 };
 
