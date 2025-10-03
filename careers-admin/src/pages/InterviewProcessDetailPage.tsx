@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import interviewProcessService, { InterviewProcess } from '../services/interviewProcessService';
 import { formatDate } from '../utils/dateUtils';
 import { toast } from 'react-toastify';
+import Button from '../components/common/Button';
 
 const InterviewProcessDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -65,12 +66,9 @@ const InterviewProcessDetailPage: React.FC = () => {
           {error || 'Interview process not found'}
         </div>
         <div className="mt-4">
-          <button 
-            onClick={() => navigate('/interviews?tab=processes')}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
+          <Button onClick={() => navigate('/interviews?tab=processes')} variant="primary">
             Back to Interview Processes
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -100,15 +98,9 @@ const InterviewProcessDetailPage: React.FC = () => {
             </svg>
             Edit
           </Link>
-          <button
-            onClick={handleDelete}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
+          <Button onClick={handleDelete} variant="primary" leadingIcon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>}>
             Delete
-          </button>
+          </Button>
         </div>
       </div>
 

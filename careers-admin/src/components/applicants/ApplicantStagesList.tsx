@@ -4,6 +4,7 @@ import { ClockIcon } from '@heroicons/react/24/outline';
 import { Link, useNavigate } from 'react-router-dom';
 import EmailTemplateModal from '../modals/EmailTemplateModal';
 import InterviewScheduleModal from '../modals/InterviewScheduleModal';
+import Button from '../common/Button';
 import { api } from '../../utils/api';
 import { API_URL } from '../../config';
 
@@ -275,44 +276,30 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
                   <div className="mt-1 flex flex-wrap gap-2">
                     {/* Next stage button */}
                     {isNext && !isCompleted && !isCurrent && (
-                      <button
-                        onClick={() => handleStageClick(stage)}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        <ArrowRightIcon className="w-4 h-4 mr-1.5" />
+                      <Button onClick={() => handleStageClick(stage)} variant="primary" className="!h-auto py-1.5 px-3" leadingIcon={<ArrowRightIcon className="w-4 h-4" />}> 
                         Move to this stage
-                      </button>
+                      </Button>
                     )}
                     
                     {/* Schedule interview button for current stage only, excluding specific stages */}
                     {isCurrent && !['new', 'reviewed', 'hired'].includes(stage.id) && (
-                      <button
-                        onClick={handleScheduleInterview}
-                        className="inline-flex items-center px-3 py-1.5 border border-blue-300 text-sm font-medium rounded-md text-blue-700 bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
-                        <CalendarIcon className="w-4 h-4 mr-1.5" />
+                      <Button onClick={handleScheduleInterview} variant="white" className="!h-auto py-1.5 px-3" leadingIcon={<CalendarIcon className="w-4 h-4" />}> 
                         Schedule Interview
-                      </button>
+                      </Button>
                     )}
                     
                     {/* Skip button for stages after next */}
                     {index > currentStageIndex + 1 && (
-                      <button
-                        onClick={() => handleStageClick(stage)}
-                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
+                      <Button onClick={() => handleStageClick(stage)} variant="white" className="!h-auto py-1.5 px-3">
                         Skip to this stage
-                      </button>
+                      </Button>
                     )}
                     
                     {/* Return button for previous stages */}
                     {isCompleted && (
-                      <button
-                        onClick={() => handleStageClick(stage)}
-                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                      >
+                      <Button onClick={() => handleStageClick(stage)} variant="white" className="!h-auto py-1.5 px-3">
                         Return to this stage
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -367,17 +354,10 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
             </div>
             
             <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowCancelModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
+              <Button onClick={() => setShowCancelModal(false)} variant="white">
                 Cancel
-              </button>
-              <button
-                onClick={handleCancelInterview}
-                disabled={isCanceling || !cancelReason.trim()}
-                className={`px-4 py-2 rounded-md text-white ${isCanceling || !cancelReason.trim() ? 'bg-red-400' : 'bg-red-600 hover:bg-red-700'} flex items-center`}
-              >
+              </Button>
+              <Button onClick={handleCancelInterview} disabled={isCanceling || !cancelReason.trim()} variant="primary">
                 {isCanceling ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
@@ -386,7 +366,7 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
                 ) : (
                   'Confirm Cancellation'
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -414,17 +394,10 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
             </div>
             
             <div className="flex justify-end space-x-3">
-              <button
-                onClick={() => setShowRescheduleModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-              >
+              <Button onClick={() => setShowRescheduleModal(false)} variant="white">
                 Cancel
-              </button>
-              <button
-                onClick={handleRescheduleInterview}
-                disabled={isRescheduling || !newScheduledDate}
-                className={`px-4 py-2 rounded-md text-white ${isRescheduling || !newScheduledDate ? 'bg-amber-400' : 'bg-amber-600 hover:bg-amber-700'} flex items-center`}
-              >
+              </Button>
+              <Button onClick={handleRescheduleInterview} disabled={isRescheduling || !newScheduledDate} variant="primary">
                 {isRescheduling ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
@@ -433,7 +406,7 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
                 ) : (
                   'Confirm Reschedule'
                 )}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

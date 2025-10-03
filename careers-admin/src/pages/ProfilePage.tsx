@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import Input from '../components/common/Input';
+import Button from '../components/common/Button';
+import Card from '../components/common/Card';
 import { useAuth } from '../context/AuthContext';
 import { authService, ProfileResponse, UpdateProfileRequest, ChangePasswordRequest } from '../services/auth.service';
 
@@ -145,7 +148,7 @@ const ProfilePage: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">My Profile</h1>
       
-      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+      <Card className="mb-8">
         <h2 className="text-xl font-semibold mb-4">Profile Information</h2>
         
         {updateSuccess && (
@@ -165,8 +168,7 @@ const ProfilePage: React.FC = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
               Name
             </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            <Input
               id="name"
               type="text"
               value={name}
@@ -179,8 +181,7 @@ const ProfilePage: React.FC = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
               Email
             </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            <Input
               id="email"
               type="email"
               value={email}
@@ -190,18 +191,14 @@ const ProfilePage: React.FC = () => {
           </div>
           
           <div className="flex items-center justify-between">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="submit"
-              disabled={isUpdating}
-            >
+            <Button type="submit" disabled={isUpdating} variant="primary">
               {isUpdating ? 'Updating...' : 'Update Profile'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
       
-      <div className="bg-white shadow-md rounded-lg p-6">
+      <Card>
         <h2 className="text-xl font-semibold mb-4">Change Password</h2>
         
         {passwordChangeSuccess && (
@@ -221,8 +218,7 @@ const ProfilePage: React.FC = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="currentPassword">
               Current Password
             </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            <Input
               id="currentPassword"
               type="password"
               value={currentPassword}
@@ -235,8 +231,7 @@ const ProfilePage: React.FC = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newPassword">
               New Password
             </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            <Input
               id="newPassword"
               type="password"
               value={newPassword}
@@ -250,8 +245,7 @@ const ProfilePage: React.FC = () => {
             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="confirmPassword">
               Confirm New Password
             </label>
-            <input
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            <Input
               id="confirmPassword"
               type="password"
               value={confirmPassword}
@@ -262,16 +256,12 @@ const ProfilePage: React.FC = () => {
           </div>
           
           <div className="flex items-center justify-between">
-            <button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              type="submit"
-              disabled={isChangingPassword}
-            >
+            <Button type="submit" disabled={isChangingPassword} variant="primary">
               {isChangingPassword ? 'Changing Password...' : 'Change Password'}
-            </button>
+            </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 };

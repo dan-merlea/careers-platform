@@ -2,6 +2,7 @@ import React from 'react';
 import { Department, CreateDepartmentDto, UpdateDepartmentDto } from '../../../services/departmentService';
 import DepartmentTree from '../DepartmentTree';
 import DepartmentForm from '../DepartmentForm';
+import Button from '../../common/Button';
 
 interface DepartmentsSectionProps {
   departments: Department[];
@@ -58,12 +59,9 @@ const DepartmentsSection: React.FC<DepartmentsSectionProps> = ({
           
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Departments</h2>
-            <button
-              onClick={handleAddDepartment}
-              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
-            >
+            <Button onClick={handleAddDepartment} variant="secondary">
               Add Department
-            </button>
+            </Button>
           </div>
           
           {loadingDept ? (

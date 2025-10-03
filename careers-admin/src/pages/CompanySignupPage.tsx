@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Input from "../components/common/Input";
 
 const CompanySignupPage: React.FC = () => {
   const [companyName, setCompanyName] = useState("");
@@ -86,14 +87,14 @@ const CompanySignupPage: React.FC = () => {
                 Company Name
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="companyName"
                   name="companyName"
                   type="text"
                   required
                   value={companyName}
                   onChange={(e) => setCompanyName(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  variant="dark"
                   placeholder="Acme Inc."
                 />
               </div>
@@ -104,7 +105,7 @@ const CompanySignupPage: React.FC = () => {
                 Your Full Name
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="name"
                   name="name"
                   type="text"
@@ -112,7 +113,7 @@ const CompanySignupPage: React.FC = () => {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  variant="dark"
                   placeholder="John Doe"
                 />
               </div>
@@ -123,7 +124,7 @@ const CompanySignupPage: React.FC = () => {
                 Email address
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="email"
                   name="email"
                   type="email"
@@ -131,7 +132,7 @@ const CompanySignupPage: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  variant="dark"
                   placeholder="you@example.com"
                 />
               </div>
@@ -142,7 +143,7 @@ const CompanySignupPage: React.FC = () => {
                 Password
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="password"
                   name="password"
                   type="password"
@@ -150,7 +151,7 @@ const CompanySignupPage: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  variant="dark"
                   placeholder="••••••••••"
                 />
               </div>
@@ -161,7 +162,7 @@ const CompanySignupPage: React.FC = () => {
                 Confirm Password
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
@@ -169,7 +170,7 @@ const CompanySignupPage: React.FC = () => {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  variant="dark"
                   placeholder="••••••••••"
                 />
               </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LogsFilter as LogsFilterType } from '../../services/logsService';
 import Select from '../common/Select';
+import Button from '../common/Button';
 
 interface LogsFilterProps {
   onFilterChange: (filter: LogsFilterType) => void;
@@ -154,13 +155,9 @@ const LogsFilter: React.FC<LogsFilterProps> = ({
       
       {/* Clear Filters Button */}
       <div className="mt-4 flex justify-end">
-        <button
-          type="button"
-          onClick={clearFilters}
-          className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
+        <Button type="button" onClick={clearFilters} variant="white">
           Clear Filters
-        </button>
+        </Button>
       </div>
     </div>
   );

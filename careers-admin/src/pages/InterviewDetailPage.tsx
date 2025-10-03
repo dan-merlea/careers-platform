@@ -31,6 +31,7 @@ import jobApplicationService, { JobApplicant } from '../services/jobApplicationS
 import jobService, { Job } from '../services/jobService';
 import { formatDate, formatTime } from '../utils/dateUtils';
 import { toast } from 'react-toastify';
+import Button from '../components/common/Button';
 
 // Define the feedback interface
 interface InterviewFeedback {
@@ -740,7 +741,7 @@ const InterviewDetailPage: React.FC = () => {
                       <BriefcaseIcon className="h-16 w-16 text-gray-400 mb-2" />
                       <p className="text-gray-600">Job details not available</p>
                       {applicant?.jobId && (
-                        <button
+                        <Button
                           onClick={() => {
                             setIsLoadingJob(true);
                             jobService.getJob(applicant.jobId)
@@ -748,10 +749,11 @@ const InterviewDetailPage: React.FC = () => {
                               .catch(err => console.error('Error fetching job data:', err))
                               .finally(() => setIsLoadingJob(false));
                           }}
-                          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                          variant="primary"
+                          className="mt-4"
                         >
                           Load Job Details
-                        </button>
+                        </Button>
                       )}
                     </div>
                   )}
@@ -767,14 +769,15 @@ const InterviewDetailPage: React.FC = () => {
                       {hasExistingFeedback && !isEditingFeedback ? 'Your Feedback' : 'Interview Feedback'}
                     </div>
                     {hasExistingFeedback && !isEditingFeedback && (
-                      <button
+                      <Button
                         type="button"
                         onClick={() => setIsEditingFeedback(true)}
-                        className="text-xs bg-blue-600 text-white py-1 px-2 rounded-md hover:bg-blue-700 flex items-center"
+                        variant="primary"
+                        className="text-xs"
+                        leadingIcon={<PencilIcon className="h-4 w-4" />}
                       >
-                        <PencilIcon className="h-4 w-4 mr-1" />
                         Edit Feedback
-                      </button>
+                      </Button>
                     )}
                   </h2>
                   

@@ -2,6 +2,8 @@ import React from 'react';
 import { CompanyDetails } from '../../../services/company.service';
 import IconDropdown from '../../shared/IconDropdown';
 import Select from '../../common/Select';
+import Input from '../../common/Input';
+import Button from '../../common/Button';
 
 interface CompanyProfileSectionProps {
   companyDetails: CompanyDetails;
@@ -47,12 +49,9 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
       ) : error ? (
         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
           <p>{error}</p>
-          <button 
-            onClick={loadCompanyDetails}
-            className="mt-2 bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded"
-          >
+          <Button onClick={loadCompanyDetails} variant="primary" className="mt-2">
             Retry
-          </button>
+          </Button>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
@@ -63,66 +62,66 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
           )}
           
           <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
+            <h2 className="text-lg font-semibold mb-3">Basic Information</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-gray-700 mb-2">Company Name</label>
-                <input
+                <label className="block text-sm text-gray-700 mb-1">Company Name</label>
+                <Input
                   type="text"
                   name="name"
                   value={companyDetails.name}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={handleInputChange as any}
+                  className="text-sm"
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-gray-700 mb-2">Logo URL</label>
-                <input
+                <label className="block text-sm text-gray-700 mb-1">Logo URL</label>
+                <Input
                   type="text"
                   name="logo"
                   value={companyDetails.logo}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={handleInputChange as any}
+                  className="text-sm"
                 />
               </div>
               
               <div>
-                <label className="block text-gray-700 mb-2">Website</label>
-                <input
+                <label className="block text-sm text-gray-700 mb-1">Website</label>
+                <Input
                   type="url"
                   name="website"
                   value={companyDetails.website}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={handleInputChange as any}
+                  className="text-sm"
                 />
               </div>
               
               <div>
-                <label className="block text-gray-700 mb-2">Industry</label>
-                <input
+                <label className="block text-sm text-gray-700 mb-1">Industry</label>
+                <Input
                   type="text"
                   name="industry"
                   value={companyDetails.industry}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={handleInputChange as any}
+                  className="text-sm"
                 />
               </div>
               
               <div>
-                <label className="block text-gray-700 mb-2">Founded Year</label>
-                <input
+                <label className="block text-sm text-gray-700 mb-1">Founded Year</label>
+                <Input
                   type="text"
                   name="foundedYear"
                   value={companyDetails.foundedYear}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={handleInputChange as any}
+                  className="text-sm"
                 />
               </div>
               
               <div>
-                <label className="block text-gray-700 mb-2">Company Size</label>
+                <label className="block text-sm text-gray-700 mb-1">Company Size</label>
                 <Select
                   value={companyDetails.size || undefined}
                   onChange={(val) =>
@@ -130,7 +129,7 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
                   }
                   allowEmpty
                   placeholder="Select size"
-                  className="w-full"
+                  className="w-full text-sm"
                   options={[
                     { label: '1-10 employees', value: '1-10' },
                     { label: '11-50 employees', value: '11-50' },
@@ -159,45 +158,41 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-gray-700 mb-2">LinkedIn</label>
-                <input
+                <Input
                   type="url"
                   name="socialLinks.linkedin"
                   value={companyDetails.socialLinks.linkedin}
-                  onChange={handleSocialLinkChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={handleSocialLinkChange as any}
                 />
               </div>
               
               <div>
                 <label className="block text-gray-700 mb-2">Twitter</label>
-                <input
+                <Input
                   type="url"
                   name="socialLinks.twitter"
                   value={companyDetails.socialLinks.twitter}
-                  onChange={handleSocialLinkChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={handleSocialLinkChange as any}
                 />
               </div>
               
               <div>
                 <label className="block text-gray-700 mb-2">Facebook</label>
-                <input
+                <Input
                   type="url"
                   name="socialLinks.facebook"
                   value={companyDetails.socialLinks.facebook}
-                  onChange={handleSocialLinkChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={handleSocialLinkChange as any}
                 />
               </div>
               
               <div>
                 <label className="block text-gray-700 mb-2">Instagram</label>
-                <input
+                <Input
                   type="url"
                   name="socialLinks.instagram"
                   value={companyDetails.socialLinks.instagram}
-                  onChange={handleSocialLinkChange}
-                  className="w-full px-3 py-2 border rounded-md"
+                  onChange={handleSocialLinkChange as any}
                 />
               </div>
             </div>
@@ -234,28 +229,23 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
                     selectedIcon={valueIcon} 
                     onSelectIcon={(icon) => setValueIcon(icon)} 
                   />
-                  <input
+                  <Input
                     type="text"
                     value={valueInput}
-                    onChange={(e) => setValueInput(e.target.value)}
+                    onChange={(e) => setValueInput((e.target as HTMLInputElement).value)}
                     onKeyDown={(e) => {
-                      // Handle Enter key to add value
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         handleAddValue();
                       }
                     }}
                     placeholder="Enter a company value"
-                    className="w-full px-3 py-2 border rounded-md mr-2"
+                    className="w-full mr-2"
                     autoComplete="off"
                   />
-                  <button
-                    type="button"
-                    onClick={handleAddValue}
-                    className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
-                  >
+                  <Button type="button" onClick={handleAddValue} variant="secondary">
                     Add
-                  </button>
+                  </Button>
                 </div>
               </div>
               
@@ -278,13 +268,9 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
           </div>
           
           <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={saving}
-              className={`bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-md ${saving ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
+            <Button type="submit" disabled={saving} variant="primary">
               {saving ? 'Saving...' : 'Save Changes'}
-            </button>
+            </Button>
           </div>
         </form>
       )}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import jobTemplateService, { JobTemplate, CreateJobTemplateRequest } from '../../services/jobTemplateService';
 import { format } from 'date-fns';
+import Button from '../common/Button';
 
 interface SaveTemplateModalProps {
   isOpen: boolean;
@@ -155,22 +156,17 @@ const SaveTemplateModal: React.FC<SaveTemplateModalProps> = ({
         </div>
 
         <div className="flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50"
-            disabled={isLoading}
-          >
+          <Button type="button" onClick={onClose} disabled={isLoading} variant="white">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={handleSave}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             disabled={isLoading || (isCreatingNew && !newTemplateName) || (!isCreatingNew && !selectedTemplate)}
+            variant="primary"
           >
             {isLoading ? 'Saving...' : 'Save Template'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

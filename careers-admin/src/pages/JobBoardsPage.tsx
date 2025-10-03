@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { PlusIcon, PencilIcon, TrashIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
+import Input from '../components/common/Input';
+import Button from '../components/common/Button';
 
 const JobBoardsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -149,25 +151,15 @@ const JobBoardsPage: React.FC = () => {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Job Boards</h1>
         <div className="flex space-x-2">
-          <button
-            onClick={() => createExternalJobBoard('greenhouse')}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          >
+          <Button onClick={() => createExternalJobBoard('greenhouse')} variant="primary">
             Connect Greenhouse
-          </button>
-          <button
-            onClick={() => createExternalJobBoard('ashby')}
-            className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-          >
+          </Button>
+          <Button onClick={() => createExternalJobBoard('ashby')} variant="primary">
             Connect Ashby
-          </button>
-          <button
-            onClick={openCreateModal}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            <PlusIcon className="w-5 h-5 mr-2" />
+          </Button>
+          <Button onClick={openCreateModal} variant="secondary" leadingIcon={<PlusIcon className="w-5 h-5" />}> 
             Add Job Board
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -265,13 +257,12 @@ const JobBoardsPage: React.FC = () => {
                 <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                   Title *
                 </label>
-                <input
+                <Input
                   type="text"
                   id="title"
                   name="title"
                   value={formData.title}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded"
                   required
                 />
               </div>
@@ -307,19 +298,12 @@ const JobBoardsPage: React.FC = () => {
               </div>
               
               <div className="flex justify-end space-x-2">
-                <button
-                  type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
-                >
+                <Button type="button" onClick={closeModal} variant="white">
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
+                </Button>
+                <Button type="submit" variant="primary">
                   {currentJobBoard ? 'Update' : 'Create'}
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -336,18 +320,12 @@ const JobBoardsPage: React.FC = () => {
             </p>
             
             <div className="flex justify-end space-x-2">
-              <button
-                onClick={closeDeleteModal}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
-              >
+              <Button onClick={closeDeleteModal} variant="white">
                 Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
+              </Button>
+              <Button onClick={handleDelete} variant="primary">
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>

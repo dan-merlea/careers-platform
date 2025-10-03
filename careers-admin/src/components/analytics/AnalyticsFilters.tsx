@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Button from '../common/Button';
 import { FilterParams } from '../../pages/AnalyticsPage';
 import { AdjustmentsHorizontalIcon, CalendarIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import Select from '../common/Select';
@@ -261,20 +262,12 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterCh
           
           {/* Action buttons */}
           <div className="flex justify-end space-x-3 mt-4 pt-4 border-t border-gray-200">
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
+            <Button type="button" onClick={resetFilters} variant="white" className="text-sm">
               Reset
-            </button>
-            <button
-              type="button"
-              onClick={applyFilters}
-              className="px-4 py-2 bg-blue-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700"
-            >
+            </Button>
+            <Button type="button" onClick={applyFilters} variant="primary" className="text-sm">
               Apply Filters
-            </button>
+            </Button>
           </div>
         </div>
       )}

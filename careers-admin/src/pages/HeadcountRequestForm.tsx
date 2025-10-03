@@ -10,6 +10,7 @@ import { departmentService, Department } from '../services/departmentService';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { formatDate } from '../utils/dateUtils';
 import Select from '../components/common/Select';
+import Button from '../components/common/Button';
 
 const HeadcountRequestForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -353,11 +354,7 @@ const HeadcountRequestForm: React.FC = () => {
             {/* Add Create Job button for approved headcount requests */}
             {canCreateJob && (
               <div>
-                <button
-                  onClick={handleCreateJob}
-                  disabled={isCreatingJob}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2 flex items-center"
-                >
+                <Button onClick={handleCreateJob} disabled={isCreatingJob} variant="primary">
                   {isCreatingJob ? (
                     <>
                       <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -367,9 +364,9 @@ const HeadcountRequestForm: React.FC = () => {
                       Creating...
                     </>
                   ) : (
-                    <><i className="bi bi-briefcase me-2"></i> Create Job Opening</>
+                    'Create Job Opening'
                   )}
-                </button>
+                </Button>
               </div>
             )}
           </div>
@@ -392,28 +389,16 @@ const HeadcountRequestForm: React.FC = () => {
                 />
               </div>
               
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setIsReviewing(false)}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded mr-2 flex items-center"
-                  disabled={isLoading}
-                >
-                  <i className="bi bi-x-circle me-2"></i> Cancel
-                </button>
-                <button
-                  onClick={handleReject}
-                  className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-2 flex items-center"
-                  disabled={isLoading}
-                >
-                  <i className="bi bi-x-circle me-2"></i> Reject
-                </button>
-                <button
-                  onClick={handleApprove}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded flex items-center"
-                  disabled={isLoading}
-                >
-                  <i className="bi bi-check-circle me-2"></i> Approve
-                </button>
+              <div className="flex justify-end space-x-2">
+                <Button onClick={() => setIsReviewing(false)} disabled={isLoading} variant="white">
+                  Cancel
+                </Button>
+                <Button onClick={handleReject} disabled={isLoading} variant="primary">
+                  Reject
+                </Button>
+                <Button onClick={handleApprove} disabled={isLoading} variant="primary">
+                  Approve
+                </Button>
               </div>
             </div>
           ) : (
@@ -641,25 +626,9 @@ const HeadcountRequestForm: React.FC = () => {
           </div>
           
           <div className="flex items-center justify-between">
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline flex items-center"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <i className="bi bi-arrow-repeat me-2 animate-spin"></i> Saving...
-                </>
-              ) : isEditing ? (
-                <>
-                  <i className="bi bi-save me-2"></i> Update Request
-                </>
-              ) : (
-                <>
-                  <i className="bi bi-send me-2"></i> Submit Request
-                </>
-              )}
-            </button>
+            <Button type="submit" disabled={isLoading} variant="primary">
+              {isLoading ? 'Saving...' : isEditing ? 'Update Request' : 'Submit Request'}
+            </Button>
           </div>
         </form>
       </div>

@@ -3,6 +3,8 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { API_URL } from "../config";
 import { api } from "../utils/api";
+import Input from "../components/common/Input";
+import Button from "../components/common/Button";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -124,7 +126,7 @@ const LoginPage: React.FC = () => {
                 Email address
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="email"
                   name="email"
                   type="email"
@@ -132,7 +134,7 @@ const LoginPage: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  variant="dark"
                   placeholder="admin@careers.com"
                 />
               </div>
@@ -143,7 +145,7 @@ const LoginPage: React.FC = () => {
                 Password
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="password"
                   name="password"
                   type="password"
@@ -151,20 +153,16 @@ const LoginPage: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md shadow-sm placeholder-gray-400 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  variant="dark"
                   placeholder="••••••••••"
                 />
               </div>
             </div>
 
             <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-              >
+              <Button type="submit" disabled={loading} variant="primary" fullWidth>
                 {loading ? "Authenticating..." : "Sign in to Admin"}
-              </button>
+              </Button>
             </div>
           </form>
 

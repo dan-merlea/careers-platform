@@ -43,7 +43,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isMobile }) => {
     fetchDepartmentName();
   }, [userDepartment]);
   return (
-    <nav className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4">
+    <nav className="h-16 flex items-center justify-between px-4">
       <div className="flex items-center gap-4 flex-1">
         {isMobile && (
           <button 
@@ -73,8 +73,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isMobile }) => {
           <UserCircleIcon className="w-8 h-8 text-gray-600" />
           <div className="hidden md:block">
             <div className="text-sm font-bold">{userName}</div>
-            <div className="text-xs text-gray-500">
-              {departmentName ? `Leading ${departmentName}` : userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : 'Not logged in'}
+            <div className="flex flex-row space-x-1 items-center">
+              <div className="text-xs text-gray-500">
+                {departmentName ? `${departmentName}` : ''}
+              </div>
+              <div className="text-xs text-gray-500 bg-orange-200 rounded-full px-2 py-0.5">
+                {userRole ? userRole.charAt(0).toUpperCase() + userRole.slice(1) : 'Not logged in'}
+              </div>
             </div>
           </div>
         </Link>

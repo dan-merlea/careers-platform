@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import './TabNavigationStyles.css';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 export interface TabItem {
   id: string;
@@ -26,24 +26,18 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
   const [showLeftShadow, setShowLeftShadow] = useState(false);
   const [showRightShadow, setShowRightShadow] = useState(false);
 
-  // Check if scrolling is available
   const checkForScrollShadows = () => {
     const container = scrollContainerRef.current;
     if (!container) return;
     
-    // Check if scrolled from the left edge
     setShowLeftShadow(container.scrollLeft > 0);
-    
-    // Check if can scroll more to the right
     setShowRightShadow(
       container.scrollLeft < container.scrollWidth - container.clientWidth - 1
     );
   };
 
-  // Check on mount and when tabs change
   useEffect(() => {
     checkForScrollShadows();
-    // Add resize observer to check when container size changes
     const resizeObserver = new ResizeObserver(() => {
       checkForScrollShadows();
     });
@@ -59,25 +53,32 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
       }
     };
   }, [tabs]);
+
   return (
-    <div className={`border-b border-gray-200 ${className} overflow-hidden relative`}>
-      {/* Left shadow */}
+    <div className={`relative ${className}`}>
+      {/* Left shadow with arrow */}
       <div 
-        className={`absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none transition-opacity duration-200 ${showLeftShadow ? 'opacity-100' : 'opacity-0'}`} 
-      />
+        className={`absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-slate-300/50 to-transparent z-10 pointer-events-none transition-opacity duration-200 flex items-center justify-start pl-1 ${showLeftShadow ? 'opacity-100' : 'opacity-0'}`} 
+      >
+        <ChevronLeftIcon className="w-5 h-5 text-gray-600" />
+      </div>
       
       <div 
         ref={scrollContainerRef}
-        className="overflow-x-auto hide-scrollbar"
+        className="overflow-x-auto"
         onScroll={checkForScrollShadows}
       >
-        <nav className="flex space-x-8 min-w-max">
+        <div className="inline-flex bg-white/50 rounded-lg p-1 min-w-max">
           {tabs.map((tab) => {
-            const tabClasses = `${
-              activeTab === tab.id
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap pt-4 pb-3 px-1 border-b-2 font-medium text-sm flex items-center`;
+            const isActive = activeTab === tab.id;
+            const tabClasses = `
+              relative px-4 py-2 rounded-md text-sm font-medium transition-all duration-200
+              flex items-center whitespace-nowrap
+              ${isActive 
+                ? 'bg-white text-gray-700 shadow-sm' 
+                : 'text-gray-600 hover:text-gray-900'
+              }
+            `;
             
             // Render as link if href is provided, otherwise as button
             return tab.href ? (
@@ -101,13 +102,15 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
               </button>
             );
           })}
-        </nav>
+        </div>
       </div>
       
-      {/* Right shadow */}
+      {/* Right shadow with arrow */}
       <div 
-        className={`absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none transition-opacity duration-200 ${showRightShadow ? 'opacity-100' : 'opacity-0'}`} 
-      />
+        className={`absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-300/50 to-transparent z-10 pointer-events-none transition-opacity duration-200 flex items-center justify-end pr-1 ${showRightShadow ? 'opacity-100' : 'opacity-0'}`} 
+      >
+        <ChevronRightIcon className="w-5 h-5 text-gray-600" />
+      </div>
     </div>
   );
 };

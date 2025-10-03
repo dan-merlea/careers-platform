@@ -149,12 +149,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
 
   // Determine sidebar classes based on mobile state and isOpen
   const sidebarClasses = isMobile 
-    ? `fixed inset-y-0 left-0 z-40 bg-white border-r border-gray-200 flex flex-col w-full sm:w-80 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`
-    : 'w-64 h-full bg-white border-r border-gray-200 flex flex-col';
+    ? `fixed inset-y-0 left-0 z-40 bg-white flex flex-col w-full sm:w-80 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`
+    : 'w-64 h-full bg-white flex flex-col rounded-2xl shadow-lg';
 
   return (
     <div className={sidebarClasses}>
-      <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+      <div className="p-6 flex justify-between items-center">
         <div className="flex items-center">
           <img src="/logo.svg" alt="Hatch Beacon Logo" className="h-8 w-8 mr-2" />
           <h1 className="text-lg font-bold" style={{ color: '#022427' }}>Hatch Beacon</h1>
@@ -168,19 +168,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
           >
             <XMarkIcon className="w-6 h-6 text-gray-600" />
           </button>
-        )}
-      </div>
-
-      <div className="p-4">
-        {departmentName && (
-          <div className="text-xs text-gray-500 font-medium">
-            Department: {departmentName}
-          </div>
-        )}
-        {userRole && (
-          <div className="text-xs text-gray-500 font-medium">
-            Role: {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
-          </div>
         )}
       </div>
       
@@ -197,7 +184,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
         ))}
       </div>
       
-      <div className="p-4 border-t border-gray-200">
+      <div className="p-6">
         <button 
           onClick={handleLogout}
           className="flex items-center gap-3 text-gray-700 hover:text-red-600 transition-colors w-full"

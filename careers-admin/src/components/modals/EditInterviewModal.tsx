@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Dialog } from '@headlessui/react';
 import { XMarkIcon, VideoCameraIcon } from '@heroicons/react/24/outline';
 import { Interview } from '../../services/interviewService';
+import Input from '../../components/common/Input';
+import Button from '../../components/common/Button';
 
 interface EditInterviewModalProps {
   isOpen: boolean;
@@ -64,12 +66,11 @@ const EditInterviewModal: React.FC<EditInterviewModalProps> = ({
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                 Interview Title *
               </label>
-              <input
+              <Input
                 type="text"
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isLoading}
                 required
               />
@@ -94,12 +95,11 @@ const EditInterviewModal: React.FC<EditInterviewModalProps> = ({
               <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
                 Location
               </label>
-              <input
+              <Input
                 type="text"
                 id="location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isLoading}
                 placeholder="Office address or 'Remote'"
               />
@@ -115,12 +115,11 @@ const EditInterviewModal: React.FC<EditInterviewModalProps> = ({
                 <label htmlFor="onlineMeetingUrl" className="block text-sm font-medium text-gray-700 mb-1">
                   Meeting URL
                 </label>
-                <input
+                <Input
                   type="url"
                   id="onlineMeetingUrl"
                   value={onlineMeetingUrl}
                   onChange={(e) => setOnlineMeetingUrl(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={isLoading}
                   placeholder="https://zoom.us/j/123456789"
                 />
@@ -131,12 +130,11 @@ const EditInterviewModal: React.FC<EditInterviewModalProps> = ({
                   <label htmlFor="meetingId" className="block text-sm font-medium text-gray-700 mb-1">
                     Meeting ID (optional)
                   </label>
-                  <input
+                  <Input
                     type="text"
                     id="meetingId"
                     value={meetingId}
                     onChange={(e) => setMeetingId(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled={isLoading}
                     placeholder="123 456 7890"
                   />
@@ -146,12 +144,11 @@ const EditInterviewModal: React.FC<EditInterviewModalProps> = ({
                   <label htmlFor="meetingPassword" className="block text-sm font-medium text-gray-700 mb-1">
                     Password (optional)
                   </label>
-                  <input
+                  <Input
                     type="text"
                     id="meetingPassword"
                     value={meetingPassword}
                     onChange={(e) => setMeetingPassword(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled={isLoading}
                     placeholder="123456"
                   />
@@ -161,20 +158,10 @@ const EditInterviewModal: React.FC<EditInterviewModalProps> = ({
           </div>
           
           <div className="mt-6 flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={() => !isLoading && onClose()}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              disabled={isLoading}
-            >
+            <Button type="button" onClick={() => !isLoading && onClose()} variant="white" disabled={isLoading}>
               Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
-              disabled={isLoading}
-            >
+            </Button>
+            <Button type="button" onClick={handleSubmit} variant="primary" disabled={isLoading}>
               {isLoading ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -186,7 +173,7 @@ const EditInterviewModal: React.FC<EditInterviewModalProps> = ({
               ) : (
                 'Save Changes'
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

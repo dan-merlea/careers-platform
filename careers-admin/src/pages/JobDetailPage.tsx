@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { PencilIcon, TrashIcon, ArchiveBoxIcon, ArrowLeftIcon, UserGroupIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import JobApplicantsList from '../components/jobs/JobApplicantsList';
 import jobService, { Job, JobStatus } from '../services/jobService';
+import Button from '../components/common/Button';
 
 const JobDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -160,34 +161,20 @@ const JobDetailPage: React.FC = () => {
           
           {/* Publish/Submit button - shown for DRAFT and APPROVED jobs */}
           {(job.status === JobStatus.DRAFT || job.status === JobStatus.APPROVED) && (
-            <button
-              onClick={() => handleStatusChange('publish')}
-              className={`flex items-center px-4 py-2 ${job.status === JobStatus.DRAFT ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white rounded`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={job.status === JobStatus.DRAFT ? "M9 5l7 7-7 7" : "M5 13l4 4L19 7"} />
-              </svg>
+            <Button onClick={() => handleStatusChange('publish')} variant="primary" leadingIcon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={job.status === JobStatus.DRAFT ? 'M9 5l7 7-7 7' : 'M5 13l4 4L19 7'} /></svg>}>
               {job.status === JobStatus.DRAFT ? 'Submit for Review' : 'Publish'}
-            </button>
+            </Button>
           )}
           
           {/* Archive button - not shown for already archived jobs */}
           {job.status !== JobStatus.ARCHIVED && (
-            <button
-              onClick={() => handleStatusChange('archive')}
-              className="flex items-center px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
-            >
-              <ArchiveBoxIcon className="w-5 h-5 mr-2" />
+            <Button onClick={() => handleStatusChange('archive')} variant="primary" leadingIcon={<ArchiveBoxIcon className="w-5 h-5" />}>
               Archive
-            </button>
+            </Button>
           )}
-          <button
-            onClick={() => setIsDeleting(true)}
-            className="flex items-center px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            <TrashIcon className="w-5 h-5 mr-2" />
+          <Button onClick={() => setIsDeleting(true)} variant="primary" leadingIcon={<TrashIcon className="w-5 h-5" />}>
             Delete
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -340,18 +327,12 @@ const JobDetailPage: React.FC = () => {
             </p>
             
             <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setIsDeleting(false)}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
-              >
+              <Button onClick={() => setIsDeleting(false)} variant="white">
                 Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
+              </Button>
+              <Button onClick={handleDelete} variant="primary">
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>

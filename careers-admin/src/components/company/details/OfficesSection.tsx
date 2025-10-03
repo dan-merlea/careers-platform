@@ -2,6 +2,7 @@ import React from 'react';
 import { Office, CreateOfficeDto, UpdateOfficeDto } from '../../../services/officesService';
 import OfficesList from '../OfficesList';
 import OfficesForm from '../OfficesForm';
+import Button from '../../common/Button';
 
 interface OfficesSectionProps {
   offices: Office[];
@@ -57,12 +58,9 @@ const OfficesSection: React.FC<OfficesSectionProps> = ({
           
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Offices</h2>
-            <button
-              onClick={handleAddOffice}
-              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
-            >
+            <Button onClick={handleAddOffice} variant="secondary">
               Add Office
-            </button>
+            </Button>
           </div>
           
           {loadingOffice ? (

@@ -11,6 +11,7 @@ import { formatDate } from '../utils/dateUtils';
 import ScrollableTable from '../components/common/ScrollableTable';
 import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 import Select from '../components/common/Select';
+import Button from '../components/common/Button';
 
 const JobsPage: React.FC = () => {
   const { userRole } = useAuth();
@@ -230,19 +231,13 @@ const JobsPage: React.FC = () => {
         )}
       </div>
       <div className="mb-6">
-        <div className="mt-2 flex space-x-4">
-          <button
-            onClick={() => setViewMode('all')}
-            className={`px-3 py-1 rounded text-sm ${viewMode === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-          >
+        <div className="mt-2 flex space-x-2">
+          <Button onClick={() => setViewMode('all')} variant={viewMode === 'all' ? 'primary' : 'white'} className="text-sm">
             All Openings
-          </button>
-          <button
-            onClick={() => setViewMode('pending')}
-            className={`px-3 py-1 rounded text-sm ${viewMode === 'pending' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'}`}
-          >
+          </Button>
+          <Button onClick={() => setViewMode('pending')} variant={viewMode === 'pending' ? 'primary' : 'white'} className="text-sm">
             Requests
-          </button>
+          </Button>
         </div>
         <p className="mt-2 text-sm text-gray-600">
           {viewMode === 'all' 
@@ -253,8 +248,7 @@ const JobsPage: React.FC = () => {
 
       {/* Filters - Only show in 'all' view */}
       {viewMode === 'all' && (
-        <div className="mb-6 bg-gray-50 p-4 rounded-lg">
-          <h3 className="text-sm font-medium text-gray-700 mb-3">Filters</h3>
+        <div className="mb-6 bg-gray-50 rounded-lg">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Status Filter */}
             <div>
@@ -466,18 +460,12 @@ const JobsPage: React.FC = () => {
             </p>
             
             <div className="flex justify-end space-x-2">
-              <button
-                onClick={closeDeleteModal}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
-              >
+              <Button onClick={closeDeleteModal} variant="white">
                 Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
+              </Button>
+              <Button onClick={handleDelete} variant="primary">
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -502,19 +490,12 @@ const JobsPage: React.FC = () => {
             />
             
             <div className="flex justify-end space-x-2">
-              <button
-                onClick={closeRejectModal}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
-              >
+              <Button onClick={closeRejectModal} variant="white">
                 Cancel
-              </button>
-              <button
-                onClick={handleReject}
-                disabled={!rejectionReason.trim()}
-                className={`px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 ${!rejectionReason.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
+              </Button>
+              <Button onClick={handleReject} disabled={!rejectionReason.trim()} variant="primary">
                 Reject
-              </button>
+              </Button>
             </div>
           </div>
         </div>

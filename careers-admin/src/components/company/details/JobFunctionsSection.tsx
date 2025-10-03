@@ -1,6 +1,7 @@
 import React from 'react';
 import { JobFunction, CreateJobFunctionDto, UpdateJobFunctionDto } from '../../../services/jobFunctionService';
 import JobFunctionForm from '../JobFunctionForm';
+import Button from '../../common/Button';
 
 interface JobFunctionsSectionProps {
   jobFunctions: JobFunction[];
@@ -56,12 +57,9 @@ const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
           
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Job Functions</h2>
-            <button
-              onClick={handleAddJobFunction}
-              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
-            >
+            <Button onClick={handleAddJobFunction} variant="secondary">
               Add Job Function
-            </button>
+            </Button>
           </div>
           
           {loadingJobFunction ? (
@@ -100,23 +98,21 @@ const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
                         <td className="py-2 px-4">
                           {jobFunction.description || '-'}
                         </td>
-                        <td className="py-2 px-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() => handleEditJobFunction(jobFunction)}
-                            className="text-blue-600 hover:text-blue-900 mr-4"
-                          >
+                        <td className="py-2 px-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                          <Button onClick={() => handleEditJobFunction(jobFunction)} variant="white" className="!h-auto py-1 px-2 text-sm">
                             Edit
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             onClick={() => {
                               if (window.confirm('Are you sure you want to delete this job function?')) {
                                 handleDeleteJobFunction(jobFunction._id);
                               }
                             }}
-                            className="text-red-600 hover:text-red-900"
+                            variant="primary"
+                            className="!h-auto py-1 px-2 text-sm"
                           >
                             Delete
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     ))

@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { departmentService, Department } from '../services/departmentService';
 import ScrollableTable from '../components/common/ScrollableTable';
 import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
-import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
+import { EllipsisHorizontalIcon, PencilIcon, BuildingOfficeIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import Select from '../components/common/Select';
 
 // User interface is now imported from auth.service.ts
@@ -262,7 +262,7 @@ const UsersPage: React.FC = () => {
                                 menuWidthPx={224}
                                 items={(() => {
                                   const items: ActionsMenuItem[] = [
-                                    { label: 'Edit User', onClick: () => setEditingUser(user) },
+                                    { label: 'Edit User', onClick: () => setEditingUser(user), icon: <PencilIcon className="w-4 h-4" /> },
                                   ];
                                   if (user.role === 'director' || user.role === 'manager') {
                                     items.push({
@@ -271,6 +271,7 @@ const UsersPage: React.FC = () => {
                                         ...user,
                                         departmentId: user.departmentId || undefined,
                                       }),
+                                      icon: <BuildingOfficeIcon className="w-4 h-4" />,
                                     });
                                   }
                                   items.push({
@@ -285,6 +286,7 @@ const UsersPage: React.FC = () => {
                                         alert('Failed to impersonate user. Please try again.');
                                       }
                                     },
+                                    icon: <ArrowRightOnRectangleIcon className="w-4 h-4" />,
                                     disabled: impersonating,
                                   });
                                   return items;

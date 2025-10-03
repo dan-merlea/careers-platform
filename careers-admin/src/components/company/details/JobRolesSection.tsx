@@ -2,6 +2,7 @@ import React from 'react';
 import { JobRole, CreateJobRoleDto, UpdateJobRoleDto } from '../../../services/jobRoleService';
 import { JobFunction } from '../../../services/jobFunctionService';
 import JobRoleForm from '../../company/JobRoleForm';
+import Button from '../../common/Button';
 
 interface JobRolesSectionProps {
   jobRoles: JobRole[];
@@ -61,13 +62,9 @@ const JobRolesSection: React.FC<JobRolesSectionProps> = ({
           
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Job Roles</h2>
-            <button
-              onClick={handleAddJobRole}
-              className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
-              disabled={jobFunctions.length === 0}
-            >
+            <Button onClick={handleAddJobRole} variant="secondary" disabled={jobFunctions.length === 0}>
               Add Job Role
-            </button>
+            </Button>
           </div>
           
           {jobFunctions.length === 0 && (
@@ -112,23 +109,21 @@ const JobRolesSection: React.FC<JobRolesSectionProps> = ({
                         <td className="py-2 px-4">
                           {jobRole.jobFunction.title}
                         </td>
-                        <td className="py-2 px-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button
-                            onClick={() => handleEditJobRole(jobRole)}
-                            className="text-blue-600 hover:text-blue-900 mr-4"
-                          >
+                        <td className="py-2 px-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                          <Button onClick={() => handleEditJobRole(jobRole)} variant="white" className="!h-auto py-1 px-2 text-sm">
                             Edit
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             onClick={() => {
                               if (window.confirm('Are you sure you want to delete this job role?')) {
                                 handleDeleteJobRole(jobRole._id);
                               }
                             }}
-                            className="text-red-600 hover:text-red-900"
+                            variant="primary"
+                            className="!h-auto py-1 px-2 text-sm"
                           >
                             Delete
-                          </button>
+                          </Button>
                         </td>
                       </tr>
                     ))

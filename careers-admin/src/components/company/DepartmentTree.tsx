@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Department } from '../../services/departmentService';
+import Button from '../common/Button';
 
 interface DepartmentTreeProps {
   departments: Department[];
@@ -33,20 +34,18 @@ const DepartmentNode: React.FC<{
         <div className="flex-grow font-medium">{department.title}</div>
         
         <div className="flex space-x-2">
-          <button
-            onClick={() => onEdit(department)}
-            className="text-blue-600 hover:text-blue-900"
-          >
-            <i className="bi bi-pencil-square me-1"></i>Edit
-          </button>
-          <button
+          <Button onClick={() => onEdit(department)} variant="white" className="!h-auto py-1 px-2 text-sm">
+            Edit
+          </Button>
+          <Button
             onClick={() => onDelete(department.id!)}
-            className="text-red-600 hover:text-red-900"
+            variant="primary"
             disabled={hasChildren}
+            className="!h-auto py-1 px-2 text-sm"
             title={hasChildren ? "Cannot delete department with sub-departments" : ""}
           >
-            <i className="bi bi-trash me-1"></i>Delete
-          </button>
+            Delete
+          </Button>
         </div>
       </div>
       

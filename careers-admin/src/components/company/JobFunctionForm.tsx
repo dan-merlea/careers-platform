@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Button from '../common/Button';
 import { JobFunction, CreateJobFunctionDto, UpdateJobFunctionDto } from '../../services/jobFunctionService';
 
 interface JobFunctionFormProps {
@@ -92,21 +93,12 @@ const JobFunctionForm: React.FC<JobFunctionFormProps> = ({
       </div>
 
       <div className="flex justify-end space-x-3 pt-4">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-          disabled={isSubmitting}
-        >
+        <Button type="button" onClick={onCancel} disabled={isSubmitting} variant="white">
           Cancel
-        </button>
-        <button
-          type="submit"
-          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
-          disabled={isSubmitting}
-        >
+        </Button>
+        <Button type="submit" disabled={isSubmitting} variant="primary">
           {isSubmitting ? 'Saving...' : 'Save'}
-        </button>
+        </Button>
       </div>
     </form>
   );

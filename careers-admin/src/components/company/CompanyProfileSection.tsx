@@ -1,6 +1,8 @@
 import React from 'react';
 import { CompanyDetails } from '../../services/company.service';
 import Select from '../common/Select';
+import Input from '../common/Input';
+import Button from '../common/Button';
 
 interface CompanyProfileSectionProps {
   companyDetails: CompanyDetails;
@@ -55,68 +57,68 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
       
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
+          <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
+            <h3 className="text-base font-semibold text-gray-900">Basic Information</h3>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                 Company Name
               </label>
-              <input
+              <Input
                 type="text"
                 id="name"
                 name="name"
                 value={companyDetails.name}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={handleInputChange as any}
+                className="text-sm"
               />
             </div>
             
             <div>
-              <label htmlFor="website" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">
                 Website
               </label>
-              <input
+              <Input
                 type="url"
                 id="website"
                 name="website"
                 value={companyDetails.website}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={handleInputChange as any}
+                className="text-sm"
               />
             </div>
             
             <div>
-              <label htmlFor="industry" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="industry" className="block text-sm font-medium text-gray-700 mb-1">
                 Industry
               </label>
-              <input
+              <Input
                 type="text"
                 id="industry"
                 name="industry"
                 value={companyDetails.industry}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={handleInputChange as any}
+                className="text-sm"
               />
             </div>
             
             <div>
-              <label htmlFor="foundedYear" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="foundedYear" className="block text-sm font-medium text-gray-700 mb-1">
                 Founded Year
               </label>
-              <input
+              <Input
                 type="text"
                 id="foundedYear"
                 name="foundedYear"
                 value={companyDetails.foundedYear}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={handleInputChange as any}
+                className="text-sm"
               />
             </div>
             
             <div>
-              <label htmlFor="size" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="size" className="block text-sm font-medium text-gray-700 mb-1">
                 Company Size
               </label>
               <Select
@@ -126,7 +128,7 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
                 }
                 allowEmpty
                 placeholder="Select size"
-                className="w-full"
+                className="w-full text-sm"
                 options={[
                   { label: '1-10 employees', value: '1-10' },
                   { label: '11-50 employees', value: '11-50' },
@@ -140,16 +142,16 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
             </div>
             
             <div>
-              <label htmlFor="logo" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="logo" className="block text-sm font-medium text-gray-700 mb-1">
                 Logo URL
               </label>
-              <input
+              <Input
                 type="url"
                 id="logo"
                 name="logo"
                 value={companyDetails.logo}
-                onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={handleInputChange as any}
+                className="text-sm"
               />
             </div>
             
@@ -178,12 +180,11 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
               <label htmlFor="linkedin" className="block text-sm font-medium text-gray-700">
                 LinkedIn
               </label>
-              <input
+              <Input
                 type="url"
                 id="linkedin"
                 value={companyDetails.socialLinks.linkedin}
-                onChange={(e) => handleSocialLinkChange('linkedin', e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={(e) => handleSocialLinkChange('linkedin', (e.target as HTMLInputElement).value)}
               />
             </div>
             
@@ -191,12 +192,11 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
               <label htmlFor="twitter" className="block text-sm font-medium text-gray-700">
                 Twitter
               </label>
-              <input
+              <Input
                 type="url"
                 id="twitter"
                 value={companyDetails.socialLinks.twitter}
-                onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={(e) => handleSocialLinkChange('twitter', (e.target as HTMLInputElement).value)}
               />
             </div>
             
@@ -204,12 +204,11 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
               <label htmlFor="facebook" className="block text-sm font-medium text-gray-700">
                 Facebook
               </label>
-              <input
+              <Input
                 type="url"
                 id="facebook"
                 value={companyDetails.socialLinks.facebook}
-                onChange={(e) => handleSocialLinkChange('facebook', e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={(e) => handleSocialLinkChange('facebook', (e.target as HTMLInputElement).value)}
               />
             </div>
             
@@ -217,12 +216,11 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
               <label htmlFor="instagram" className="block text-sm font-medium text-gray-700">
                 Instagram
               </label>
-              <input
+              <Input
                 type="url"
                 id="instagram"
                 value={companyDetails.socialLinks.instagram}
-                onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                onChange={(e) => handleSocialLinkChange('instagram', (e.target as HTMLInputElement).value)}
               />
             </div>
           </div>
@@ -270,20 +268,16 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
           <div className="p-6">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
-                <input
+                <Input
                   type="text"
                   value={valueInput}
-                  onChange={(e) => setValueInput(e.target.value)}
+                  onChange={(e) => setValueInput((e.target as HTMLInputElement).value)}
                   placeholder="Add a company value"
-                  className="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  className="flex-1"
                 />
-                <button
-                  type="button"
-                  onClick={handleAddValue}
-                  className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
+                <Button type="button" onClick={handleAddValue} variant="secondary">
                   Add
-                </button>
+                </Button>
               </div>
               
               <div className="space-y-2">

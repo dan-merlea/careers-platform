@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog } from '@headlessui/react';
-import { XMarkIcon, CalendarIcon, UserIcon, DocumentIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CalendarIcon, UserIcon } from '@heroicons/react/24/outline';
 import { api } from '../../utils/api';
+import Input from '../../components/common/Input';
+import Button from '../../components/common/Button';
 
 interface Interviewer {
   userId: string;
@@ -41,7 +43,6 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
   const [onlineMeetingUrl, setOnlineMeetingUrl] = useState<string>('');
   const [meetingId, setMeetingId] = useState<string>('');
   const [meetingPassword, setMeetingPassword] = useState<string>('');
-  const [interviewers, setInterviewers] = useState<Interviewer[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
@@ -78,7 +79,7 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
     try {
       new URL(url);
       return true;
-    } catch (err) {
+    } catch {
       return false;
     }
   };
@@ -215,12 +216,11 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
                 Interview Title *
               </label>
-              <input
+              <Input
                 type="text"
                 id="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isSubmitting}
                 required
               />
@@ -232,16 +232,14 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                   Date *
                 </label>
                 <div className="relative">
-                  <input
+                  <Input
                     type="date"
                     id="date"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
                     disabled={isSubmitting}
                     required
                     onClick={(e) => {
-                      // Modern browsers support showPicker, but TypeScript doesn't recognize it yet
                       const input = e.currentTarget as HTMLInputElement;
                       if ('showPicker' in input) {
                         (input as any).showPicker();
@@ -255,12 +253,11 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                 <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
                   Time *
                 </label>
-                <input
+                <Input
                   type="time"
                   id="time"
                   value={time}
                   onChange={(e) => setTime(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={isSubmitting}
                   required
                 />
@@ -286,12 +283,11 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
               <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
                 Location
               </label>
-              <input
+              <Input
                 type="text"
                 id="location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 disabled={isSubmitting}
                 placeholder="Office address or 'Remote'"
               />
@@ -304,12 +300,11 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                 <label htmlFor="onlineMeetingUrl" className="block text-sm font-medium text-gray-700 mb-1">
                   Meeting URL
                 </label>
-                <input
+                <Input
                   type="url"
                   id="onlineMeetingUrl"
                   value={onlineMeetingUrl}
                   onChange={(e) => setOnlineMeetingUrl(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   disabled={isSubmitting}
                   placeholder="https://zoom.us/j/123456789"
                 />
@@ -320,12 +315,11 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                   <label htmlFor="meetingId" className="block text-sm font-medium text-gray-700 mb-1">
                     Meeting ID (optional)
                   </label>
-                  <input
+                  <Input
                     type="text"
                     id="meetingId"
                     value={meetingId}
                     onChange={(e) => setMeetingId(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled={isSubmitting}
                     placeholder="123 456 7890"
                   />
@@ -335,12 +329,11 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                   <label htmlFor="meetingPassword" className="block text-sm font-medium text-gray-700 mb-1">
                     Password (optional)
                   </label>
-                  <input
+                  <Input
                     type="text"
                     id="meetingPassword"
                     value={meetingPassword}
                     onChange={(e) => setMeetingPassword(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled={isSubmitting}
                     placeholder="123456"
                   />
@@ -353,7 +346,7 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                 Interviewers * (max 10)
               </label>
               <div className="relative">
-                <input
+                <Input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => {
@@ -361,7 +354,6 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                     setShowUserDropdown(true);
                   }}
                   onFocus={() => setShowUserDropdown(true)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Search for team members..."
                   disabled={isSubmitting || selectedUsers.length >= 10}
                 />
@@ -422,20 +414,10 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
           </div>
           
           <div className="mt-6 flex justify-end space-x-3">
-            <button
-              type="button"
-              onClick={() => !isSubmitting && onClose()}
-              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
-              disabled={isSubmitting}
-            >
+            <Button type="button" onClick={() => !isSubmitting && onClose()} variant="white" disabled={isSubmitting}>
               Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center"
-              disabled={isSubmitting}
-            >
+            </Button>
+            <Button type="button" onClick={handleSubmit} variant="primary" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -450,7 +432,7 @@ const InterviewScheduleModal: React.FC<InterviewScheduleModalProps> = ({
                   Schedule Interview
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

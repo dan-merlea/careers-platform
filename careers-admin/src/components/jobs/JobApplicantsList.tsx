@@ -16,6 +16,7 @@ import jobApplicationService, { JobApplicant } from '../../services/jobApplicati
 import interviewProcessService from '../../services/interviewProcessService';
 import jobService from '../../services/jobService';
 import ScrollableTable from '../common/ScrollableTable';
+import Button from '../common/Button';
 import { formatDate, formatTime } from '../../utils/dateUtils';
 
 interface JobApplicantsListProps {
@@ -488,13 +489,14 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                       <div className="mt-4 border rounded-lg overflow-hidden">
                         <div className="bg-gray-100 px-4 py-2 border-b flex justify-between items-center">
                           <h3 className="font-medium">Resume</h3>
-                          <button 
+                          <Button 
                             onClick={(e) => handleViewResume(selectedApplicantId, e)}
-                            className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+                            variant="primary"
+                            className="!h-auto py-1 px-2 text-sm"
+                            leadingIcon={<DocumentTextIcon className="h-4 w-4" />}
                           >
-                            <DocumentTextIcon className="h-4 w-4 mr-1" />
                             Download Resume
-                          </button>
+                          </Button>
                         </div>
                         <div className="bg-white">
                           {isLoadingResume ? (
@@ -519,13 +521,13 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                                 <div className="p-6 flex flex-col items-center justify-center text-center">
                                   <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
                                   <p className="text-gray-600 mb-4">Resume is available but cannot be previewed in browser</p>
-                                  <button
+                                  <Button
                                     onClick={(e) => handleViewResume(selectedApplicantId, e)}
-                                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center"
+                                    variant="primary"
+                                    leadingIcon={<DocumentTextIcon className="h-5 w-5" />}
                                   >
-                                    <DocumentTextIcon className="h-5 w-5 mr-2" />
                                     Download Resume
-                                  </button>
+                                  </Button>
                                 </div>
                               )}
                             </div>
@@ -533,15 +535,12 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                             <div className="p-6 flex flex-col items-center justify-center text-center">
                               <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
                               <p className="text-gray-600 mb-4">Failed to load resume preview</p>
-                              <button
+                              <Button
                                 onClick={() => loadResumeContent(selectedApplicantId)}
-                                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md flex items-center mr-2"
+                                variant="primary"
                               >
-                                <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15)" />
-                                </svg>
                                 Retry
-                              </button>
+                              </Button>
                             </div>
                           )}
                         </div>

@@ -3,6 +3,8 @@ import { toast } from 'react-toastify';
 import { CompanySettings, companyService } from '../services/company.service';
 import { useCompany } from '../context/CompanyContext';
 import Select from '../components/common/Select';
+import Button from '../components/common/Button';
+import Input from '../components/common/Input';
 
 const CompanySettingsPage: React.FC = () => {
   const { company, loading: companyLoading } = useCompany();
@@ -205,12 +207,12 @@ const CompanySettingsPage: React.FC = () => {
           <p className="text-gray-500 mb-4">Employees using these domains can request access via IT if they do not already have an account.</p>
 
           <div className="flex gap-2 mb-4">
-            <input
+            <Input
               type="text"
               value={newDomain}
               onChange={(e) => setNewDomain(e.target.value)}
               placeholder="e.g., acme.com"
-              className="flex-1 mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              className="flex-1 mt-1"
             />
             <button
               type="button"
@@ -243,11 +245,7 @@ const CompanySettingsPage: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className={`px-4 py-2 rounded-md text-white font-medium ${saving ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
-          >
+          <Button onClick={handleSave} disabled={saving} variant="primary">
             {saving ? (
               <div className="flex items-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
@@ -256,7 +254,7 @@ const CompanySettingsPage: React.FC = () => {
             ) : (
               'Save Settings'
             )}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

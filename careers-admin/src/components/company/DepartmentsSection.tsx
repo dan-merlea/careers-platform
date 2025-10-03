@@ -2,6 +2,7 @@ import React from 'react';
 import { Department, CreateDepartmentDto, UpdateDepartmentDto } from '../../services/departmentService';
 import DepartmentTree from './DepartmentTree';
 import DepartmentForm from './DepartmentForm';
+import Button from '../common/Button';
 
 interface DepartmentsSectionProps {
   departments: Department[];
@@ -75,12 +76,9 @@ const DepartmentsSection: React.FC<DepartmentsSectionProps> = ({
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-900">Company Departments</h3>
-            <button
-              onClick={handleAddDepartment}
-              className="bg-blue-600 text-white py-1 px-3 rounded-md text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
+            <Button onClick={handleAddDepartment} variant="secondary">
               Add Department
-            </button>
+            </Button>
           </div>
           <div className="p-6">
             <DepartmentTree

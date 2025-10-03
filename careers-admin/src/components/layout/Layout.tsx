@@ -43,7 +43,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gradient-to-br from-[#EAF2FA] via-[#D2E4F4] to-[#F2ECFA]">
       {/* Toast Container */}
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
       
@@ -56,12 +56,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         />
       )}
 
-      {/* Sidebar - always render but conditionally show based on screen size */}
-      <Sidebar 
-        isOpen={isMobile ? isSidebarOpen : true} 
-        onClose={closeSidebar}
-        isMobile={isMobile}
-      />
+      {/* Sidebar - floating with padding */}
+      <div className={isMobile ? '' : 'p-4'}>
+        <Sidebar 
+          isOpen={isMobile ? isSidebarOpen : true} 
+          onClose={closeSidebar}
+          isMobile={isMobile}
+        />
+      </div>
       
       {/* Main Content */}
       <div className={`flex-1 flex flex-col overflow-hidden ${isMobile ? 'w-full' : ''}`}>
@@ -75,7 +77,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         />
         
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto px-6 pb-6">
           {children}
         </main>
       </div>

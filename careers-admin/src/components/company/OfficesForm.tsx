@@ -1,6 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Office, CreateOfficeDto, UpdateOfficeDto } from '../../services/officesService';
+import Button from '../common/Button';
 
 interface OfficesFormProps {
   office?: Office;
@@ -67,21 +68,12 @@ const OfficesForm: React.FC<OfficesFormProps> = ({
         </div>
         
         <div className="flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-            disabled={isSubmitting}
-          >
+          <Button type="button" onClick={onCancel} disabled={isSubmitting} variant="white">
             Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-blue-300"
-            disabled={isSubmitting}
-          >
+          </Button>
+          <Button type="submit" disabled={isSubmitting} variant="primary">
             {isSubmitting ? 'Saving...' : isEditing ? 'Update Office' : 'Add Office'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Office } from '../../services/officesService';
+import Button from '../common/Button';
 
 interface OfficesListProps {
   offices: Office[];
@@ -13,12 +14,9 @@ const OfficesList: React.FC<OfficesListProps> = ({ offices, onEdit, onDelete, on
     return (
       <div className="text-center py-8">
         <p className="text-gray-500 mb-4">No offices have been added yet.</p>
-        <button
-          onClick={onAddNew}
-          className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md"
-        >
+        <Button onClick={onAddNew} variant="secondary">
           Add First Office
-        </button>
+        </Button>
       </div>
     );
   }

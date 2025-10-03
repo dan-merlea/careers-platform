@@ -9,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import ScrollableTable from '../components/common/ScrollableTable';
 import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 import { useCompany } from '../context/CompanyContext';
+import Button from '../components/common/Button';
 
 const JobBoardJobsPage: React.FC = () => {
   const { jobBoardId } = useParams<{ jobBoardId: string }>();
@@ -188,13 +189,9 @@ const JobBoardJobsPage: React.FC = () => {
         </div>
         
         {jobBoard && !jobBoard.isExternal && !isHeadcountApprovalWorkflow && (
-          <button
-            onClick={handleCreateJob}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            <PlusIcon className="w-5 h-5 mr-2" />
+          <Button onClick={handleCreateJob} variant="secondary" leadingIcon={<PlusIcon className="w-5 h-5" />}> 
             Create Job
-          </button>
+          </Button>
         )}
       </div>
 
@@ -301,18 +298,12 @@ const JobBoardJobsPage: React.FC = () => {
             </p>
             
             <div className="flex justify-end space-x-2">
-              <button
-                onClick={closeDeleteModal}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-100"
-              >
+              <Button onClick={closeDeleteModal} variant="white">
                 Cancel
-              </button>
-              <button
-                onClick={handleDeleteJob}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
+              </Button>
+              <Button onClick={handleDeleteJob} variant="primary">
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>
