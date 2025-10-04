@@ -173,9 +173,6 @@ const DepartmentForm: React.FC<DepartmentFormProps> = ({
           disabled={isSubmitting || loadingJobRoles}
           searchable
         />
-        <p className="mt-1 text-sm text-gray-500">
-          Hold Ctrl/Cmd to select multiple job roles relevant for this department
-        </p>
       </div>
 
       <div className="flex justify-end space-x-3">

@@ -5,6 +5,7 @@ import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
 import Input from '../components/common/Input';
 import Button from '../components/common/Button';
+import Card from '../components/common/Card';
 
 const JobBoardsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -135,32 +136,14 @@ const JobBoardsPage: React.FC = () => {
     }
   };
 
-  // Create external job board (Greenhouse or Ashby)
-  const createExternalJobBoard = async (source: 'greenhouse' | 'ashby') => {
-    try {
-      await jobBoardsService.createExternalJobBoard(source);
-      await fetchJobBoards();
-    } catch (err) {
-      console.error(`Error creating ${source} job board:`, err);
-      setError(`Failed to create ${source} job board. Please try again.`);
-    }
-  };
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Job Boards</h1>
-        <div className="flex space-x-2">
-          <Button onClick={() => createExternalJobBoard('greenhouse')} variant="primary">
-            Connect Greenhouse
-          </Button>
-          <Button onClick={() => createExternalJobBoard('ashby')} variant="primary">
-            Connect Ashby
-          </Button>
-          <Button onClick={openCreateModal} variant="secondary" leadingIcon={<PlusIcon className="w-5 h-5" />}> 
-            Add Job Board
-          </Button>
-        </div>
+        <Button onClick={openCreateModal} variant="primary" leadingIcon={<PlusIcon className="w-5 h-5" />}> 
+          Add Job Board
+        </Button>
       </div>
 
       {error && (
@@ -174,29 +157,23 @@ const JobBoardsPage: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : jobBoards.length === 0 ? (
-        <div className="bg-white p-6 rounded shadow text-center">
+        <Card className="text-center">
           <p className="text-gray-500">No job boards found. Create your first job board to get started.</p>
-        </div>
+        </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {jobBoards.map((jobBoard) => (
-            <div
+            <Card
               key={jobBoard._id}
-              className={`bg-white p-6 rounded shadow border-l-4 cursor-pointer ${
-                jobBoard.isExternal
-                  ? jobBoard.source === 'greenhouse'
-                    ? 'border-green-500'
-                    : 'border-purple-500'
-                  : 'border-blue-500'
-              }`}
+              className="cursor-pointer hover:shadow-xl transition-shadow duration-200 group"
               onClick={() => navigate(`/job-boards/${jobBoard._id}/jobs`)}
             >
-              <div className="flex justify-between items-start">
-                <h2 className="text-xl font-semibold text-gray-800">{jobBoard.title}</h2>
+              <div className="flex justify-between items-start mb-2">
+                <h2 className="text-xl font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">{jobBoard.title}</h2>
                 <div onClick={(e) => e.stopPropagation()}>
                   <ActionsMenu
                     buttonAriaLabel="Job board actions"
-                    buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
+                    buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-400 hover:text-gray-600" />}
                     align="right"
                     menuWidthPx={192}
                     items={(() => {
@@ -210,36 +187,40 @@ const JobBoardsPage: React.FC = () => {
                 </div>
               </div>
               
-              <p className="text-gray-600 mt-2">{jobBoard.description || 'No description'}</p>
-              
-              <div className="mt-4 flex items-center">
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    jobBoard.isActive
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-gray-100 text-gray-800'
-                  }`}
-                >
-                  {jobBoard.isActive ? 'Active' : 'Inactive'}
-                </span>
-                
-                {jobBoard.isExternal && (
+              {jobBoard.isExternal && (
+                <div className="mb-3">
                   <span
-                    className={`ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${
                       jobBoard.source === 'greenhouse'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-purple-100 text-purple-800'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-purple-100 text-purple-700'
                     }`}
                   >
                     {jobBoard.source === 'greenhouse' ? 'Greenhouse' : 'Ashby'}
                   </span>
-                )}
-              </div>
+                </div>
+              )}
               
-              <div className="mt-4 text-xs text-gray-500">
-                Created: {new Date(jobBoard.createdAt).toLocaleDateString()}
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{jobBoard.description || 'No description'}</p>
+              
+              <div className="flex items-center justify-between pt-4 border-t border-gray-200/50">
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                      jobBoard.isActive
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
+                    {jobBoard.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                
+                <div className="text-xs text-gray-500">
+                  {new Date(jobBoard.createdAt).toLocaleDateString()}
+                </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       )}

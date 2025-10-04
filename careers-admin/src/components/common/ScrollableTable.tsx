@@ -98,7 +98,7 @@ const ScrollableTable: React.FC<ScrollableTableProps> = ({
         <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-gray-100 to-transparent pointer-events-none z-10"></div>
       )}
       <div
-        className={`bg-white rounded overflow-y-auto overflow-x-visible ${isScrollingNeeded() ? 'shadow' : ''}`}
+        className={`bg-white rounded-b-xl overflow-y-auto overflow-x-visible ${isScrollingNeeded() ? 'shadow' : ''}`}
         style={{ maxHeight }}
       >
         <div

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'white';
+export type ButtonVariant = 'primary' | 'secondary' | 'white' | 'outline';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -29,6 +29,8 @@ const Button: React.FC<ButtonProps> = ({
       ? 'bg-blue-600 text-white hover:bg-blue-700 border border-transparent focus:ring-blue-500'
       : variant === 'secondary'
       ? 'bg-gray-200 text-gray-800 hover:bg-gray-300 border border-gray-300 focus:ring-gray-400'
+      : variant === 'outline'
+      ? 'bg-transparent text-blue-600 hover:bg-blue-50 border border-blue-500 focus:ring-blue-500'
       : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 focus:ring-indigo-500';
 
   return (

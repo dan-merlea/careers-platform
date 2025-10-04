@@ -43,7 +43,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isMobile }) => {
     fetchDepartmentName();
   }, [userDepartment]);
   return (
-    <nav className="h-16 flex items-center justify-between px-4 lg:p-4">
+    <nav className="h-16 flex items-center justify-between px-4 lg:my-5">
       <div className="flex items-center gap-4 flex-1">
         {isMobile && (
           <button 

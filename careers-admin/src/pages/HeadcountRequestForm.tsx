@@ -11,6 +11,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { formatDate } from '../utils/dateUtils';
 import Select from '../components/common/Select';
 import Button from '../components/common/Button';
+import Card from '../components/common/Card';
 
 const HeadcountRequestForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -323,7 +324,7 @@ const HeadcountRequestForm: React.FC = () => {
           </h1>
         </div>
         
-        <div className="bg-white shadow-md rounded-lg p-6">
+        <Card>
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">
               Headcount Request Details
@@ -514,7 +515,7 @@ const HeadcountRequestForm: React.FC = () => {
           )}
           
           {/* Edit button removed as per requirements */}
-        </div>
+        </Card>
       </div>
     );
   }
@@ -522,16 +523,19 @@ const HeadcountRequestForm: React.FC = () => {
   // Form for creating/editing
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-6">
+      <div className="flex items-center mb-6">
         <button 
-          onClick={() => navigate('/headcount')}
-          className="text-blue-600 hover:text-blue-800 flex items-center"
+          onClick={() => navigate(-1)}
+          className="mr-4 p-2 hover:bg-gray-100 rounded-full"
         >
-          <i className="bi bi-arrow-left me-2"></i> Back to Headcount Requests
+          <ArrowLeftIcon className="w-5 h-5" />
         </button>
+        <h1 className="text-2xl font-bold text-gray-800">
+          Headcount Requests
+        </h1>
       </div>
       
-      <div className="bg-white shadow-md rounded-lg p-6">
+      <Card>
         <h1 className="text-2xl font-bold mb-6">
           {isEditing ? 'Edit Headcount Request' : 'New Headcount Request'}
         </h1>
@@ -631,7 +635,7 @@ const HeadcountRequestForm: React.FC = () => {
             </Button>
           </div>
         </form>
-      </div>
+      </Card>
     </div>
   );
 };

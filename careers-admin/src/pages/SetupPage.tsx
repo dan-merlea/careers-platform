@@ -62,6 +62,16 @@ const SetupPage: React.FC = () => {
         }
       });
       
+      // Automatically create job board for the integration
+      try {
+        const source = data.type === IntegrationType.GREENHOUSE ? 'greenhouse' : 'ashby';
+        const { default: jobBoardsService } = await import('../services/jobBoardsService');
+        await jobBoardsService.createExternalJobBoard(source);
+      } catch (jobBoardErr) {
+        console.error('Error creating job board:', jobBoardErr);
+        // Don't fail the API key save if job board creation fails
+      }
+      
       return Promise.resolve();
     } catch (err) {
       console.error('Error saving API key:', err);

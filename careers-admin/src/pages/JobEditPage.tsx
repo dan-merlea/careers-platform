@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import JobForm from '../components/jobs/JobForm';
 import jobService, { JobUpdateDto } from '../services/jobService';
+import Card from '../components/common/Card';
 
 const JobEditPage: React.FC = () => {
   const navigate = useNavigate();
@@ -71,7 +73,7 @@ const JobEditPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div className="py-6">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
@@ -80,8 +82,14 @@ const JobEditPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
+    <div className="py-6">
+      <div className="flex items-center mb-6">
+        <button 
+          onClick={() => navigate(-1)}
+          className="mr-4 p-2 hover:bg-gray-100 rounded-full"
+        >
+          <ArrowLeftIcon className="w-5 h-5" />
+        </button>
         <h1 className="text-2xl font-bold text-gray-800">Edit Job</h1>
       </div>
 
@@ -91,7 +99,7 @@ const JobEditPage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white p-6 rounded shadow">
+      <Card>
         {initialData && (
           <JobForm
             initialData={initialData}
@@ -100,7 +108,7 @@ const JobEditPage: React.FC = () => {
             isEdit={true}
           />
         )}
-      </div>
+      </Card>
     </div>
   );
 };

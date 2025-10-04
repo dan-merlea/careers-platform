@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import { PencilIcon, TrashIcon, ArchiveBoxIcon, ArrowLeftIcon, UserGroupIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon, ArchiveBoxIcon, ArrowLeftIcon, UserGroupIcon, DocumentTextIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import JobApplicantsList from '../components/jobs/JobApplicantsList';
 import jobService, { Job, JobStatus } from '../services/jobService';
 import Button from '../components/common/Button';
+import Card from '../components/common/Card';
+import TabNavigation from '../components/common/TabNavigation';
+import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 
 const JobDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -139,8 +142,8 @@ const JobDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+    <div className="py-6">
+      <div className="flex items-center space-x-4 mb-6">
         <div className="flex items-center">
           <button 
             onClick={() => navigate(-1)}
@@ -150,32 +153,35 @@ const JobDetailPage: React.FC = () => {
           </button>
           <h1 className="text-2xl font-bold text-gray-800">{job.title}</h1>
         </div>
-        <div className="flex space-x-2">
-          <Link
-            to={`/jobs/${job.id}/edit`}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            <PencilIcon className="w-5 h-5 mr-2" />
-            Edit
-          </Link>
-          
-          {/* Publish/Submit button - shown for DRAFT and APPROVED jobs */}
-          {(job.status === JobStatus.DRAFT || job.status === JobStatus.APPROVED) && (
-            <Button onClick={() => handleStatusChange('publish')} variant="primary" leadingIcon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={job.status === JobStatus.DRAFT ? 'M9 5l7 7-7 7' : 'M5 13l4 4L19 7'} /></svg>}>
-              {job.status === JobStatus.DRAFT ? 'Submit for Review' : 'Publish'}
-            </Button>
-          )}
-          
-          {/* Archive button - not shown for already archived jobs */}
-          {job.status !== JobStatus.ARCHIVED && (
-            <Button onClick={() => handleStatusChange('archive')} variant="primary" leadingIcon={<ArchiveBoxIcon className="w-5 h-5" />}>
-              Archive
-            </Button>
-          )}
-          <Button onClick={() => setIsDeleting(true)} variant="primary" leadingIcon={<TrashIcon className="w-5 h-5" />}>
-            Delete
-          </Button>
-        </div>
+        <ActionsMenu
+          buttonAriaLabel="Job actions"
+          buttonContent={<EllipsisHorizontalIcon className="w-6 h-6 text-gray-600" />}
+          align="right"
+          menuWidthPx={192}
+          items={[
+            {
+              label: 'Edit Job',
+              onClick: () => navigate(`/jobs/${job.id}/edit`),
+              icon: <PencilIcon className="w-4 h-4" />
+            },
+            ...(job.status === JobStatus.DRAFT || job.status === JobStatus.APPROVED ? [{
+              label: job.status === JobStatus.DRAFT ? 'Submit for Review' : 'Publish',
+              onClick: () => handleStatusChange('publish'),
+              icon: <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={job.status === JobStatus.DRAFT ? 'M9 5l7 7-7 7' : 'M5 13l4 4L19 7'} /></svg>
+            }] : []),
+            ...(job.status !== JobStatus.ARCHIVED ? [{
+              label: 'Archive Job',
+              onClick: () => handleStatusChange('archive'),
+              icon: <ArchiveBoxIcon className="w-4 h-4" />
+            }] : []),
+            {
+              label: 'Delete Job',
+              onClick: () => setIsDeleting(true),
+              icon: <TrashIcon className="w-4 h-4" />,
+              variant: 'danger' as const
+            }
+          ]}
+        />
       </div>
 
       {error && (
@@ -185,42 +191,29 @@ const JobDetailPage: React.FC = () => {
       )}
 
       {/* Tab Navigation */}
-      <div className="mb-6 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-          <button
-            onClick={() => {
-              setActiveTab('details');
-              navigate(`/jobs/${id}?tab=details`, { replace: true });
-            }}
-            className={`${
-              activeTab === 'details'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
-          >
-            <DocumentTextIcon className="-ml-0.5 mr-2 h-5 w-5" aria-hidden="true" />
-            Job Details
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('applicants');
-              navigate(`/jobs/${id}?tab=applicants`, { replace: true });
-            }}
-            className={`${
-              activeTab === 'applicants'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
-          >
-            <UserGroupIcon className="-ml-0.5 mr-2 h-5 w-5" aria-hidden="true" />
-            Applicants
-          </button>
-        </nav>
-      </div>
+      <TabNavigation
+        className="mb-6"
+        tabs={[
+          {
+            id: 'details',
+            label: 'Job Details',
+            icon: <DocumentTextIcon className="w-5 h-5" />,
+          },
+          {
+            id: 'applicants',
+            label: 'Applicants',
+            icon: <UserGroupIcon className="w-5 h-5" />,
+          },
+        ]}
+        activeTab={activeTab}
+        onTabChange={(tabId) => {
+          setActiveTab(tabId as 'details' | 'applicants');
+          navigate(`/jobs/${id}?tab=${tabId}`, { replace: true });
+        }}
+      />
 
       {activeTab === 'details' && (
-        <div className="bg-white shadow rounded overflow-hidden mb-6">
-          <div className="p-6">
+        <Card className="mb-6">
             <div className="flex justify-between mb-4">
               <div>
                 <span className="text-sm text-gray-500">Internal ID:</span>
@@ -304,17 +297,14 @@ const JobDetailPage: React.FC = () => {
             <h2 className="text-lg font-semibold mb-2">Job Description</h2>
             <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: job.content }} />
           </div>
-        </div>
-      </div>
+        </Card>
       )}
 
       {activeTab === 'applicants' && (
-        <div className="bg-white shadow rounded overflow-hidden mb-6">
-          <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Job Applicants</h2>
-            {id && <JobApplicantsList jobId={id} />}
-          </div>
-        </div>
+        <Card className="mb-6">
+          <h2 className="text-lg font-semibold mb-4">Job Applicants</h2>
+          {id && <JobApplicantsList jobId={id} />}
+        </Card>
       )}
 
       {/* Delete Confirmation Modal */}

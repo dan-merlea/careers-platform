@@ -15,6 +15,7 @@ import SaveTemplateModal from './SaveTemplateModal';
 import { format } from 'date-fns';
 import Select from '../common/Select';
 import MultiSelect from '../common/MultiSelect';
+import Button from '../common/Button';
 
 interface JobFormProps {
   initialData?: JobCreateDto | JobUpdateDto;
@@ -580,7 +581,6 @@ const JobForm: React.FC<JobFormProps> = ({
                   value: office._id,
                 }))}
               />
-              <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
             </div>
           </div>
 
@@ -648,46 +648,43 @@ const JobForm: React.FC<JobFormProps> = ({
 
           <div className="flex justify-between mt-8">
             <div>
-              <button
+              <Button
                 type="button"
                 onClick={() => setIsTemplateModalOpen(true)}
-                className="px-4 py-2 text-sm border border-blue-500 text-blue-600 rounded hover:bg-blue-50 flex items-center"
+                variant="outline"
                 disabled={!selectedJobRole || !formData.content}
+                leadingIcon={<i className="bi bi-save"></i>}
               >
-                <i className="bi bi-save me-2"></i> Save as Template
-              </button>
+                Save as Template
+              </Button>
             </div>
             <div className="flex space-x-4">
-              <button
+              <Button
                 type="button"
                 onClick={onCancel}
-                className="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50 flex items-center"
+                variant="white"
+                leadingIcon={<i className="bi bi-x-circle"></i>}
               >
-                <i className="bi bi-x-circle me-2"></i> Cancel
-              </button>
-              <button
+                Cancel
+              </Button>
+              <Button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center"
+                variant="primary"
                 disabled={isLoading || !selectedDepartment}
+                leadingIcon={
+                  isLoading ? (
+                    <i className="bi bi-arrow-repeat animate-spin"></i>
+                  ) : isEdit ? (
+                    <i className="bi bi-pencil-square"></i>
+                  ) : isFromHeadcount ? (
+                    <i className="bi bi-briefcase"></i>
+                  ) : (
+                    <i className="bi bi-plus-circle"></i>
+                  )
+                }
               >
-                {isLoading ? (
-                  <>
-                    <i className="bi bi-arrow-repeat me-2 animate-spin"></i> Saving...
-                  </>
-                ) : isEdit ? (
-                  <>
-                    <i className="bi bi-pencil-square me-2"></i> Update Job
-                  </>
-                ) : isFromHeadcount ? (
-                  <>
-                    <i className="bi bi-briefcase me-2"></i> Create Job from Headcount
-                  </>
-                ) : (
-                  <>
-                    <i className="bi bi-plus-circle me-2"></i> Create Job
-                  </>
-                )}
-              </button>
+                {isLoading ? 'Saving...' : isEdit ? 'Update Job' : isFromHeadcount ? 'Create Job from Headcount' : 'Create Job'}
+              </Button>
             </div>
           </div>
         </>

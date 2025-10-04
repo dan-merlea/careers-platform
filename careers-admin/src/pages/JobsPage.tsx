@@ -12,6 +12,7 @@ import ScrollableTable from '../components/common/ScrollableTable';
 import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 import Select from '../components/common/Select';
 import Button from '../components/common/Button';
+import Card from '../components/common/Card';
 
 const JobsPage: React.FC = () => {
   const { userRole } = useAuth();
@@ -217,7 +218,7 @@ const JobsPage: React.FC = () => {
   // Status badge color is now imported from jobStatusUtils
 
   return (
-    <div className="p-6">
+    <div className="py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Openings</h1>
         {/* Hide Create Job button when headcount approval workflow is active */}
@@ -246,260 +247,262 @@ const JobsPage: React.FC = () => {
         </p>
       </div>
 
-      {/* Filters - Only show in 'all' view */}
-      {viewMode === 'all' && (
-        <div className="mb-6 bg-gray-50 rounded-lg">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Status Filter */}
-            <div>
-              <label htmlFor="statusFilter" className="block text-xs font-medium text-gray-700 mb-1">
-                Status
-              </label>
-              <Select
-                value={statusFilter === 'all' ? undefined : statusFilter}
-                onChange={(val) => setStatusFilter(val || 'all')}
-                allowEmpty
-                placeholder="All Statuses"
-                className="w-full"
-                options={[
-                  { label: 'Draft', value: JobStatus.DRAFT },
-                  { label: 'Pending Approval', value: JobStatus.PENDING_APPROVAL },
-                  { label: 'Approved', value: JobStatus.APPROVED },
-                  { label: 'Published', value: JobStatus.PUBLISHED },
-                  { label: 'Archived', value: JobStatus.ARCHIVED },
-                ]}
-              />
-            </div>
+      <Card>
+        {/* Filters - Only show in 'all' view */}
+        {viewMode === 'all' && (
+          <div className="mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Status Filter */}
+              <div>
+                <label htmlFor="statusFilter" className="block text-xs font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <Select
+                  value={statusFilter === 'all' ? undefined : statusFilter}
+                  onChange={(val) => setStatusFilter(val || 'all')}
+                  allowEmpty
+                  placeholder="All Statuses"
+                  className="w-full"
+                  options={[
+                    { label: 'Draft', value: JobStatus.DRAFT },
+                    { label: 'Pending Approval', value: JobStatus.PENDING_APPROVAL },
+                    { label: 'Approved', value: JobStatus.APPROVED },
+                    { label: 'Published', value: JobStatus.PUBLISHED },
+                    { label: 'Archived', value: JobStatus.ARCHIVED },
+                  ]}
+                />
+              </div>
 
-            {/* Job Board Filter */}
-            <div>
-              <label htmlFor="jobBoardFilter" className="block text-xs font-medium text-gray-700 mb-1">
-                Job Board
-              </label>
-              <Select
-                value={jobBoardFilter === 'all' ? undefined : jobBoardFilter}
-                onChange={(val) => setJobBoardFilter(val || 'all')}
-                allowEmpty
-                placeholder="All Job Boards"
-                className="w-full"
-                options={Array.from(jobBoards.values()).map(board => ({ label: board.title, value: String(board._id ?? '') }))}
-              />
-            </div>
+              {/* Job Board Filter */}
+              <div>
+                <label htmlFor="jobBoardFilter" className="block text-xs font-medium text-gray-700 mb-1">
+                  Job Board
+                </label>
+                <Select
+                  value={jobBoardFilter === 'all' ? undefined : jobBoardFilter}
+                  onChange={(val) => setJobBoardFilter(val || 'all')}
+                  allowEmpty
+                  placeholder="All Job Boards"
+                  className="w-full"
+                  options={Array.from(jobBoards.values()).map(board => ({ label: board.title, value: String(board._id ?? '') }))}
+                />
+              </div>
 
-            {/* Department Filter */}
-            <div>
-              <label htmlFor="departmentFilter" className="block text-xs font-medium text-gray-700 mb-1">
-                Department
-              </label>
-              <Select
-                value={departmentFilter === 'all' ? undefined : departmentFilter}
-                onChange={(val) => setDepartmentFilter(val || 'all')}
-                allowEmpty
-                placeholder="All Departments"
-                className="w-full"
-                options={departments.map(dept => ({ label: dept.title, value: String((dept as any)._id ?? (dept as any).id ?? '') }))}
-              />
+              {/* Department Filter */}
+              <div>
+                <label htmlFor="departmentFilter" className="block text-xs font-medium text-gray-700 mb-1">
+                  Department
+                </label>
+                <Select
+                  value={departmentFilter === 'all' ? undefined : departmentFilter}
+                  onChange={(val) => setDepartmentFilter(val || 'all')}
+                  allowEmpty
+                  placeholder="All Departments"
+                  className="w-full"
+                  options={departments.map(dept => ({ label: dept.title, value: String((dept as any)._id ?? (dept as any).id ?? '') }))}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
-          {error}
-        </div>
-      )}
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
+            {error}
+          </div>
+        )}
 
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      ) : !filteredJobs || filteredJobs.length === 0 ? (
-        <div className="bg-white p-6 rounded shadow text-center">
-          <p className="text-gray-500">
-            {viewMode === 'pending' 
-              ? 'No jobs pending your approval at this time.' 
-              : 'No jobs found. Create your first job to get started.'}
-          </p>
-        </div>
-      ) : (
-        <ScrollableTable>
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Job Title
-              </th>
-              {viewMode === 'all' && (
+        {isLoading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : !filteredJobs || filteredJobs.length === 0 ? (
+          <div className="text-center">
+            <p className="text-gray-500">
+              {viewMode === 'pending' 
+                ? 'No jobs pending your approval at this time.' 
+                : 'No jobs found. Create your first job to get started.'}
+            </p>
+          </div>
+        ) : (
+          <ScrollableTable>
+            <thead className="bg-gray-50">
+              <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location
+                  Job Title
                 </th>
-              )}
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Departments
-              </th>
-              {viewMode === 'all' && (
-                <>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Job Board
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                </>
-              )}
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {viewMode === 'pending' ? 'Submitted On' : 'Last Updated'}
-              </th>
-              <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredJobs?.map((job) => (
-              <tr key={job.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <Link to={`/jobs/${job.id}`} className="block">
-                    <div className="text-sm font-medium text-gray-900 hover:text-blue-600">{job.title}</div>
-                    {job.internalId !== "" ? <div className="text-sm text-gray-500">ID: {job.internalId}</div> : <></>}
-                  </Link>
-                </td>
                 {viewMode === 'all' && (
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{job.location}</div>
-                  </td>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Location
+                  </th>
                 )}
-                <td className="px-6 py-4">
-                  <div className="text-sm text-gray-900">
-                    {job.departments.length > 0 
-                      ? job.departments.map(dept => dept.name).join(', ')
-                      : 'None'}
-                  </div>
-                </td>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Departments
+                </th>
                 {viewMode === 'all' && (
                   <>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {job.jobBoardId && jobBoards.has(job.jobBoardId) ? (
-                          <div className="flex items-center">
-                            <span>{jobBoards.get(job.jobBoardId)?.title || 'Unknown'}</span>
-                            {jobBoards.get(job.jobBoardId)?.isExternal && (
-                              <span className="ml-1 px-1.5 py-0.5 bg-purple-100 text-purple-800 text-xs rounded">
-                                {jobBoards.get(job.jobBoardId)?.source}
-                              </span>
-                            )}
-                          </div>
-                        ) : (
-                          'None'
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="relative group">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
-                          {getPrettyStatus(job.status)}
-                        </span>
-                        {job.status === JobStatus.REJECTED && job.rejectionReason && (
-                          <div className="fixed z-50 invisible group-hover:visible bg-gray-800 text-white text-sm rounded p-2 mt-1 w-64 shadow-lg transform -translate-x-1/4 translate-y-1">
-                            <div className="font-semibold mb-1">Rejection Reason:</div>
-                            <div>{job.rejectionReason}</div>
-                          </div>
-                        )}
-                      </div>
-                    </td>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Job Board
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
                   </>
                 )}
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(viewMode === 'pending' ? job.updatedAt : job.createdAt)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
-                  <div className="flex justify-end">
-                    <ActionsMenu
-                      buttonAriaLabel="Job actions"
-                      buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
-                      align="right"
-                      menuWidthPx={192}
-                      items={(() => {
-                        const items: ActionsMenuItem[] = [
-                          { label: 'View', href: `/jobs/${job.id}`, icon: <EyeIcon className="w-4 h-4" /> },
-                        ];
-                        if (viewMode === 'all') {
-                          items.push({ label: 'Edit', href: `/jobs/${job.id}/edit`, icon: <PencilIcon className="w-4 h-4" /> });
-                          if (job.status === JobStatus.DRAFT) {
-                            items.push({ label: 'Submit for approval', onClick: () => handleStatusChange(job, 'submit'), icon: <ClockIcon className="w-4 h-4" /> });
-                          }
-                          if (job.status === JobStatus.APPROVED) {
-                            items.push({ label: 'Publish', onClick: () => handleStatusChange(job, 'publish'), icon: <CheckCircleIcon className="w-4 h-4" /> });
-                          }
-                          if (job.status !== JobStatus.ARCHIVED && job.status !== JobStatus.DRAFT) {
-                            items.push({ label: 'Archive', onClick: () => handleStatusChange(job, 'archive'), icon: <ArchiveBoxIcon className="w-4 h-4" /> });
-                          }
-                          items.push({ label: 'Delete', onClick: () => openDeleteModal(job), icon: <TrashIcon className="w-4 h-4" />, variant: 'danger' });
-                        } else {
-                          items.push({ label: 'Approve', onClick: () => handleStatusChange(job, 'approve'), icon: <CheckCircleIcon className="w-4 h-4" />, variant: 'success' });
-                          items.push({ label: 'Reject', onClick: () => openRejectModal(job), icon: <XCircleIcon className="w-4 h-4" />, variant: 'danger' });
-                        }
-                        return items;
-                      })()}
-                    />
-                  </div>
-                </td>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {viewMode === 'pending' ? 'Submitted On' : 'Last Updated'}
+                </th>
+                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </ScrollableTable>
-      )}
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredJobs?.map((job) => (
+                <tr key={job.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <Link to={`/jobs/${job.id}`} className="block">
+                      <div className="text-sm font-medium text-gray-900 hover:text-blue-600">{job.title}</div>
+                      {job.internalId !== "" ? <div className="text-sm text-gray-500">ID: {job.internalId}</div> : <></>}
+                    </Link>
+                  </td>
+                  {viewMode === 'all' && (
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{job.location}</div>
+                    </td>
+                  )}
+                  <td className="px-6 py-4">
+                    <div className="text-sm text-gray-900">
+                      {job.departments.length > 0 
+                        ? job.departments.map(dept => dept.name).join(', ')
+                        : 'None'}
+                    </div>
+                  </td>
+                  {viewMode === 'all' && (
+                    <>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {job.jobBoardId && jobBoards.has(job.jobBoardId) ? (
+                            <div className="flex items-center">
+                              <span>{jobBoards.get(job.jobBoardId)?.title || 'Unknown'}</span>
+                              {jobBoards.get(job.jobBoardId)?.isExternal && (
+                                <span className="ml-1 px-1.5 py-0.5 bg-purple-100 text-purple-800 text-xs rounded">
+                                  {jobBoards.get(job.jobBoardId)?.source}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            'None'
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="relative group">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
+                            {getPrettyStatus(job.status)}
+                          </span>
+                          {job.status === JobStatus.REJECTED && job.rejectionReason && (
+                            <div className="fixed z-50 invisible group-hover:visible bg-gray-800 text-white text-sm rounded p-2 mt-1 w-64 shadow-lg transform -translate-x-1/4 translate-y-1">
+                              <div className="font-semibold mb-1">Rejection Reason:</div>
+                              <div>{job.rejectionReason}</div>
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                    </>
+                  )}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(viewMode === 'pending' ? job.updatedAt : job.createdAt)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                    <div className="flex justify-end">
+                      <ActionsMenu
+                        buttonAriaLabel="Job actions"
+                        buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
+                        align="right"
+                        menuWidthPx={192}
+                        items={(() => {
+                          const items: ActionsMenuItem[] = [
+                            { label: 'View', href: `/jobs/${job.id}`, icon: <EyeIcon className="w-4 h-4" /> },
+                          ];
+                          if (viewMode === 'all') {
+                            items.push({ label: 'Edit', href: `/jobs/${job.id}/edit`, icon: <PencilIcon className="w-4 h-4" /> });
+                            if (job.status === JobStatus.DRAFT) {
+                              items.push({ label: 'Submit for approval', onClick: () => handleStatusChange(job, 'submit'), icon: <ClockIcon className="w-4 h-4" /> });
+                            }
+                            if (job.status === JobStatus.APPROVED) {
+                              items.push({ label: 'Publish', onClick: () => handleStatusChange(job, 'publish'), icon: <CheckCircleIcon className="w-4 h-4" /> });
+                            }
+                            if (job.status !== JobStatus.ARCHIVED && job.status !== JobStatus.DRAFT) {
+                              items.push({ label: 'Archive', onClick: () => handleStatusChange(job, 'archive'), icon: <ArchiveBoxIcon className="w-4 h-4" /> });
+                            }
+                            items.push({ label: 'Delete', onClick: () => openDeleteModal(job), icon: <TrashIcon className="w-4 h-4" />, variant: 'danger' });
+                          } else {
+                            items.push({ label: 'Approve', onClick: () => handleStatusChange(job, 'approve'), icon: <CheckCircleIcon className="w-4 h-4" />, variant: 'success' });
+                            items.push({ label: 'Reject', onClick: () => openRejectModal(job), icon: <XCircleIcon className="w-4 h-4" />, variant: 'danger' });
+                          }
+                          return items;
+                        })()}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </ScrollableTable>
+        )}
 
-      {/* Delete Confirmation Modal */}
-      {isDeleting && jobToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Delete Job</h2>
-            <p className="mb-6">
-              Are you sure you want to delete the job "{jobToDelete.title}"? This action cannot be undone.
-            </p>
-            
-            <div className="flex justify-end space-x-2">
-              <Button onClick={closeDeleteModal} variant="white">
-                Cancel
-              </Button>
-              <Button onClick={handleDelete} variant="primary">
-                Delete
-              </Button>
+        {/* Delete Confirmation Modal */}
+        {isDeleting && jobToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">Delete Job</h2>
+              <p className="mb-6">
+                Are you sure you want to delete the job "{jobToDelete.title}"? This action cannot be undone.
+              </p>
+              
+              <div className="flex justify-end space-x-2">
+                <Button onClick={closeDeleteModal} variant="white">
+                  Cancel
+                </Button>
+                <Button onClick={handleDelete} variant="primary">
+                  Delete
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Rejection Modal */}
-      {isRejecting && jobToReject && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Reject Job</h2>
-            <p className="mb-4">
-              Please provide a reason for rejecting "{jobToReject.title}":
-            </p>
-            
-            <textarea
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 mb-4"
-              rows={4}
-              placeholder="Enter rejection reason..."
-              required
-            />
-            
-            <div className="flex justify-end space-x-2">
-              <Button onClick={closeRejectModal} variant="white">
-                Cancel
-              </Button>
-              <Button onClick={handleReject} disabled={!rejectionReason.trim()} variant="primary">
-                Reject
-              </Button>
+        {/* Rejection Modal */}
+        {isRejecting && jobToReject && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">Reject Job</h2>
+              <p className="mb-4">
+                Please provide a reason for rejecting "{jobToReject.title}":
+              </p>
+              
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 mb-4"
+                rows={4}
+                placeholder="Enter rejection reason..."
+                required
+              />
+              
+              <div className="flex justify-end space-x-2">
+                <Button onClick={closeRejectModal} variant="white">
+                  Cancel
+                </Button>
+                <Button onClick={handleReject} disabled={!rejectionReason.trim()} variant="primary">
+                  Reject
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Card>
     </div>
   );
 };

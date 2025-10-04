@@ -10,7 +10,8 @@ import {
   CalendarIcon,
   ClockIcon,
   EyeIcon,
-  UserPlusIcon
+  UserPlusIcon,
+  EllipsisHorizontalIcon
 } from '@heroicons/react/24/outline';
 import jobApplicationService, { JobApplicant } from '../../services/jobApplicationService';
 import interviewProcessService from '../../services/interviewProcessService';
@@ -18,6 +19,7 @@ import jobService from '../../services/jobService';
 import ScrollableTable from '../common/ScrollableTable';
 import Button from '../common/Button';
 import { formatDate, formatTime } from '../../utils/dateUtils';
+import ActionsMenu, { ActionsMenuItem } from '../common/ActionsMenu';
 
 interface JobApplicantsListProps {
   jobId: string;
@@ -330,7 +332,7 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
   }
 
   return (
-    <ScrollableTable maxHeight="600px" className="rounded-lg border border-gray-200 shadow">
+    <ScrollableTable>
       <thead className="bg-gray-100">
         <tr>
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
@@ -343,10 +345,10 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
             Status
           </th>
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-            Actions
-          </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
             Details
+          </th>
+          <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+            Actions
           </th>
         </tr>
       </thead>
@@ -401,33 +403,6 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <div className="flex space-x-3">
-                  <Link
-                    to={`/applicants/${applicant.id}`}
-                    className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50"
-                    title="View Details"
-                  >
-                    <EyeIcon className="h-5 w-5" />
-                  </Link>
-                  <a 
-                    href={`mailto:${applicant.email}`}
-                    className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50"
-                    title="Send Email"
-                  >
-                    <EnvelopeIcon className="h-5 w-5" />
-                  </a>
-                  {applicant.phone && (
-                    <a 
-                      href={`tel:${applicant.phone}`}
-                      className="text-blue-600 hover:text-blue-900 p-1 rounded-full hover:bg-blue-50"
-                      title="Call"
-                    >
-                      <PhoneIcon className="h-5 w-5" />
-                    </a>
-                  )}
-                </div>
-              </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                 <button
                   onClick={() => toggleExpandApplicant(applicant.id)}
                   className="text-gray-500 hover:text-gray-700"
@@ -438,6 +413,31 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                     <ChevronDownIcon className="h-5 w-5" />
                   )}
                 </button>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-center">
+                <ActionsMenu
+                  buttonAriaLabel="Applicant actions"
+                  buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
+                  align="right"
+                  menuWidthPx={192}
+                  items={[
+                    {
+                      label: 'View Details',
+                      onClick: () => window.location.href = `/applicants/${applicant.id}`,
+                      icon: <EyeIcon className="w-4 h-4" />
+                    },
+                    {
+                      label: 'Send Email',
+                      onClick: () => window.location.href = `mailto:${applicant.email}`,
+                      icon: <EnvelopeIcon className="w-4 h-4" />
+                    },
+                    ...(applicant.phone ? [{
+                      label: 'Call',
+                      onClick: () => window.location.href = `tel:${applicant.phone}`,
+                      icon: <PhoneIcon className="w-4 h-4" />
+                    }] : [])
+                  ]}
+                />
               </td>
             </tr>
             {expandedApplicant === applicant.id && (
