@@ -9,6 +9,9 @@ import TabNavigation from '../components/common/TabNavigation';
 import MyReferralsList from '../components/referrals/MyReferralsList';
 import Select from '../components/common/Select';
 import { UserPlusIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import Card from '../components/common/Card';
+import Input from '../components/common/Input';
+import Button from '../components/common/Button';
 
 const ReferralPage: React.FC = () => {
   const [jobs, setJobs] = useState<any[]>([]);
@@ -80,8 +83,8 @@ const ReferralPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="text-center mb-8">
+    <div className="py-3 max-w-4xl mx-auto">
+      <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Referrals</h1>
         <p className="text-gray-600">Refer candidates and track your referrals</p>
       </div>
@@ -109,31 +112,32 @@ const ReferralPage: React.FC = () => {
       
       {activeTab === 'refer' ? (
 
-      <form onSubmit={handleSubmit(onSubmit)} className="bg-white p-6 border border-gray-200 rounded-lg shadow-md">
+      <Card>
+        <form onSubmit={handleSubmit(onSubmit)}>
         <div className="space-y-4">
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">First Name <span className="text-red-500">*</span></label>
-            <input 
+            <Input 
               {...register('firstName', { required: 'First name is required' })} 
               placeholder="Enter candidate's first name" 
-              className={`w-full px-3 py-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={errors.firstName ? 'ring-1 ring-red-500' : ''}
             />
             {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName.message}</p>}
           </div>
 
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">Last Name <span className="text-red-500">*</span></label>
-            <input 
+            <Input 
               {...register('lastName', { required: 'Last name is required' })} 
               placeholder="Enter candidate's last name" 
-              className={`w-full px-3 py-2 border ${errors.lastName ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={errors.lastName ? 'ring-1 ring-red-500' : ''}
             />
             {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName.message}</p>}
           </div>
 
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">Email <span className="text-red-500">*</span></label>
-            <input 
+            <Input 
               {...register('email', { 
                 required: 'Email is required',
                 pattern: {
@@ -141,36 +145,37 @@ const ReferralPage: React.FC = () => {
                   message: 'Invalid email address',
                 }
               })} 
+              type="email"
               placeholder="Enter candidate's email" 
-              className={`w-full px-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500`}
+              className={errors.email ? 'ring-1 ring-red-500' : ''}
             />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
           </div>
 
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">Phone</label>
-            <input 
+            <Input 
               {...register('phone')} 
+              type="tel"
               placeholder="Enter candidate's phone number (optional)" 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">LinkedIn</label>
-            <input 
+            <Input 
               {...register('linkedin')} 
+              type="url"
               placeholder="Enter candidate's LinkedIn profile URL (optional)" 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div className="mb-4">
             <label className="block text-gray-700 font-medium mb-2">Website</label>
-            <input 
+            <Input 
               {...register('website')} 
+              type="url"
               placeholder="Enter candidate's website URL (optional)" 
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -246,25 +251,23 @@ const ReferralPage: React.FC = () => {
             </p>
           </div>
 
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors"
+            variant="primary"
+            fullWidth
+            leadingIcon={isLoading ? (
+              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : undefined}
           >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Submitting...
-              </>
-            ) : (
-              'Submit Referral'
-            )}
-          </button>
+            {isLoading ? 'Submitting...' : 'Submit Referral'}
+          </Button>
         </div>
-      </form>
+        </form>
+      </Card>
     ) : (
       <MyReferralsList />
     )}

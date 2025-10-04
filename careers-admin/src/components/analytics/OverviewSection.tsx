@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FilterParams } from '../../pages/AnalyticsPage';
 import analyticsService, { KpiMetric } from '../../services/analyticsService';
 import MetricCard from './MetricCard';
+import Card from '../common/Card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface OverviewSectionProps {
@@ -117,7 +118,7 @@ const OverviewSection: React.FC<OverviewSectionProps> = ({ filters }) => {
       </div>
       
       {/* Application Trend Chart */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+      <Card className="mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Application Trend</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -153,12 +154,12 @@ const OverviewSection: React.FC<OverviewSectionProps> = ({ filters }) => {
             </LineChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Card>
       
       {/* Additional Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top Performing Jobs */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Top Performing Jobs</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -200,10 +201,10 @@ const OverviewSection: React.FC<OverviewSectionProps> = ({ filters }) => {
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
         
         {/* Source Effectiveness */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Source Effectiveness</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -245,7 +246,7 @@ const OverviewSection: React.FC<OverviewSectionProps> = ({ filters }) => {
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FilterParams } from '../../pages/AnalyticsPage';
 import analyticsService, { FunnelStage } from '../../services/analyticsService';
+import Card from '../common/Card';
 import { FunnelChart, Funnel, Cell, Tooltip, ResponsiveContainer, LabelList, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 
 interface RecruitmentFunnelSectionProps {
@@ -125,7 +126,7 @@ const RecruitmentFunnelSection: React.FC<RecruitmentFunnelSectionProps> = ({ fil
     <div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Funnel Chart */}
-        <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card className="lg:col-span-2">
           <h3 className="text-lg font-medium text-gray-800 mb-4">Recruitment Funnel</h3>
           <div className="h-96">
             <ResponsiveContainer width="100%" height="100%">
@@ -154,10 +155,10 @@ const RecruitmentFunnelSection: React.FC<RecruitmentFunnelSectionProps> = ({ fil
               </FunnelChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
         
         {/* Funnel Metrics */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Funnel Metrics</h3>
           <div className="space-y-6">
             {funnelData.map((stage, index) => (
@@ -203,11 +204,11 @@ const RecruitmentFunnelSection: React.FC<RecruitmentFunnelSectionProps> = ({ fil
               </span>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
       
       {/* Department Breakdown */}
-      <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+      <Card className="mt-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Department Performance</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -232,10 +233,10 @@ const RecruitmentFunnelSection: React.FC<RecruitmentFunnelSectionProps> = ({ fil
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Card>
       
       {/* Time to Hire Analysis */}
-      <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+      <Card className="mt-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Time to Hire Analysis</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="col-span-1 flex flex-col justify-center items-center">
@@ -267,10 +268,10 @@ const RecruitmentFunnelSection: React.FC<RecruitmentFunnelSectionProps> = ({ fil
             </div>
           </div>
         </div>
-      </div>
+      </Card>
       
       {/* Funnel Analysis */}
-      <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+      <Card className="mt-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Funnel Analysis</h3>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -315,47 +316,8 @@ const RecruitmentFunnelSection: React.FC<RecruitmentFunnelSectionProps> = ({ fil
               )}
             </div>
           </div>
-          
-          {/* Recommendations */}
-          {/* <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Recommendations</h4>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start">
-                <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Optimize the application process to increase initial conversion rates
-              </li>
-              <li className="flex items-start">
-                <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Review interview feedback to identify common rejection reasons
-              </li>
-              <li className="flex items-start">
-                <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Improve offer acceptance rate by reviewing compensation packages
-              </li>
-              <li className="flex items-start">
-                <span className="inline-flex items-center justify-center h-5 w-5 rounded-full bg-blue-100 text-blue-500 mr-2 flex-shrink-0">
-                  <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                </span>
-                Consider implementing a more structured screening process
-              </li>
-            </ul>
-          </div> */}
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

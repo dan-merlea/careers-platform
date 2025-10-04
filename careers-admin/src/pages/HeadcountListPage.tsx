@@ -5,6 +5,7 @@ import headcountService, { HeadcountRequest } from '../services/headcountService
 import { useAuth } from '../context/AuthContext';
 import ScrollableTable from '../components/common/ScrollableTable';
 import { EllipsisHorizontalIcon, EyeIcon, CheckCircleIcon, XCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
+import Card from '../components/common/Card';
 
 const HeadcountListPage: React.FC = () => {
   const [headcountRequests, setHeadcountRequests] = useState<HeadcountRequest[]>([]);
@@ -140,7 +141,7 @@ const HeadcountListPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Headcount Requests</h1>
         {(userRole === 'manager' || userRole === 'admin') && (
@@ -161,7 +162,7 @@ const HeadcountListPage: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : headcountRequests.length === 0 ? (
-        <div className="bg-white shadow rounded-lg p-6 text-center">
+        <Card className="text-center">
           <p className="text-gray-500">No headcount requests found.</p>
           {(userRole === 'manager' || userRole === 'admin') && (
             <Link 
@@ -174,9 +175,10 @@ const HeadcountListPage: React.FC = () => {
               Create Your First Request
             </Link>
           )}
-        </div>
+        </Card>
       ) : (
-        <ScrollableTable>
+        <Card>
+          <ScrollableTable>
           <thead className="bg-gray-50">
             <tr>
               <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -292,6 +294,7 @@ const HeadcountListPage: React.FC = () => {
             ))}  
           </tbody>
         </ScrollableTable>
+        </Card>
       )}
     </div>
   );

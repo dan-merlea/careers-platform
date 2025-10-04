@@ -311,7 +311,7 @@ const HeadcountRequestForm: React.FC = () => {
     const isPending = headcountRequest.status === 'pending';
     
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto py-3">
         <div className="flex items-center mb-6">
           <button 
             onClick={() => navigate(-1)}
@@ -522,7 +522,7 @@ const HeadcountRequestForm: React.FC = () => {
 
   // Form for creating/editing
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto py-3">
       <div className="flex items-center mb-6">
         <button 
           onClick={() => navigate(-1)}

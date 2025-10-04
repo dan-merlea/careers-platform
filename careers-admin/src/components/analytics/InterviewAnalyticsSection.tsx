@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FilterParams } from '../../pages/AnalyticsPage';
 import analyticsService, { InterviewMetric, SkillAssessment, InterviewStage, InterviewTrend } from '../../services/analyticsService';
+import Card from '../common/Card';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
@@ -171,7 +172,7 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
     <div>
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-sm font-medium text-gray-500 mb-1">Total Interviews</h3>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold text-gray-800">{summaryMetrics.totalInterviews}</p>
@@ -181,9 +182,9 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
               </svg>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-sm font-medium text-gray-500 mb-1">Average Pass Rate</h3>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold text-gray-800">{summaryMetrics.avgPassRate}%</p>
@@ -193,9 +194,9 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
               </svg>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-sm font-medium text-gray-500 mb-1">Average Score</h3>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold text-gray-800">{summaryMetrics.avgScore}/10</p>
@@ -205,9 +206,9 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
               </svg>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-sm font-medium text-gray-500 mb-1">Average Duration</h3>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold text-gray-800">{summaryMetrics.avgDuration} min</p>
@@ -217,12 +218,12 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
               </svg>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Interviewer Performance */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Interviewer Performance</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -247,10 +248,10 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
         
         {/* Feedback Distribution */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Feedback Distribution</h3>
           <div className="h-80 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -286,11 +287,11 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
               </PieChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
       </div>
       
       {/* Skill Assessments */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+      <Card className="mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Skill Assessments</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="h-80">
@@ -334,10 +335,10 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
         <p className="text-sm text-gray-500 mt-4 text-center">
           Average candidate scores across different skill areas assessed during interviews
         </p>
-      </div>
+      </Card>
       
       {/* Interview Stages */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+      <Card className="mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Interview Stages Performance</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -363,10 +364,10 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Card>
       
       {/* Monthly Trends */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+      <Card className="mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Monthly Interview Trends</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -409,10 +410,10 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
         <p className="text-sm text-gray-500 mt-2 text-center">
           Trend analysis of interview volume and pass rates over time
         </p>
-      </div>
+      </Card>
       
       {/* Interviewer Metrics Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+      <Card className="mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Interviewer Metrics</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -466,10 +467,10 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
       
       {/* Interviewer Comparison */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+      <Card>
         <h3 className="text-lg font-medium text-gray-800 mb-4">Interviewer Comparison</h3>
         <div className="h-96">
           <ResponsiveContainer width="100%" height="100%">
@@ -513,12 +514,12 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
         <p className="text-sm text-gray-500 mt-2 text-center">
           Note: All metrics are normalized to a 0-100 scale for comparison. For duration, lower values are better.
         </p>
-      </div>
+      </Card>
       
       {/* Interview Insights */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Top Performers */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Top Interviewers</h3>
           <div className="space-y-4">
             {interviewData
@@ -540,10 +541,10 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
                 </div>
               ))}
           </div>
-        </div>
+        </Card>
         
-        {/* Recommendations */}
-        {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        {/* Recommendations - commented out */}
+        {/* <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Recommendations</h3>
           <ul className="space-y-3 text-sm text-gray-600">
             <li className="flex items-start">
@@ -587,7 +588,7 @@ const InterviewAnalyticsSection: React.FC<InterviewAnalyticsSectionProps> = ({ f
               Implement structured interview templates to standardize evaluation
             </li>
           </ul>
-        </div> */}
+        </Card> */}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { LogsFilter as LogsFilterType } from '../../services/logsService';
 import Select from '../common/Select';
 import Button from '../common/Button';
+import Card from '../common/Card';
 
 interface LogsFilterProps {
   onFilterChange: (filter: LogsFilterType) => void;
@@ -61,7 +62,7 @@ const LogsFilter: React.FC<LogsFilterProps> = ({
   };
 
   return (
-    <div className="bg-white p-4 shadow rounded-lg mb-6">
+    <Card className="mb-6">
       <h3 className="text-lg font-medium text-gray-900 mb-4">Filter Logs</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -159,7 +160,7 @@ const LogsFilter: React.FC<LogsFilterProps> = ({
           Clear Filters
         </Button>
       </div>
-    </div>
+    </Card>
   );
 };
 

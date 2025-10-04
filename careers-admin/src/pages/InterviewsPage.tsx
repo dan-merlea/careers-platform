@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 // Icons are now used in the InterviewCard component
 import InterviewCard from '../components/interviews/InterviewCard';
 import { useAuth } from '../context/AuthContext';
+import Card from '../components/common/Card';
 
 const InterviewsPage: React.FC = () => {
   const location = useLocation();
@@ -204,7 +205,7 @@ const InterviewsPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="py-3">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-xl font-bold text-gray-800">
           {activeTab === 'processes' ? 'Interview Processes' : (activeTab === 'active' ? 'Active Interviews' : 'My Interviews')}
@@ -361,7 +362,7 @@ const InterviewsPage: React.FC = () => {
 
               {/* Filters */}
               {activeFiltersOpen && (
-                <div className="mb-6 bg-gray-50 rounded-lg">
+                <Card className="mb-6">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-xs font-medium text-gray-700 mb-1">Search</label>
@@ -407,7 +408,7 @@ const InterviewsPage: React.FC = () => {
                       />
                     </div>
                   </div>
-                </div>
+                </Card>
               )}
 
               {/* Results */}

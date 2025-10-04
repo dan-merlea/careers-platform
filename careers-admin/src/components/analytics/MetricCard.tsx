@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid';
 import { KpiMetric } from '../../services/analyticsService';
+import Card from '../common/Card';
 
 interface MetricCardProps {
   metric: KpiMetric;
@@ -27,7 +28,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ metric }) => {
   };
   
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 hover:shadow-md transition-shadow">
+    <Card className="hover:shadow-md transition-shadow">
       <h3 className="text-sm font-medium text-gray-500 mb-1">{label}</h3>
       <div className="flex items-baseline">
         <span className="text-2xl font-semibold text-gray-800">{formatValue(value, label)}</span>
@@ -45,7 +46,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ metric }) => {
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 };
 

@@ -138,7 +138,7 @@ const JobBoardsPage: React.FC = () => {
 
 
   return (
-    <div className="p-6">
+    <div className="py-3">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Job Boards</h1>
         <Button onClick={openCreateModal} variant="primary" leadingIcon={<PlusIcon className="w-5 h-5" />}> 

@@ -6,6 +6,7 @@ import ScrollableTable from '../components/common/ScrollableTable';
 import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 import { EllipsisHorizontalIcon, PencilIcon, BuildingOfficeIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import Select from '../components/common/Select';
+import Card from '../components/common/Card';
 
 // User interface is now imported from auth.service.ts
 
@@ -129,25 +130,24 @@ const UsersPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="py-3">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md mb-6">
           {error}
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="p-6">
-          <h2 className="text-lg font-medium text-gray-800 mb-4">Users</h2>
-          <p className="text-gray-600 mb-6">
-            Manage user roles and permissions for the careers platform.
-          </p>
+      <Card>
+        <h2 className="text-lg font-medium text-gray-800 mb-4">Users</h2>
+        <p className="text-gray-600 mb-6">
+          Manage user roles and permissions for the careers platform.
+        </p>
 
-          {loading && !users.length ? (
+        {loading && !users.length ? (
             <div className="py-4 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
               <p className="mt-2 text-sm text-gray-600">Loading users...</p>
@@ -302,9 +302,8 @@ const UsersPage: React.FC = () => {
                   ))}
                 </tbody>
             </ScrollableTable>
-          )}
-        </div>
-      </div>
+        )}
+      </Card>
     </div>
   );
 };

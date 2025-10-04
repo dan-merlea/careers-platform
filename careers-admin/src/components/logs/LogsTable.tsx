@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserLog, formatLogTimestamp, getLogDescription } from '../../services/logsService';
+import Card from '../common/Card';
 
 interface LogsTableProps {
   logs: UserLog[];
@@ -63,7 +64,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
   }
 
   return (
-    <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+    <Card className="overflow-hidden">
       <table className="min-w-full divide-y divide-gray-300">
         <thead className="bg-gray-50">
           <tr>
@@ -245,7 +246,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

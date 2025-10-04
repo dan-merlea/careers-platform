@@ -62,7 +62,7 @@ const DepartmentsSection: React.FC<DepartmentsSectionProps> = ({
               {selectedDept ? 'Edit Department' : 'Add New Department'}
             </h3>
           </div>
-          <div className="p-6">
+          <div className="py-3">
             <DepartmentForm
               department={selectedDept}
               departments={departments}
@@ -80,7 +80,7 @@ const DepartmentsSection: React.FC<DepartmentsSectionProps> = ({
               Add Department
             </Button>
           </div>
-          <div className="p-6">
+          <div className="py-3">
             <DepartmentTree
               departments={departments}
               onEdit={handleEditDepartment}

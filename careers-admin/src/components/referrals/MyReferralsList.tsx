@@ -11,6 +11,7 @@ import jobApplicationService, { JobApplicant } from '../../services/jobApplicati
 import jobService from '../../services/jobService';
 import { formatDate, formatTime } from '../../utils/dateUtils';
 import { toast } from 'react-toastify';
+import Card from '../common/Card';
 
 const MyReferralsList: React.FC = () => {
   const [referrals, setReferrals] = useState<JobApplicant[]>([]);
@@ -75,6 +76,22 @@ const MyReferralsList: React.FC = () => {
     }
   };
 
+  const getStatusProgress = (status: string): { label: string; percentage: number; color: string } => {
+    // Map status to approximate progress percentage
+    const statusMap: Record<string, { percentage: number; label: string; color: string }> = {
+      'new': { percentage: 10, label: 'Application Received', color: 'bg-blue-500' },
+      'reviewed': { percentage: 25, label: 'Under Review', color: 'bg-blue-500' },
+      'contacted': { percentage: 40, label: 'Contacted', color: 'bg-blue-500' },
+      'interviewing': { percentage: 60, label: 'Interviewing', color: 'bg-indigo-500' },
+      'debrief': { percentage: 75, label: 'In Debrief', color: 'bg-indigo-500' },
+      'offered': { percentage: 90, label: 'Offer Extended', color: 'bg-orange-500' },
+      'hired': { percentage: 100, label: 'Hired', color: 'bg-green-500' },
+      'rejected': { percentage: 0, label: 'Rejected', color: 'bg-red-500' },
+    };
+    
+    return statusMap[status] || { percentage: 0, label: 'Unknown', color: 'bg-gray-500' };
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -85,7 +102,7 @@ const MyReferralsList: React.FC = () => {
 
   if (referrals.length === 0) {
     return (
-      <div className="text-center py-12">
+      <Card className="text-center">
         <div className="mb-4">
           <DocumentTextIcon className="h-12 w-12 mx-auto text-gray-400" />
         </div>
@@ -93,55 +110,57 @@ const MyReferralsList: React.FC = () => {
         <p className="mt-2 text-sm text-gray-500">
           You haven't referred any candidates yet. Use the "Refer a Candidate" tab to get started.
         </p>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-      <ul className="divide-y divide-gray-200">
-        {referrals.map((referral) => (
-          <li key={referral.id}>
-            <Link to={`/applicants/${referral.id}`} className="block hover:bg-gray-50">
-              <div className="flex items-center justify-between">
-              
-                <div className="px-4 py-4 sm:px-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <p className="text-sm font-medium text-blue-600 truncate">
-                        {referral.firstName} {referral.lastName}
-                      </p>
-                      <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(referral.status)}`}>
-                        {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="mt-2 sm:flex">
-                    <div className="sm:flex">
-                      <p className="flex items-center text-sm text-gray-500">
-                        <BriefcaseIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                        {jobTitles[referral.jobId] || 'Loading...'}
-                      </p>
-                      <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                        <CalendarIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                        {formatDate(referral.createdAt)}
-                      </p>
-                      <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
-                        <ClockIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
-                        Referred {formatTime(referral.createdAt)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="ml-2 flex-shrink-0 flex mr-2">
-                  <ChevronRightIcon className="h-5 w-5 text-gray-400" />
-                </div>
-              </div>
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <div className="space-y-4">
+      {referrals.map((referral) => (
+        <Card key={referral.id} className="hover:shadow-lg transition-shadow duration-300">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <p className="text-sm font-medium text-blue-600 truncate">
+                {referral.firstName} {referral.lastName}
+              </p>
+              <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(referral.status)}`}>
+                {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
+              </span>
+            </div>
+          </div>
+          
+          {/* Progress Bar */}
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+              <span>{getStatusProgress(referral.status).label}</span>
+              <span>{getStatusProgress(referral.status).percentage}%</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all duration-300 ${getStatusProgress(referral.status).color}`}
+                style={{ width: `${getStatusProgress(referral.status).percentage}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          <div className="mt-3 sm:flex">
+            <div className="sm:flex">
+              <p className="flex items-center text-sm text-gray-500">
+                <BriefcaseIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
+                {jobTitles[referral.jobId] || 'Loading...'}
+              </p>
+              <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                <CalendarIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
+                {formatDate(referral.createdAt)}
+              </p>
+              <p className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0 sm:ml-6">
+                <ClockIcon className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
+                Referred {formatTime(referral.createdAt)}
+              </p>
+            </div>
+          </div>          
+        </Card>
+      ))}
     </div>
   );
 };

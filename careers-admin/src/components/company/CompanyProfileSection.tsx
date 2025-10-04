@@ -60,7 +60,7 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
           <div className="px-6 py-3 border-b border-gray-200 bg-gray-50">
             <h3 className="text-base font-semibold text-gray-900">Basic Information</h3>
           </div>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="py-3 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                 Company Name
@@ -175,7 +175,7 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h3 className="text-lg font-medium text-gray-900">Social Links</h3>
           </div>
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="py-3 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="linkedin" className="block text-sm font-medium text-gray-700">
                 LinkedIn
@@ -230,7 +230,7 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h3 className="text-lg font-medium text-gray-900">Mission & Vision</h3>
           </div>
-          <div className="p-6 grid grid-cols-1 gap-6">
+          <div className="py-3 grid grid-cols-1 gap-6">
             <div>
               <label htmlFor="mission" className="block text-sm font-medium text-gray-700">
                 Mission
@@ -265,7 +265,7 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <h3 className="text-lg font-medium text-gray-900">Company Values</h3>
           </div>
-          <div className="p-6">
+          <div className="py-3">
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
                 <Input

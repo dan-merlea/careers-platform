@@ -167,7 +167,7 @@ const JobCreatePage: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="py-3">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Create New Job</h1>
       </div>

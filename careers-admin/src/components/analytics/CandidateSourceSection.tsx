@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FilterParams } from '../../pages/AnalyticsPage';
 import analyticsService, { SourceMetric } from '../../services/analyticsService';
+import Card from '../common/Card';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell
@@ -120,7 +121,7 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
     <div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Applications by Source */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Applications by Source</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -146,10 +147,10 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
         
         {/* Application Distribution */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Application Distribution</h3>
           <div className="h-80 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
@@ -185,14 +186,14 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
               </PieChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
       </div>
       
       {/* TODO(ROI): Source ROI Analysis panel removed temporarily until ROI/cost data is finalized */}
       
       {/* Quality Metrics */}
       {qualityMetrics.length > 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+        <Card className="mb-8">
           <h3 className="text-lg font-medium text-gray-800 mb-4">Quality Metrics by Source</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {qualityMetrics.map((metric, index) => (
@@ -215,19 +216,19 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+        <Card className="mb-8">
           <h3 className="text-lg font-medium text-gray-800 mb-2">Quality Metrics by Source</h3>
           <p className="text-sm text-gray-500">
             No quality metrics available for this period or filters. {/* TODO: Provide real quality metrics from backend when ready */}
           </p>
-        </div>
+        </Card>
       )}
       
       {/* Monthly Trends */}
       {monthlyTrends.length > 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+        <Card className="mb-8">
           <h3 className="text-lg font-medium text-gray-800 mb-4">Monthly Application Trends by Source</h3>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -249,18 +250,18 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+        <Card className="mb-8">
           <h3 className="text-lg font-medium text-gray-800 mb-2">Monthly Application Trends by Source</h3>
           <p className="text-sm text-gray-500">
             No monthly trend data available. {/* TODO: Return monthly source trends from backend when ready */}
           </p>
-        </div>
+        </Card>
       )}
       
       {/* Source Metrics Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+      <Card className="mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Source Metrics</h3>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -322,13 +323,13 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
       
       {/* Source Insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         
         {/* Best Performing Sources */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Best Performing Sources</h3>
           <div className="space-y-4">
             {sourceData
@@ -350,7 +351,7 @@ const CandidateSourceSection: React.FC<CandidateSourceSectionProps> = ({ filters
                 </div>
               ))}
           </div>
-        </div>
+        </Card>
         
         {/* TODO(ROI): Cost-Effective Sources panel removed until cost per hire is available */}
         {/* <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">

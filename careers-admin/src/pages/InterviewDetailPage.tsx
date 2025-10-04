@@ -29,9 +29,9 @@ import { StarIcon } from '@heroicons/react/24/solid';
 import interviewService, { Interview, Interviewer } from '../services/interviewService';
 import jobApplicationService, { JobApplicant } from '../services/jobApplicationService';
 import jobService, { Job } from '../services/jobService';
-import { formatDate, formatTime } from '../utils/dateUtils';
 import { toast } from 'react-toastify';
 import Button from '../components/common/Button';
+import Card from '../components/common/Card';
 
 // Define the feedback interface
 interface InterviewFeedback {
@@ -511,7 +511,7 @@ const InterviewDetailPage: React.FC = () => {
   // Render loading state
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div className="py-3">
         <div className="flex justify-center items-center h-64">
           <LoadingSpinner size="large" message="Loading interview details..." />
         </div>
@@ -522,7 +522,7 @@ const InterviewDetailPage: React.FC = () => {
   // Render error state
   if (error) {
     return (
-      <div className="p-6">
+      <div className="py-3">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
           {error}
         </div>
@@ -533,7 +533,7 @@ const InterviewDetailPage: React.FC = () => {
   // Render when no interview found
   if (!interview) {
     return (
-      <div className="p-6">
+      <div className="py-3">
         <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
           Interview not found.
         </div>
@@ -544,7 +544,7 @@ const InterviewDetailPage: React.FC = () => {
   // At this point, interview is guaranteed to be non-null
   
   return (
-    <div className="p-6">
+    <div className="py-3">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
@@ -581,298 +581,247 @@ const InterviewDetailPage: React.FC = () => {
         {/* Left and center columns - Tabs and content */}
         <div className="lg:col-span-2">
           {/* Tabs */}
-          <div className="bg-white shadow rounded-lg mb-6">
-            <div className="border-b border-gray-200">
-              <TabNavigation
-                tabs={[
-                  {
-                    id: 'info',
-                    label: 'Candidate Information',
-                    icon: <UserIcon className="w-5 h-5" />
-                  },
-                  {
-                    id: 'job',
-                    label: 'Job Details',
-                    icon: <BriefcaseIcon className="w-5 h-5" />
-                  },
-                  {
-                    id: 'resume',
-                    label: 'Resume',
-                    icon: <DocumentTextIcon className="w-5 h-5" />
-                  },
-                  ...(isInterviewer ? [
-                    {
-                      id: 'feedback',
-                      label: 'Provide Feedback',
-                      icon: <ChatBubbleLeftRightIcon className="w-5 h-5" />
-                    }
-                  ] : [])
-                ]}
-                activeTab={activeTab}
-                onTabChange={handleTabChange}
-                className="px-4"
-              />
-            </div>
-            
-            {/* Tab content */}
-            <div className="p-6">
-              {/* Candidate Information Tab */}
-              {activeTab === 'info' && applicant && (
-                <div>
-                  <h2 className="text-base font-semibold mb-4 flex items-center">
-                    <UserIcon className="w-5 h-5 mr-2 text-blue-600" />
-                    {applicant.firstName} {applicant.lastName}
-                  </h2>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <span className="text-sm text-gray-500">Email:</span>
-                      <p className="font-medium text-sm">{applicant.email}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-500">Phone:</span>
-                      <p className="font-medium text-sm">{applicant.phone || 'Not provided'}</p>
-                    </div>
+          <TabNavigation
+            className="mb-6"
+            tabs={[
+              {
+                id: 'info',
+                label: 'Candidate Information',
+                icon: <UserIcon className="w-5 h-5" />
+              },
+              {
+                id: 'job',
+                label: 'Job Details',
+                icon: <BriefcaseIcon className="w-5 h-5" />
+              },
+              {
+                id: 'resume',
+                label: 'Resume',
+                icon: <DocumentTextIcon className="w-5 h-5" />
+              },
+              ...(isInterviewer ? [
+                {
+                  id: 'feedback',
+                  label: 'Provide Feedback',
+                  icon: <ChatBubbleLeftRightIcon className="w-5 h-5" />
+                }
+              ] : [])
+            ]}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+          />
+
+          <Card className="mb-6">            
+            {/* Candidate Information Tab */}
+            {activeTab === 'info' && applicant && (
+              <div>
+                <h2 className="text-base font-semibold mb-4 flex items-center">
+                  <UserIcon className="w-5 h-5 mr-2 text-blue-600" />
+                  {applicant.firstName} {applicant.lastName}
+                </h2>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <span className="text-sm text-gray-500">Email:</span>
+                    <p className="font-medium text-sm">{applicant.email}</p>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <span className="text-sm text-gray-500">Applied For:</span>
-                      <p className="font-medium text-sm">{interview.jobTitle}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm text-gray-500">Application Date:</span>
-                      <div className="flex items-center">
-                        <CalendarIcon className="h-4 w-4 mr-1 text-gray-500" />
-                        <span className="font-medium text-sm">{formatDate(applicant.createdAt)}</span>
-                      </div>
-                    </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Phone:</span>
+                    <p className="font-medium text-sm">{applicant.phone || 'Not provided'}</p>
                   </div>
                 </div>
-              )}
-              
-              {/* Resume Tab */}
-              {activeTab === 'resume' && applicant && applicant.id ? (
-                <ResumePage id={applicant.id} />
-              ) : activeTab === 'resume' && (
-                <div className="p-6 flex flex-col items-center justify-center text-center">
-                  <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
-                  <p className="text-gray-600 text-sm">No resume available</p>
-                </div>
-              )}
-              
-              {/* Job Details Tab */}
-              {activeTab === 'job' && (
-                <div>
-                  <h2 className="text-base font-semibold mb-4 flex items-center">
-                    <BriefcaseIcon className="w-5 h-5 mr-2 text-blue-600" />
-                    Job Details
-                  </h2>
-                  
-                  {isLoadingJob ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                    </div>
-                  ) : job ? (
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-sm font-semibold mb-2">Position</h3>
-                        <p className="text-gray-800 text-base">{job.title}</p>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-sm font-semibold mb-2">Company</h3>
-                        <p className="text-gray-800 text-base">{job.company?.name || 'Not specified'}</p>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-sm font-semibold mb-2">Location</h3>
-                        <p className="text-gray-800 text-base">{job.location || 'Not specified'}</p>
-                      </div>
-                      
-                      {job.departments && job.departments.length > 0 && (
-                        <div>
-                          <h3 className="text-sm font-semibold mb-2">Department</h3>
-                          <div className="flex flex-wrap gap-2">
-                            {job.departments.map(dept => (
-                              <span key={dept.id} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                {dept.name}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {job.hiringManager && (
-                        <div>
-                          <h3 className="text-sm font-semibold mb-2">Hiring Manager</h3>
-                          <p className="text-gray-800">{job.hiringManager.name}</p>
-                        </div>
-                      )}
-                      
-                      {job.createdBy && (
-                        <div>
-                          <h3 className="text-sm font-semibold mb-2">Recruiter</h3>
-                          <div className="flex items-center">
-                            <UserIcon className="h-4 w-4 mr-2 text-blue-600" />
-                            <p className="text-gray-800">{job.createdBy.name}</p>
-                            {job.createdBy.email && (
-                              <a 
-                                href={`mailto:${job.createdBy.email}`} 
-                                className="ml-2 text-blue-600 hover:underline"
-                                title="Send email"
-                              >
-                                {job.createdBy.email}
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div>
-                        <h3 className="text-sm font-semibold mb-2">Job Description</h3>
-                        <div className="prose max-w-none bg-gray-50 p-4 rounded-md border border-gray-200">
-                          <div dangerouslySetInnerHTML={{ __html: job.content }} />
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="p-6 flex flex-col items-center justify-center text-center">
-                      <BriefcaseIcon className="h-16 w-16 text-gray-400 mb-2" />
-                      <p className="text-gray-600">Job details not available</p>
-                      {applicant?.jobId && (
-                        <Button
-                          onClick={() => {
-                            setIsLoadingJob(true);
-                            jobService.getJob(applicant.jobId)
-                              .then(jobData => setJob(jobData))
-                              .catch(err => console.error('Error fetching job data:', err))
-                              .finally(() => setIsLoadingJob(false));
-                          }}
-                          variant="primary"
-                          className="mt-4"
-                        >
-                          Load Job Details
-                        </Button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-              
-              {/* Feedback Tab */}
-              {activeTab === 'feedback' && isInterviewer && (
-                <div>
-                  <h2 className="text-base font-semibold mb-4 flex items-center justify-between">
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <span className="text-sm text-gray-500">Applied For:</span>
+                    <p className="font-medium text-sm">{interview.jobTitle}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Application Date:</span>
                     <div className="flex items-center">
-                      <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2 text-blue-600" />
-                      {hasExistingFeedback && !isEditingFeedback ? 'Your Feedback' : 'Interview Feedback'}
+                      <CalendarIcon className="h-4 w-4 mr-1 text-gray-500" />
+                      <span className="font-medium text-sm">{formatDate(applicant.createdAt)}</span>
                     </div>
-                    {hasExistingFeedback && !isEditingFeedback && (
-                      <Button
-                        type="button"
-                        onClick={() => setIsEditingFeedback(true)}
-                        variant="primary"
-                        className="text-xs"
-                        leadingIcon={<PencilIcon className="h-4 w-4" />}
-                      >
-                        Edit Feedback
-                      </Button>
-                    )}
-                  </h2>
-                  
-                  {isLoadingFeedback ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Resume Tab - ResumePage already uses Card */}
+            {activeTab === 'resume' && applicant && applicant.id ? (
+              <ResumePage id={applicant.id} />
+            ) : activeTab === 'resume' && (
+              <div className="py-3 flex flex-col items-center justify-center text-center">
+                <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
+                <p className="text-gray-600 text-sm">No resume available</p>
+              </div>
+            )}
+            
+            {/* Job Details Tab */}
+            {activeTab === 'job' && (
+              <div>
+                <h2 className="text-base font-semibold mb-4 flex items-center">
+                  <BriefcaseIcon className="w-5 h-5 mr-2 text-blue-600" />
+                  Job Details
+                </h2>
+                
+                {isLoadingJob ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : job ? (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">Position</h3>
+                      <p className="text-gray-800 text-base">{job.title}</p>
                     </div>
-                  ) : hasExistingFeedback && !isEditingFeedback ? (
-                    <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
-                      <div className="mb-6">
-                        <h3 className="text-sm font-semibold mb-2">Overall Rating</h3>
-                        <div className="flex items-center">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <span
-                              key={star}
-                              className={`${feedback.rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}
-                            >
-                              <StarIcon className="h-6 w-6" />
+                    
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">Company</h3>
+                      <p className="text-gray-800 text-base">{job.company?.name || 'Not specified'}</p>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">Location</h3>
+                      <p className="text-gray-800 text-base">{job.location || 'Not specified'}</p>
+                    </div>
+                    
+                    {job.departments && job.departments.length > 0 && (
+                      <div>
+                        <h3 className="text-sm font-semibold mb-2">Department</h3>
+                        <div className="flex flex-wrap gap-2">
+                          {job.departments.map(dept => (
+                            <span key={dept.id} className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                              {dept.name}
                             </span>
                           ))}
-                          <span className="ml-2 text-gray-600">
-                            {feedback.rating > 0 ? `${feedback.rating} out of 5` : 'No rating'}
-                          </span>
                         </div>
                       </div>
-                      
-                      <div className="mb-6">
-                        <h3 className="text-sm font-semibold mb-2">Decision</h3>
-                        <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium
-                          ${feedback.decision === 'definitely_yes' ? 'bg-emerald-100 text-emerald-800' : ''}
-                          ${feedback.decision === 'yes' ? 'bg-green-100 text-green-800' : ''}
-                          ${feedback.decision === 'no' ? 'bg-orange-100 text-orange-800' : ''}
-                          ${feedback.decision === 'definitely_no' ? 'bg-red-100 text-red-800' : ''}
-                        `}>
-                          {feedback.decision === 'definitely_yes' && 'Definitely Yes'}
-                          {feedback.decision === 'yes' && 'Yes'}
-                          {feedback.decision === 'no' && 'No'}
-                          {feedback.decision === 'definitely_no' && 'Definitely No'}
-                          {!feedback.decision && 'No decision'}
+                    )}
+                    
+                    {job.hiringManager && (
+                      <div>
+                        <h3 className="text-sm font-semibold mb-2">Hiring Manager</h3>
+                        <p className="text-gray-800">{job.hiringManager.name}</p>
+                      </div>
+                    )}
+                    
+                    {job.createdBy && (
+                      <div>
+                        <h3 className="text-sm font-semibold mb-2">Recruiter</h3>
+                        <div className="flex items-center">
+                          <UserIcon className="h-4 w-4 mr-2 text-blue-600" />
+                          <p className="text-gray-800">{job.createdBy.name}</p>
+                          {job.createdBy.email && (
+                            <a 
+                              href={`mailto:${job.createdBy.email}`} 
+                              className="ml-2 text-blue-600 hover:underline"
+                              title="Send email"
+                            >
+                              {job.createdBy.email}
+                            </a>
+                          )}
                         </div>
                       </div>
-                      
-                      {hasExistingFeedback && !isEditingFeedback && (
-                        <div className="mb-6">
-                          <h3 className="text-sm font-semibold mb-2">Considerations</h3>
-                          <ConsiderationsEditor
-                            interview={interview}
-                            isEditable={false}
-                            initialRatings={feedback.considerations}
-                            onRatingsChange={(ratings) => {
-                              setFeedback(prev => ({
-                                ...prev,
-                                considerations: ratings
-                              }));
-                            }}
-                          />
-                        </div>
-                      )}
-                      
-                      <div className="mb-6">
-                        <h3 className="text-sm font-semibold mb-2">Comments</h3>
-                        <div className="prose max-w-none bg-white p-4 rounded-md border border-gray-200" 
-                          dangerouslySetInnerHTML={{ __html: feedback.comments || '<p>No comments provided</p>' }}></div>
+                    )}
+                    
+                    <div>
+                      <h3 className="text-sm font-semibold mb-2">Job Description</h3>
+                      <div className="prose max-w-none bg-gray-50 p-4 rounded-md border border-gray-200">
+                        <div dangerouslySetInnerHTML={{ __html: job.content }} />
                       </div>
                     </div>
-                  ) : (
-                    <>
-                      <div className="mb-6">
-                        <h3 className="text-sm font-semibold mb-2">Overall Rating</h3>
-                        <div className="flex items-center">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <button
-                              key={star}
-                              type="button"
-                              onClick={() => handleRatingChange(star)}
-                              className={`${
-                                feedback.rating >= star
-                                  ? 'text-yellow-400'
-                                  : 'text-gray-300'
-                              } hover:text-yellow-400 focus:outline-none focus:ring-0`}
-                            >
-                              <StarIcon className="h-8 w-8" />
-                            </button>
-                          ))}
-                          <span className="ml-2 text-gray-600">
-                            {feedback.rating > 0 ? `${feedback.rating} out of 5` : 'No rating'}
+                  </div>
+                ) : (
+                  <div className="py-3 flex flex-col items-center justify-center text-center">
+                    <BriefcaseIcon className="h-16 w-16 text-gray-400 mb-2" />
+                    <p className="text-gray-600">Job details not available</p>
+                    {applicant?.jobId && (
+                      <Button
+                        onClick={() => {
+                          setIsLoadingJob(true);
+                          jobService.getJob(applicant.jobId)
+                            .then(jobData => setJob(jobData))
+                            .catch(err => console.error('Error fetching job data:', err))
+                            .finally(() => setIsLoadingJob(false));
+                        }}
+                        variant="primary"
+                        className="mt-4"
+                      >
+                        Load Job Details
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Feedback Tab - Content already styled */}
+            {activeTab === 'feedback' && isInterviewer && (
+              <div>
+                <h2 className="text-base font-semibold mb-4 flex items-center justify-between">
+                  <div className="flex items-center">
+                    <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2 text-blue-600" />
+                    {hasExistingFeedback && !isEditingFeedback ? 'Your Feedback' : 'Interview Feedback'}
+                  </div>
+                  {hasExistingFeedback && !isEditingFeedback && (
+                    <Button
+                      type="button"
+                      onClick={() => setIsEditingFeedback(true)}
+                      variant="primary"
+                      className="text-xs"
+                      leadingIcon={<PencilIcon className="h-4 w-4" />}
+                    >
+                      Edit Feedback
+                    </Button>
+                  )}
+                </h2>
+                
+                {isLoadingFeedback ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : hasExistingFeedback && !isEditingFeedback ? (
+                  <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mb-6">
+                    <div className="mb-6">
+                      <h3 className="text-sm font-semibold mb-2">Overall Rating</h3>
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <span
+                            key={star}
+                            className={`${feedback.rating >= star ? 'text-yellow-400' : 'text-gray-300'}`}
+                          >
+                            <StarIcon className="h-6 w-6" />
                           </span>
-                        </div>
+                        ))}
+                        <span className="ml-2 text-gray-600">
+                          {feedback.rating > 0 ? `${feedback.rating} out of 5` : 'No rating'}
+                        </span>
                       </div>
-                  
+                    </div>
+                    
+                    <div className="mb-6">
+                      <h3 className="text-sm font-semibold mb-2">Decision</h3>
+                      <div className={`inline-block px-3 py-1 rounded-full text-sm font-medium
+                        ${feedback.decision === 'definitely_yes' ? 'bg-emerald-100 text-emerald-800' : ''}
+                        ${feedback.decision === 'yes' ? 'bg-green-100 text-green-800' : ''}
+                        ${feedback.decision === 'no' ? 'bg-orange-100 text-orange-800' : ''}
+                        ${feedback.decision === 'definitely_no' ? 'bg-red-100 text-red-800' : ''}
+                      `}>
+                        {feedback.decision === 'definitely_yes' && 'Definitely Yes'}
+                        {feedback.decision === 'yes' && 'Yes'}
+                        {feedback.decision === 'no' && 'No'}
+                        {feedback.decision === 'definitely_no' && 'Definitely No'}
+                        {!feedback.decision && 'No decision'}
+                      </div>
+                    </div>
+                    
+                    {hasExistingFeedback && !isEditingFeedback && (
                       <div className="mb-6">
-                        <h3 className="text-md font-semibold mb-4">Considerations</h3>
+                        <h3 className="text-sm font-semibold mb-2">Considerations</h3>
                         <ConsiderationsEditor
                           interview={interview}
-                          isEditable={isEditingFeedback}
+                          isEditable={false}
                           initialRatings={feedback.considerations}
                           onRatingsChange={(ratings) => {
                             setFeedback(prev => ({
@@ -882,128 +831,174 @@ const InterviewDetailPage: React.FC = () => {
                           }}
                         />
                       </div>
+                    )}
                     
-                      <div className="mb-6">
-                        <h3 className="text-sm font-semibold mb-2">Comments</h3>
-                        <ReactQuill
-                          theme="snow"
-                          value={feedback.comments}
-                          onChange={handleCommentsChange}
-                          modules={{
-                            toolbar: [
-                              [{ 'header': [1, 2, 3, false] }],
-                              ['bold', 'italic', 'underline', 'strike'],
-                              [{'list': 'ordered'}, {'list': 'bullet'}],
-                              ['link', 'blockquote'],
-                              [{ 'indent': '-1'}, { 'indent': '+1' }],
-                              ['clean']
-                            ],
-                          }}
-                          formats={[
-                            'header',
-                            'bold', 'italic', 'underline', 'strike',
-                            'list', 'bullet',
-                            'link', 'blockquote',
-                            'indent'
-                          ]}
-                          className="bg-white mb-4 quill-editor"
-                          placeholder="Provide detailed feedback about the candidate..."
-                        />
+                    <div className="mb-6">
+                      <h3 className="text-sm font-semibold mb-2">Comments</h3>
+                      <div className="prose max-w-none bg-white p-4 rounded-md border border-gray-200" 
+                        dangerouslySetInnerHTML={{ __html: feedback.comments || '<p>No comments provided</p>' }}></div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="mb-6">
+                      <h3 className="text-sm font-semibold mb-2">Overall Rating</h3>
+                      <div className="flex items-center">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => handleRatingChange(star)}
+                            className={`${
+                              feedback.rating >= star
+                                ? 'text-yellow-400'
+                                : 'text-gray-300'
+                            } hover:text-yellow-400 focus:outline-none focus:ring-0`}
+                          >
+                            <StarIcon className="h-8 w-8" />
+                          </button>
+                        ))}
+                        <span className="ml-2 text-gray-600">
+                          {feedback.rating > 0 ? `${feedback.rating} out of 5` : 'No rating'}
+                        </span>
                       </div>
-                    
-                      <div className="mb-6">
-                        <h3 className="text-sm font-semibold mb-2">Final Decision</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                          <button
-                            type="button"
-                            onClick={() => handleDecisionChange('definitely_no')}
-                            className={`py-1.5 px-3 text-sm rounded-md ${
-                              feedback.decision === 'definitely_no'
-                                ? 'bg-red-600 text-white'
-                                : 'bg-red-100 text-red-800 hover:bg-red-200'
-                            }`}
-                          >
-                            Definitely No
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDecisionChange('no')}
-                            className={`py-1.5 px-3 text-sm rounded-md ${
-                              feedback.decision === 'no'
-                                ? 'bg-orange-600 text-white'
-                                : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
-                            }`}
-                          >
-                            No
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDecisionChange('yes')}
-                            className={`py-1.5 px-3 text-sm rounded-md ${
-                              feedback.decision === 'yes'
-                                ? 'bg-green-600 text-white'
-                                : 'bg-green-100 text-green-800 hover:bg-green-200'
-                            }`}
-                          >
-                            Yes
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleDecisionChange('definitely_yes')}
-                            className={`py-1.5 px-3 text-sm rounded-md ${
-                              feedback.decision === 'definitely_yes'
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                            }`}
-                          >
-                            Definitely Yes
-                          </button>
-                        </div>
-                      </div>
-                    
-                      <div className="flex justify-end space-x-3">
-                        {hasExistingFeedback && (
-                          <button
-                            type="button"
-                            onClick={handleCancelFeedbackEditing}
-                            disabled={isSavingFeedback || isLoadingFeedback}
-                            className="border border-gray-300 bg-white text-gray-700 py-1.5 px-4 text-sm rounded-md hover:bg-gray-50 flex items-center"
-                          >
-                            <XMarkIcon className="h-4 w-4 mr-1" />
-                            Cancel
-                          </button>
-                        )}
+                    </div>
+                
+                    <div className="mb-6">
+                      <h3 className="text-md font-semibold mb-4">Considerations</h3>
+                      <ConsiderationsEditor
+                        interview={interview}
+                        isEditable={isEditingFeedback}
+                        initialRatings={feedback.considerations}
+                        onRatingsChange={(ratings) => {
+                          setFeedback(prev => ({
+                            ...prev,
+                            considerations: ratings
+                          }));
+                        }}
+                      />
+                    </div>
+                  
+                    <div className="mb-6">
+                      <h3 className="text-sm font-semibold mb-2">Comments</h3>
+                      <ReactQuill
+                        theme="snow"
+                        value={feedback.comments}
+                        onChange={handleCommentsChange}
+                        modules={{
+                          toolbar: [
+                            [{ 'header': [1, 2, 3, false] }],
+                            ['bold', 'italic', 'underline', 'strike'],
+                            [{'list': 'ordered'}, {'list': 'bullet'}],
+                            ['link', 'blockquote'],
+                            [{ 'indent': '-1'}, { 'indent': '+1' }],
+                            ['clean']
+                          ],
+                        }}
+                        formats={[
+                          'header',
+                          'bold', 'italic', 'underline', 'strike',
+                          'list', 'bullet',
+                          'link', 'blockquote',
+                          'indent'
+                        ]}
+                        className="bg-white mb-4 quill-editor"
+                        placeholder="Provide detailed feedback about the candidate..."
+                      />
+                    </div>
+                  
+                    <div className="mb-6">
+                      <h3 className="text-sm font-semibold mb-2">Final Decision</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                         <button
                           type="button"
-                          onClick={handleSubmitFeedback}
-                          disabled={isSavingFeedback || isLoadingFeedback}
-                          className="bg-blue-600 text-white py-1.5 px-4 text-sm rounded-md hover:bg-blue-700 flex items-center"
+                          onClick={() => handleDecisionChange('definitely_no')}
+                          className={`py-1.5 px-3 text-sm rounded-md ${
+                            feedback.decision === 'definitely_no'
+                              ? 'bg-red-600 text-white'
+                              : 'bg-red-100 text-red-800 hover:bg-red-200'
+                          }`}
                         >
-                          {isSavingFeedback ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
-                              Submitting...
-                            </>
-                          ) : (
-                            <>
-                              <CheckIcon className="h-4 w-4 mr-1" />
-                              Submit Feedback
-                            </>
-                          )}
+                          Definitely No
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDecisionChange('no')}
+                          className={`py-1.5 px-3 text-sm rounded-md ${
+                            feedback.decision === 'no'
+                              ? 'bg-orange-600 text-white'
+                              : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
+                          }`}
+                        >
+                          No
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDecisionChange('yes')}
+                          className={`py-1.5 px-3 text-sm rounded-md ${
+                            feedback.decision === 'yes'
+                              ? 'bg-green-600 text-white'
+                              : 'bg-green-100 text-green-800 hover:bg-green-200'
+                          }`}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDecisionChange('definitely_yes')}
+                          className={`py-1.5 px-3 text-sm rounded-md ${
+                            feedback.decision === 'definitely_yes'
+                              ? 'bg-emerald-600 text-white'
+                              : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                          }`}
+                        >
+                          Definitely Yes
                         </button>
                       </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+                    </div>
+                  
+                    <div className="flex justify-end space-x-3">
+                      {hasExistingFeedback && (
+                        <button
+                          type="button"
+                          onClick={handleCancelFeedbackEditing}
+                          disabled={isSavingFeedback || isLoadingFeedback}
+                          className="border border-gray-300 bg-white text-gray-700 py-1.5 px-4 text-sm rounded-md hover:bg-gray-50 flex items-center"
+                        >
+                          <XMarkIcon className="h-4 w-4 mr-1" />
+                          Cancel
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleSubmitFeedback}
+                        disabled={isSavingFeedback || isLoadingFeedback}
+                        className="bg-blue-600 text-white py-1.5 px-4 text-sm rounded-md hover:bg-blue-700 flex items-center"
+                      >
+                        {isSavingFeedback ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                            Submitting...
+                          </>
+                        ) : (
+                          <>
+                            <CheckIcon className="h-4 w-4 mr-1" />
+                            Submit Feedback
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </Card>
         </div>
         
         {/* Right column - Meeting details widget */}
         <div>
-          <div className={`${interview.status === 'cancelled' ? 'bg-red-50' : 'bg-white'} shadow rounded-lg overflow-hidden sticky top-6`}>
-            <div className={`${interview.status === 'cancelled' ? 'bg-red-600' : 'bg-blue-600'} text-white p-4 flex justify-between items-center`}>
+          <Card className={`${interview.status === 'cancelled' ? 'bg-red-50' : ''} sticky top-6`}>
+            <div className={`${interview.status === 'cancelled' ? 'bg-red-400' : 'bg-blue-400'} text-white p-4 rounded-t-2xl -mx-6 -mt-6 mb-6 flex justify-between items-center`}>
               <h2 className="text-base font-semibold">Meeting Details</h2>
               {interview.status === 'cancelled' && (
                 <span className="px-2 py-1 bg-white text-red-600 text-xs font-bold rounded-md">
@@ -1011,7 +1006,7 @@ const InterviewDetailPage: React.FC = () => {
                 </span>
               )}
             </div>
-            <div className="p-4">
+            <div>
               {interview.status === 'cancelled' && interview.cancellationReason && (
                 <div className="mb-4 p-3 bg-red-100 border border-red-200 rounded-md">
                   <h3 className="text-sm font-semibold text-red-800 mb-1">Cancellation Reason:</h3>
@@ -1190,7 +1185,7 @@ const InterviewDetailPage: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
       

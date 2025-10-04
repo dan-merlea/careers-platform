@@ -35,7 +35,7 @@ const SidebarLink: React.FC<SidebarLinkProps> = ({ to, icon, text, isActive, onC
       className={`flex items-center gap-3 rounded-lg transition-colors py-2 my-1 mx-3 px-2 ${
         isActive 
           ? 'bg-blue-100 text-blue-700 px-5' 
-          : 'text-gray-700 hover:bg-gray-100 px-4'
+          : 'text-gray-700 hover:bg-sky-100 px-4'
       }`}
       onClick={onClick}
     >
@@ -54,7 +54,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { logout, userRole, userDepartment, hasPermission } = useAuth();
+  const { logout, userDepartment, hasPermission } = useAuth();
   const { company } = useCompany();
   const [departmentName, setDepartmentName] = useState<string | null>(null);
   
@@ -149,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
 
   // Determine sidebar classes based on mobile state and isOpen
   const sidebarClasses = isMobile 
-    ? `fixed inset-y-0 left-0 z-40 bg-white flex flex-col w-full sm:w-80 transform ${isOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out rounded-3xl`
+    ? `fixed inset-y-0 left-0 z-40 bg-white flex flex-col w-full md:w-80 md:inset-y-4 md:left-4 md:rounded-3xl transform ${isOpen ? 'translate-x-0' : '-translate-x-[400px]'} transition-transform duration-300 ease-in-out shadow-lg`
     : 'w-64 h-full bg-white/50 border border-white flex flex-col rounded-2xl shadow-lg';
 
   return (

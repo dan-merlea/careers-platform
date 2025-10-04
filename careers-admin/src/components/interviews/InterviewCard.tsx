@@ -4,6 +4,7 @@ import { CalendarIcon, ClockIcon, UserIcon as UserIconSolid } from '@heroicons/r
 import { EllipsisHorizontalIcon, EyeIcon, UserIcon as UserIconOutline } from '@heroicons/react/24/outline';
 import ActionsMenu, { ActionsMenuItem } from '../common/ActionsMenu';
 import { Interview } from '../../services/interviewService';
+import Card from '../common/Card';
 
 interface InterviewCardProps {
   interview: Interview;
@@ -36,8 +37,8 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
   const styles = statusStyles[statusKey] || statusStyles.default;
   
   return (
-    <div className="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-300">
-      <div className={`border-l-4 ${styles.border} p-4`}>
+    <Card className="hover:shadow-lg transition-shadow duration-300">
+      <div className={`border-l-4 pl-3 ${styles.border}`}>
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1">
             <Link to={`/interview/${interview.id}`}>
@@ -124,7 +125,7 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
               .map((interviewer) => (
                 <span
                   key={interviewer.userId}
-                  className="inline-flex items-center bg-gray-100 text-gray-800 text-xs px-2 py-0.5 rounded-full"
+                  className="inline-flex items-center bg-sky-200 text-gray-800 text-xs px-2 py-0.5 rounded-full"
                 >
                   <UserIconSolid className="h-2 w-2 mr-1" />
                   {interviewer.name}
@@ -133,7 +134,7 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 

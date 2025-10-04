@@ -4,6 +4,7 @@ import interviewProcessService, { InterviewProcess } from '../services/interview
 import { formatDate } from '../utils/dateUtils';
 import { toast } from 'react-toastify';
 import Button from '../components/common/Button';
+import Card from '../components/common/Card';
 
 const InterviewProcessDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -51,7 +52,7 @@ const InterviewProcessDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div className="py-3">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
@@ -61,7 +62,7 @@ const InterviewProcessDetailPage: React.FC = () => {
 
   if (!interviewProcess) {
     return (
-      <div className="p-6">
+      <div className="py-3">
         <div className="bg-red-100 p-4 rounded text-red-700">
           {error || 'Interview process not found'}
         </div>
@@ -75,7 +76,7 @@ const InterviewProcessDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="py-3">
       <div className="flex justify-between items-center mb-6">
         <div>
           <button 
@@ -105,7 +106,7 @@ const InterviewProcessDetailPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white shadow rounded-lg p-6 border-t-4 border-blue-500">
+        <Card className="border-t-4 border-blue-500">
           <h2 className="text-lg font-semibold mb-4 text-blue-800">Process Details</h2>
           <div className="space-y-4">
             <div className="flex items-center">
@@ -136,10 +137,10 @@ const InterviewProcessDetailPage: React.FC = () => {
               <p className="font-medium">{formatDate(interviewProcess.updatedAt)}</p>
             </div>
           </div>
-        </div>
+        </Card>
 
-        <div className="md:col-span-2 bg-white shadow rounded-lg overflow-hidden border-t-4 border-blue-500">
-          <div className="p-6 border-b border-gray-200 bg-blue-50">
+        <Card className="md:col-span-2 border-t-4 border-blue-500">
+          <div className="-mx-6 -mt-6 mb-6 p-6 border-b border-gray-200 bg-blue-50">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-lg font-semibold text-blue-800">Interview Stages</h2>
@@ -256,7 +257,7 @@ const InterviewProcessDetailPage: React.FC = () => {
               )}
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

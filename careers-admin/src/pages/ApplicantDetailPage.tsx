@@ -24,6 +24,7 @@ import DebriefPage from './DebriefPage';
 import ResumePage from './ResumePage';
 import { formatDate, formatTime } from '../utils/dateUtils';
 import { toast } from 'react-toastify';
+import Card from '../components/common/Card';
 
 interface InterviewStageOption {
   id: string;
@@ -306,7 +307,7 @@ const ApplicantDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div className="py-3">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
@@ -316,7 +317,7 @@ const ApplicantDetailPage: React.FC = () => {
 
   if (!applicant) {
     return (
-      <div className="p-6">
+      <div className="py-3">
         <div className="bg-red-100 p-4 rounded text-red-700">
           {error || 'Applicant not found'}
         </div>
@@ -333,7 +334,7 @@ const ApplicantDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="py-3">
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center">
           <button 
@@ -410,8 +411,7 @@ const ApplicantDetailPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column - Applicant details */}
           <div className="lg:col-span-2">
-            <div className="bg-white shadow rounded overflow-hidden mb-6">
-              <div className="p-6">
+            <Card className="mb-6">
                 <h2 className="text-lg font-semibold mb-4 flex items-center">
                   <UserCircleIcon className="w-5 h-5 mr-2 text-blue-600" />
                   Applicant Details
@@ -501,16 +501,14 @@ const ApplicantDetailPage: React.FC = () => {
                     </div>
                   )}
                 </div>
-              </div>
-            </div>
+            </Card>
           </div>
 
           {/* Right column - Notes and actions */}
           <div>
             {/* Scheduled Interviews */}
             {scheduledInterviews.length > 0 && (
-              <div className="bg-white shadow rounded overflow-hidden mb-6">
-                <div className="p-6">
+              <Card className="mb-6">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-lg font-semibold flex items-center">
                       <CalendarIcon className="w-5 h-5 mr-2 text-blue-600" />
@@ -555,13 +553,11 @@ const ApplicantDetailPage: React.FC = () => {
                       ))}
                     </div>
                   )}
-                </div>
-              </div>
+              </Card>
             )}
             
             {/* Application stats */}
-            <div className="bg-white shadow rounded overflow-hidden mb-6">
-              <div className="p-6">
+            <Card className="mb-6">
                 <h2 className="text-lg font-semibold mb-4 flex items-center">
                   <ClipboardDocumentCheckIcon className="w-5 h-5 mr-2 text-blue-600" />
                   Application Stats
@@ -610,12 +606,10 @@ const ApplicantDetailPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
+            </Card>
             
             {/* Notes */}
-            <div className="bg-white shadow rounded overflow-hidden mb-6">
-              <div className="p-6">
+            <Card className="mb-6">
                 <h2 className="text-lg font-semibold mb-4 flex items-center">
                   <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2 text-blue-600" />
                   Notes
@@ -657,8 +651,7 @@ const ApplicantDetailPage: React.FC = () => {
                     )}
                   </button>
                 </div>
-              </div>
-            </div>
+            </Card>
           </div>
         </div>
       )}

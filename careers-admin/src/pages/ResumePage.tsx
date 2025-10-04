@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import jobApplicationService from '../services/jobApplicationService';
+import Card from '../components/common/Card';
 
 interface ResumePageProps {
   id: string;
@@ -55,8 +56,7 @@ const ResumePage: React.FC<ResumePageProps> = ({ id }) => {
   };
 
   return (
-    <div className="bg-white shadow rounded overflow-hidden mb-6">
-      <div className="p-6">
+    <Card className="mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-semibold flex items-center">
             <DocumentTextIcon className="w-5 h-5 mr-2 text-blue-600" />
@@ -97,7 +97,7 @@ const ResumePage: React.FC<ResumePageProps> = ({ id }) => {
                   className="max-w-full max-h-full mx-auto"
                 />
               ) : (
-                <div className="p-6 flex flex-col items-center justify-center text-center">
+                <div className="py-3 flex flex-col items-center justify-center text-center">
                   <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
                   <p className="text-gray-600 mb-4">Resume is available but cannot be previewed in browser</p>
                   <button 
@@ -117,8 +117,7 @@ const ResumePage: React.FC<ResumePageProps> = ({ id }) => {
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </Card>
   );
 };
 

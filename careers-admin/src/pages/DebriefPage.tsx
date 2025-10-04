@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { StarIcon } from '@heroicons/react/24/solid';
 import { Switch } from '@headlessui/react';
 import jobApplicationService from '../services/jobApplicationService';
+import Card from '../components/common/Card';
 import interviewService, { Interview, InterviewFeedback, Consideration } from '../services/interviewService';
 import { userService, User } from '../services/userService';
 import { UserRole } from '../services/auth.service';
@@ -299,7 +300,7 @@ const DebriefPage: React.FC<DebriefPageProps> = ({ id }) => {
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <Card>
       <div className="border-b border-gray-200 pb-4 mb-6">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">
@@ -706,7 +707,7 @@ const DebriefPage: React.FC<DebriefPageProps> = ({ id }) => {
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 };
 

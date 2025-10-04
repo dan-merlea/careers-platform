@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FilterParams } from '../../pages/AnalyticsPage';
 import analyticsService, { JobPerformance } from '../../services/analyticsService';
+import Card from '../common/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid';
 
@@ -127,7 +128,7 @@ const JobPerformanceSection: React.FC<JobPerformanceSectionProps> = ({ filters }
   return (
     <div>
       {/* Job Performance Chart */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+      <Card className="mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Job Performance Metrics</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -154,10 +155,10 @@ const JobPerformanceSection: React.FC<JobPerformanceSectionProps> = ({ filters }
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Card>
       
       {/* Department Performance */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+      <Card className="mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Department Performance</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -182,10 +183,10 @@ const JobPerformanceSection: React.FC<JobPerformanceSectionProps> = ({ filters }
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Card>
       
       {/* Location Performance */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+      <Card className="mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Location Performance</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {locationPerformance.map((location, index) => (
@@ -212,10 +213,10 @@ const JobPerformanceSection: React.FC<JobPerformanceSectionProps> = ({ filters }
             </div>
           ))}
         </div>
-      </div>
+      </Card>
       
       {/* Monthly Trends */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-8">
+      <Card className="mb-8">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Monthly Trends</h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -234,10 +235,10 @@ const JobPerformanceSection: React.FC<JobPerformanceSectionProps> = ({ filters }
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
+      </Card>
       
       {/* Job Performance Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+      <Card>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium text-gray-800">Job Performance Details</h3>
           <div className="flex items-center">
@@ -379,12 +380,12 @@ const JobPerformanceSection: React.FC<JobPerformanceSectionProps> = ({ filters }
             </tbody>
           </table>
         </div>
-      </div>
+      </Card>
       
       {/* Job Performance Insights */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Best Performing Jobs */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Best Performing Jobs</h3>
           <div className="space-y-4">
             {sortedJobs
@@ -406,10 +407,10 @@ const JobPerformanceSection: React.FC<JobPerformanceSectionProps> = ({ filters }
                 </div>
               ))}
           </div>
-        </div>
+        </Card>
         
         {/* Jobs Needing Attention */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5">
+        <Card>
           <h3 className="text-lg font-medium text-gray-800 mb-4">Jobs Needing Attention</h3>
           <div className="space-y-4">
             {sortedJobs
@@ -431,7 +432,7 @@ const JobPerformanceSection: React.FC<JobPerformanceSectionProps> = ({ filters }
                 </div>
               ))}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );

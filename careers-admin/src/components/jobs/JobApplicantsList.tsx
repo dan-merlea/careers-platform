@@ -518,7 +518,7 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                                   className="max-w-full max-h-full mx-auto"
                                 />
                               ) : (
-                                <div className="p-6 flex flex-col items-center justify-center text-center">
+                                <div className="py-3 flex flex-col items-center justify-center text-center">
                                   <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
                                   <p className="text-gray-600 mb-4">Resume is available but cannot be previewed in browser</p>
                                   <Button
@@ -532,7 +532,7 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                               )}
                             </div>
                           ) : (
-                            <div className="p-6 flex flex-col items-center justify-center text-center">
+                            <div className="py-3 flex flex-col items-center justify-center text-center">
                               <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
                               <p className="text-gray-600 mb-4">Failed to load resume preview</p>
                               <Button

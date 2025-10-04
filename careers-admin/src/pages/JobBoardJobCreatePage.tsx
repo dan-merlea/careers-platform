@@ -63,7 +63,7 @@ const JobBoardJobCreatePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div className="py-3">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
@@ -73,7 +73,7 @@ const JobBoardJobCreatePage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="p-6">
+      <div className="py-3">
         <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
           {error}
         </div>
@@ -88,7 +88,7 @@ const JobBoardJobCreatePage: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="py-3">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">
           Create New Job {jobBoard && `for ${jobBoard.title}`}
