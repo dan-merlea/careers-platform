@@ -3,6 +3,8 @@ import { JobFunction, CreateJobFunctionDto, UpdateJobFunctionDto } from '../../.
 import JobFunctionForm from '../JobFunctionForm';
 import Button from '../../common/Button';
 import Card from '../../common/Card';
+import ScrollableTable from '../../common/ScrollableTable';
+import ActionsMenu from '../../common/ActionsMenu';
 
 interface JobFunctionsSectionProps {
   jobFunctions: JobFunction[];
@@ -68,8 +70,8 @@ const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
               <p className="text-gray-500">Loading job functions...</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full bg-white">
+            <ScrollableTable>
+              <>
                 <thead>
                   <tr>
                     <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -78,8 +80,8 @@ const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
                     <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Description
                     </th>
-                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
+                    <th className="py-2 px-4 border-b border-gray-200 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                      
                     </th>
                   </tr>
                 </thead>
@@ -99,28 +101,46 @@ const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
                         <td className="py-2 px-4">
                           {jobFunction.description || '-'}
                         </td>
-                        <td className="py-2 px-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                          <Button onClick={() => handleEditJobFunction(jobFunction)} variant="white" className="!h-auto py-1 px-2 text-sm">
-                            Edit
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              if (window.confirm('Are you sure you want to delete this job function?')) {
-                                handleDeleteJobFunction(jobFunction._id);
-                              }
-                            }}
-                            variant="primary"
-                            className="!h-auto py-1 px-2 text-sm"
-                          >
-                            Delete
-                          </Button>
+                        <td className="py-2 px-4 whitespace-nowrap text-center">
+                          <ActionsMenu
+                            buttonContent={
+                              <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                              </svg>
+                            }
+                            items={[
+                              {
+                                label: 'Edit',
+                                onClick: () => handleEditJobFunction(jobFunction),
+                                icon: (
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                ),
+                              },
+                              {
+                                label: 'Delete',
+                                onClick: () => {
+                                  if (window.confirm('Are you sure you want to delete this job function?')) {
+                                    handleDeleteJobFunction(jobFunction._id);
+                                  }
+                                },
+                                variant: 'danger',
+                                icon: (
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                ),
+                              },
+                            ]}
+                          />
                         </td>
                       </tr>
                     ))
                   )}
                 </tbody>
-              </table>
-            </div>
+              </>
+            </ScrollableTable>
           )}
         </>
       )}

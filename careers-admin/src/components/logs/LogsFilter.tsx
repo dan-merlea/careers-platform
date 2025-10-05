@@ -3,6 +3,8 @@ import { LogsFilter as LogsFilterType } from '../../services/logsService';
 import Select from '../common/Select';
 import Button from '../common/Button';
 import Card from '../common/Card';
+import Input from '../common/Input';
+import DateInput from '../common/DateInput';
 
 interface LogsFilterProps {
   onFilterChange: (filter: LogsFilterType) => void;
@@ -75,6 +77,7 @@ const LogsFilter: React.FC<LogsFilterProps> = ({
             value={filter.userId || undefined}
             onChange={(val) => handleFilterChange('userId', val || '')}
             allowEmpty
+            searchable
             placeholder="All Users"
             className="w-full"
             options={users.map(u => ({ label: u.name, value: u.id }))}
@@ -116,10 +119,9 @@ const LogsFilter: React.FC<LogsFilterProps> = ({
           <label htmlFor="resourceIdFilter" className="block text-sm font-medium text-gray-700 mb-1">
             Resource ID
           </label>
-          <input
+          <Input
             type="text"
             id="resourceIdFilter"
-            className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
             value={filter.resourceId || ''}
             onChange={(e) => handleFilterChange('resourceId', e.target.value)}
             placeholder="Enter resource ID"
@@ -131,10 +133,8 @@ const LogsFilter: React.FC<LogsFilterProps> = ({
           <label htmlFor="startDateFilter" className="block text-sm font-medium text-gray-700 mb-1">
             Start Date
           </label>
-          <input
-            type="date"
+          <DateInput
             id="startDateFilter"
-            className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
             value={filter.startDate || ''}
             onChange={(e) => handleDateChange('startDate', e.target.value)}
           />
@@ -144,10 +144,8 @@ const LogsFilter: React.FC<LogsFilterProps> = ({
           <label htmlFor="endDateFilter" className="block text-sm font-medium text-gray-700 mb-1">
             End Date
           </label>
-          <input
-            type="date"
+          <DateInput
             id="endDateFilter"
-            className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
             value={filter.endDate || ''}
             onChange={(e) => handleDateChange('endDate', e.target.value)}
           />

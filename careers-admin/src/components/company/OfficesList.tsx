@@ -1,6 +1,8 @@
 import React from 'react';
 import { Office } from '../../services/officesService';
 import Button from '../common/Button';
+import ScrollableTable from '../common/ScrollableTable';
+import ActionsMenu from '../common/ActionsMenu';
 
 interface OfficesListProps {
   offices: Office[];
@@ -22,8 +24,8 @@ const OfficesList: React.FC<OfficesListProps> = ({ offices, onEdit, onDelete, on
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
+    <ScrollableTable>
+      <>
         <thead className="bg-gray-50">
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -32,8 +34,8 @@ const OfficesList: React.FC<OfficesListProps> = ({ offices, onEdit, onDelete, on
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Address
             </th>
-            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-              Actions
+            <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+              
             </th>
           </tr>
         </thead>
@@ -46,25 +48,33 @@ const OfficesList: React.FC<OfficesListProps> = ({ offices, onEdit, onDelete, on
               <td className="px-6 py-4">
                 <div className="text-sm text-gray-500">{office.address}</div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                <button
-                  onClick={() => onEdit(office)}
-                  className="text-blue-600 hover:text-blue-900 mr-4"
-                >
-                  <i className="bi bi-pencil-square me-1"></i> Edit
-                </button>
-                <button
-                  onClick={() => onDelete(office.id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  <i className="bi bi-trash me-1"></i> Delete
-                </button>
+              <td className="px-6 py-4 whitespace-nowrap text-center">
+                <ActionsMenu
+                  buttonContent={
+                    <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
+                    </svg>
+                  }
+                  items={[
+                    {
+                      label: 'Edit',
+                      onClick: () => onEdit(office),
+                      icon: <i className="bi bi-pencil-square"></i>,
+                    },
+                    {
+                      label: 'Delete',
+                      onClick: () => onDelete(office.id),
+                      variant: 'danger',
+                      icon: <i className="bi bi-trash"></i>,
+                    },
+                  ]}
+                />
               </td>
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+      </>
+    </ScrollableTable>
   );
 };
 

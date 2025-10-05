@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { fetchLogs, LogsFilter as LogsFilterType, UserLog } from '../services/logsService';
 import LogsTable from '../components/logs/LogsTable';
 import LogsFilter from '../components/logs/LogsFilter';
@@ -11,6 +11,7 @@ const LogsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [filter, setFilter] = useState<LogsFilterType>({});
   const [users, setUsers] = useState<Array<{ id: string; name: string }>>([]);
+  const tableRef = useRef<HTMLDivElement>(null);
   
   // These would ideally come from the backend, but for now we'll hardcode common values
   const resourceTypes = [
@@ -34,7 +35,7 @@ const LogsPage: React.FC = () => {
   ];
 
   // Fetch logs
-  const loadLogs = async () => {
+  const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetchLogs(currentPage, 20, filter);
@@ -46,7 +47,7 @@ const LogsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, filter]);
 
   // Fetch users for the filter dropdown
   const loadUsers = async () => {
@@ -66,7 +67,7 @@ const LogsPage: React.FC = () => {
   // Load logs on initial render and when page or filter changes
   useEffect(() => {
     loadLogs();
-  }, [currentPage, filter]);
+  }, [loadLogs]);
 
   // Load users on initial render
   useEffect(() => {
@@ -114,13 +115,15 @@ const LogsPage: React.FC = () => {
       />
 
       {/* Logs Table */}
-      <LogsTable
-        logs={logs}
-        loading={loading}
-        totalLogs={totalLogs}
-        currentPage={currentPage}
-        onPageChange={handlePageChange}
-      />
+      <div ref={tableRef}>
+        <LogsTable
+          logs={logs}
+          loading={loading}
+          totalLogs={totalLogs}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+        />
+      </div>
     </div>
   );
 };

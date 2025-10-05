@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UserLog, formatLogTimestamp, getLogDescription } from '../../services/logsService';
 import Card from '../common/Card';
+import ScrollableTable, { PaginationConfig } from '../common/ScrollableTable';
 
 interface LogsTableProps {
   logs: UserLog[];
@@ -20,13 +21,6 @@ const LogsTable: React.FC<LogsTableProps> = ({
   pageSize = 20,
 }) => {
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
-
-  const toggleLogDetails = (logId: string) => {
-    setExpandedLogId(expandedLogId === logId ? null : logId);
-  };
-
-  // Calculate total pages
-  const totalPages = Math.ceil(totalLogs / pageSize);
 
   // Get action color based on action type
   const getActionColor = (action: string): string => {
@@ -55,17 +49,17 @@ const LogsTable: React.FC<LogsTableProps> = ({
     return resourceType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  // Pagination configuration
+  const paginationConfig: PaginationConfig = {
+    currentPage,
+    totalItems: totalLogs,
+    pageSize,
+    onPageChange,
+  };
 
   return (
-    <Card className="overflow-hidden">
-      <table className="min-w-full divide-y divide-gray-300">
+    <Card>
+      <ScrollableTable pagination={paginationConfig}>
         <thead className="bg-gray-50">
           <tr>
             <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
@@ -86,7 +80,28 @@ const LogsTable: React.FC<LogsTableProps> = ({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-200 bg-white">
-          {logs.length === 0 ? (
+          {loading ? (
+            // Show 20 skeleton rows while loading
+            Array.from({ length: 20 }).map((_, index) => (
+              <tr key={`skeleton-${index}`} className="animate-pulse">
+                <td className="px-3 py-4">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                </td>
+                <td className="px-3 py-4">
+                  <div className="h-5 bg-gray-200 rounded-full w-24"></div>
+                </td>
+                <td className="px-3 py-4">
+                  <div className="h-4 bg-gray-200 rounded w-32"></div>
+                </td>
+                <td className="px-3 py-4">
+                  <div className="h-4 bg-gray-200 rounded w-28"></div>
+                </td>
+                <td className="px-3 py-4 text-right">
+                  <div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div>
+                </td>
+              </tr>
+            ))
+          ) : logs.length === 0 ? (
             <tr>
               <td colSpan={5} className="py-8 text-center text-gray-500">
                 No logs found
@@ -114,7 +129,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-right text-sm font-medium">
                     <button
-                      onClick={() => toggleLogDetails(log.id)}
+                      onClick={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
                       className="text-indigo-600 hover:text-indigo-900"
                     >
                       {expandedLogId === log.id ? 'Hide Details' : 'View Details'}
@@ -178,74 +193,7 @@ const LogsTable: React.FC<LogsTableProps> = ({
             ))
           )}
         </tbody>
-      </table>
-      
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{(currentPage - 1) * pageSize + 1}</span> to{' '}
-                <span className="font-medium">
-                  {Math.min(currentPage * pageSize, totalLogs)}
-                </span>{' '}
-                of <span className="font-medium">{totalLogs}</span> results
-              </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-                <button
-                  onClick={() => onPageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                    currentPage === 1 ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  Previous
-                </button>
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  // Show pages around current page
-                  let pageNum = currentPage;
-                  if (currentPage < 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage > totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-                  
-                  if (pageNum > 0 && pageNum <= totalPages) {
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => onPageChange(pageNum)}
-                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                          currentPage === pageNum
-                            ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  }
-                  return null;
-                })}
-                <button
-                  onClick={() => onPageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                    currentPage === totalPages ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'
-                  }`}
-                >
-                  Next
-                </button>
-              </nav>
-            </div>
-          </div>
-        </div>
-      )}
+      </ScrollableTable>
     </Card>
   );
 };

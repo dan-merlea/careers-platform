@@ -1,16 +1,26 @@
 import React, { useState, useEffect } from 'react';
 
+export interface PaginationConfig {
+  currentPage: number;
+  totalItems: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+}
+
 interface ScrollableTableProps {
   children: React.ReactNode; // Table content (thead and tbody)
   maxHeight?: string; // Optional max height, defaults to 70vh
   className?: string; // Optional additional classes
+  pagination?: PaginationConfig; // Optional pagination configuration
 }
 
 const ScrollableTable: React.FC<ScrollableTableProps> = ({ 
   children, 
   maxHeight = '70vh',
-  className = ''
+  className = '',
+  pagination
 }) => {
+  const totalPages = pagination ? Math.ceil(pagination.totalItems / pagination.pageSize) : 0;
   // Scroll gradient states
   const [showLeftGradient, setShowLeftGradient] = useState<boolean>(false);
   const [showRightGradient, setShowRightGradient] = useState<boolean>(true);
@@ -98,7 +108,7 @@ const ScrollableTable: React.FC<ScrollableTableProps> = ({
         <div className="absolute top-0 bottom-0 right-0 w-12 bg-gradient-to-l from-gray-100 to-transparent pointer-events-none z-10"></div>
       )}
       <div
-        className={`bg-white rounded-b-xl overflow-y-auto overflow-x-visible ${isScrollingNeeded() ? 'shadow' : ''}`}
+        className={`bg-white ${pagination ? '' : 'rounded-b-xl'} overflow-y-auto overflow-x-visible ${isScrollingNeeded() ? 'shadow' : ''}`}
         style={{ maxHeight }}
       >
         <div
@@ -111,6 +121,81 @@ const ScrollableTable: React.FC<ScrollableTableProps> = ({
           </table>
         </div>
       </div>
+      
+      {/* Pagination */}
+      {pagination && totalPages > 1 && (
+        <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{(pagination.currentPage - 1) * pagination.pageSize + 1}</span> to{' '}
+                <span className="font-medium">
+                  {Math.min(pagination.currentPage * pagination.pageSize, pagination.totalItems)}
+                </span>{' '}
+                of <span className="font-medium">{pagination.totalItems}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => pagination.onPageChange(pagination.currentPage - 1)}
+                  disabled={pagination.currentPage === 1}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
+                    pagination.currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  Previous
+                </button>
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  // Show pages around current page
+                  let pageNum: number;
+                  const maxPagesToShow = Math.min(5, totalPages);
+                  
+                  if (totalPages <= 5) {
+                    // Show all pages if total is 5 or less
+                    pageNum = i + 1;
+                  } else if (pagination.currentPage <= 3) {
+                    // Near the beginning, show first 5 pages
+                    pageNum = i + 1;
+                  } else if (pagination.currentPage >= totalPages - 2) {
+                    // Near the end, show last 5 pages
+                    pageNum = totalPages - (maxPagesToShow - 1) + i;
+                  } else {
+                    // In the middle, show current page centered
+                    pageNum = pagination.currentPage - 2 + i;
+                  }
+                  
+                  if (pageNum > 0 && pageNum <= totalPages) {
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => pagination.onPageChange(pageNum)}
+                        className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                          pagination.currentPage === pageNum
+                            ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                            : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  }
+                  return null;
+                })}
+                <button
+                  onClick={() => pagination.onPageChange(pagination.currentPage + 1)}
+                  disabled={pagination.currentPage === totalPages}
+                  className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
+                    pagination.currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'
+                  }`}
+                >
+                  Next
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

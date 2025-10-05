@@ -23,6 +23,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
   className = ''
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const activeTabRef = useRef<HTMLDivElement>(null);
   const [showLeftShadow, setShowLeftShadow] = useState(false);
   const [showRightShadow, setShowRightShadow] = useState(false);
 
@@ -35,6 +36,21 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
       container.scrollLeft < container.scrollWidth - container.clientWidth - 1
     );
   };
+
+  // Scroll to active tab when it changes
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    const activeElement = activeTabRef.current;
+    
+    if (container && activeElement) {
+      // Always scroll the active tab to center if possible
+      activeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     checkForScrollShadows();
@@ -87,6 +103,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
                 to={tab.href}
                 onClick={() => onTabChange(tab.id)}
                 className={tabClasses}
+                ref={isActive ? activeTabRef as any : undefined}
               >
                 {tab.icon && <div className="mr-2">{tab.icon}</div>}
                 {tab.label}
@@ -96,6 +113,7 @@ const TabNavigation: React.FC<TabNavigationProps> = ({
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
                 className={tabClasses}
+                ref={isActive ? activeTabRef as any : undefined}
               >
                 {tab.icon && <div className="mr-2">{tab.icon}</div>}
                 {tab.label}
