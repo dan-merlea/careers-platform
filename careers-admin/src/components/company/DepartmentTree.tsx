@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Department } from '../../services/departmentService';
-import Button from '../common/Button';
+import ActionsMenu from '../common/ActionsMenu';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface DepartmentTreeProps {
   departments: Department[];
@@ -33,20 +33,25 @@ const DepartmentNode: React.FC<{
         
         <div className="flex-grow font-medium">{department.title}</div>
         
-        <div className="flex space-x-2">
-          <Button onClick={() => onEdit(department)} variant="white" className="!h-auto py-1 px-2 text-sm">
-            Edit
-          </Button>
-          <Button
-            onClick={() => onDelete(department.id!)}
-            variant="primary"
-            disabled={hasChildren}
-            className="!h-auto py-1 px-2 text-sm"
-            title={hasChildren ? "Cannot delete department with sub-departments" : ""}
-          >
-            Delete
-          </Button>
-        </div>
+        <ActionsMenu
+          buttonAriaLabel="Department actions"
+          align="right"
+          menuWidthPx={160}
+          items={[
+            {
+              label: 'Edit',
+              onClick: () => onEdit(department),
+              icon: <PencilIcon className="w-4 h-4" />
+            },
+            {
+              label: hasChildren ? 'Delete (has sub-departments)' : 'Delete',
+              onClick: () => onDelete(department.id!),
+              icon: <TrashIcon className="w-4 h-4" />,
+              variant: 'danger',
+              disabled: hasChildren
+            }
+          ]}
+        />
       </div>
       
       {expanded && hasChildren && (

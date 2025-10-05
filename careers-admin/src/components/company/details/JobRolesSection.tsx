@@ -65,7 +65,7 @@ const JobRolesSection: React.FC<JobRolesSectionProps> = ({
           
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Job Roles</h2>
-            <Button onClick={handleAddJobRole} variant="secondary" disabled={jobFunctions.length === 0}>
+            <Button onClick={handleAddJobRole} variant="primary" disabled={jobFunctions.length === 0}>
               Add Job Role
             </Button>
           </div>

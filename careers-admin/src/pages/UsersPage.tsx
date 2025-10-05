@@ -4,9 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { departmentService, Department } from '../services/departmentService';
 import ScrollableTable from '../components/common/ScrollableTable';
 import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
-import { EllipsisHorizontalIcon, PencilIcon, BuildingOfficeIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, BuildingOfficeIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import Select from '../components/common/Select';
 import Card from '../components/common/Card';
+import Button from '../components/common/Button';
+import UserCreateModal from '../components/modals/UserCreateModal';
 
 // User interface is now imported from auth.service.ts
 
@@ -17,6 +19,7 @@ const UsersPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [impersonating, setImpersonating] = useState<boolean>(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const { token, userRole, impersonateUser } = useAuth();
   
   // Only admins should be able to access this page
@@ -133,6 +136,11 @@ const UsersPage: React.FC = () => {
     <div className="py-3">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
+        {isAdmin && (
+          <Button onClick={() => setShowCreateModal(true)} variant="primary">
+            Create User
+          </Button>
+        )}
       </div>
 
       {error && (
@@ -303,6 +311,13 @@ const UsersPage: React.FC = () => {
             </ScrollableTable>
         )}
       </Card>
+
+      <UserCreateModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onUserCreated={fetchUsers}
+        departments={departments}
+      />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import TabNavigation, { TabItem } from '../components/common/TabNavigation';
+import Card from '../components/common/Card';
 import { 
   ChartBarIcon, 
   FunnelIcon, 
@@ -113,12 +114,12 @@ const AnalyticsPage: React.FC = () => {
       <h1 className="text-2xl font-bold mb-6">Analytics Dashboard</h1>
       
       {/* Filters Section */}
-      <div className="mb-6">
+      <Card className="mb-6">
         <AnalyticsFilters 
           filters={filters} 
           onFilterChange={handleFilterChange} 
         />
-      </div>
+      </Card>
       
       {/* Navigation Tabs */}
       <TabNavigation

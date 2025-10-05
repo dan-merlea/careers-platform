@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../common/Button';
+import DateInput from '../common/DateInput';
 import { FilterParams } from '../../pages/AnalyticsPage';
 import { AdjustmentsHorizontalIcon, CalendarIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import Select from '../common/Select';
@@ -105,10 +106,10 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterCh
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div>
       {/* Filter header */}
       <div 
-        className="flex justify-between items-center p-4 cursor-pointer"
+        className="flex justify-between items-center cursor-pointer"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center">
@@ -127,44 +128,35 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterCh
       
       {/* Expanded filter options */}
       {isExpanded && (
-        <div className="p-4 border-t border-gray-200">
+        <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             {/* Date range selector */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5 text-gray-400" />
-                <Select
-                  onChange={(val) => val && handleDateRangeChange(val)}
-                  options={dateRanges.map(dr => ({ label: dr.label, value: dr.value }))}
-                  placeholder={dateRanges[1].label}
-                  className="min-w-[180px]"
-                />
-              </div>
+              <Select
+                onChange={(val) => val && handleDateRangeChange(val)}
+                options={dateRanges.map(dr => ({ label: dr.label, value: dr.value }))}
+                placeholder={dateRanges[1].label}
+                className="min-w-[180px]"
+              />
             </div>
             
             {/* Custom date inputs */}
-            <div className="flex space-x-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={localFilters.dateRange.startDate}
-                  onChange={handleInputChange}
-                  className="form-input rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={localFilters.dateRange.endDate}
-                  onChange={handleInputChange}
-                  className="form-input rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 text-sm"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              <DateInput
+                name="startDate"
+                value={localFilters.dateRange.startDate}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+              <DateInput
+                name="endDate"
+                value={localFilters.dateRange.endDate}
+                onChange={handleInputChange}
+              />
             </div>
             
             {/* Comparison period */}
@@ -182,7 +174,10 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterCh
                 className="w-full"
               />
             </div>
-            
+          </div>
+          
+          {/* Additional filters row */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             {/* Department filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
@@ -201,10 +196,7 @@ const AnalyticsFilters: React.FC<AnalyticsFiltersProps> = ({ filters, onFilterCh
                 className="w-full"
               />
             </div>
-          </div>
-          
-          {/* Additional filters row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+
             {/* Job role filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Job Role</label>

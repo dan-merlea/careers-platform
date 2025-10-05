@@ -60,7 +60,7 @@ const DepartmentsSection: React.FC<DepartmentsSectionProps> = ({
           
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Departments</h2>
-            <Button onClick={handleAddDepartment} variant="secondary">
+            <Button onClick={handleAddDepartment} variant="primary">
               Add Department
             </Button>
           </div>

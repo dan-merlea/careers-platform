@@ -59,7 +59,7 @@ const OfficesSection: React.FC<OfficesSectionProps> = ({
           
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Offices</h2>
-            <Button onClick={handleAddOffice} variant="secondary">
+            <Button onClick={handleAddOffice} variant="primary">
               Add Office
             </Button>
           </div>

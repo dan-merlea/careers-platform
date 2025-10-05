@@ -76,7 +76,7 @@ const DepartmentsSection: React.FC<DepartmentsSectionProps> = ({
         <div className="bg-white rounded-lg shadow overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-900">Company Departments</h3>
-            <Button onClick={handleAddDepartment} variant="secondary">
+            <Button onClick={handleAddDepartment} variant="primary">
               Add Department
             </Button>
           </div>

@@ -60,7 +60,7 @@ const JobFunctionsSection: React.FC<JobFunctionsSectionProps> = ({
           
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Job Functions</h2>
-            <Button onClick={handleAddJobFunction} variant="secondary">
+            <Button onClick={handleAddJobFunction} variant="primary">
               Add Job Function
             </Button>
           </div>
