@@ -80,7 +80,6 @@ const InterviewCard: React.FC<InterviewCardProps> = ({
           <div className="flex items-start">
             <ActionsMenu
               buttonAriaLabel="Interview actions"
-              buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
               align="right"
               menuWidthPx={192}
               items={(() => {

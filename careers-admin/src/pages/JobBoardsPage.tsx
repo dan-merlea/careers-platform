@@ -173,7 +173,6 @@ const JobBoardsPage: React.FC = () => {
                 <div onClick={(e) => e.stopPropagation()}>
                   <ActionsMenu
                     buttonAriaLabel="Job board actions"
-                    buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-400 hover:text-gray-600" />}
                     align="right"
                     menuWidthPx={192}
                     items={(() => {

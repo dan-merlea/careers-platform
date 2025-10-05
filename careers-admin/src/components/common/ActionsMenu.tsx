@@ -1,3 +1,4 @@
+import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -16,16 +17,16 @@ interface ActionsMenuProps {
   align?: 'right' | 'left';
   buttonClassName?: string;
   buttonAriaLabel?: string;
-  buttonContent: React.ReactNode; // typically an icon button
+  buttonColor?: string;
 }
 
 const ActionsMenu: React.FC<ActionsMenuProps> = ({
   items,
   menuWidthPx = 192,
   align = 'right',
-  buttonClassName = 'inline-flex items-center p-2 rounded hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500',
+  buttonClassName = 'inline-flex items-center p-2 rounded hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500',
   buttonAriaLabel = 'Actions',
-  buttonContent,
+  buttonColor = 'text-gray-600',
 }) => {
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -83,7 +84,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
         onClick={() => (open ? closeMenu() : openMenu())}
         className={buttonClassName}
       >
-        {buttonContent}
+        <EllipsisHorizontalIcon className={`w-5 h-5 ${buttonColor}`} />
       </button>
       {open && pos && (
         <div

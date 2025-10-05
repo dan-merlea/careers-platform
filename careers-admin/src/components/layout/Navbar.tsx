@@ -54,7 +54,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isMobile }) => {
             <Bars3Icon className="w-6 h-6 text-gray-600" />
           </button>
         )}
-        <div className="relative max-w-md w-full">
+        {/* <div className="relative max-w-md w-full">
           <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
             <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
           </div>
@@ -63,7 +63,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, isMobile }) => {
             className="block w-full p-2 pl-10 text-sm border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500"
             placeholder="Search..."
           />
-        </div>
+        </div> */}
       </div>
       
       <div className="flex items-center gap-4">

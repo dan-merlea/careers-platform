@@ -6,6 +6,8 @@ import interviewProcessService, {
   InterviewProcess, 
   InterviewProcessUpdateDto 
 } from '../services/interviewProcessService';
+import Button from '../components/common/Button';
+import Card from '../components/common/Card';
 
 const InterviewProcessEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -62,16 +64,16 @@ const InterviewProcessEditPage: React.FC = () => {
   if (!interviewProcess) {
     return (
       <div className="py-3">
-        <div className="bg-red-100 p-4 rounded text-red-700">
-          {error || 'Interview process not found'}
-        </div>
+        <Card className="bg-red-50 border-red-200">
+          <p className="text-red-700">{error || 'Interview process not found'}</p>
+        </Card>
         <div className="mt-4">
-          <button 
+          <Button 
             onClick={() => navigate('/interviews?tab=processes')}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            variant="primary"
           >
             Back to Interview Processes
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -87,18 +89,18 @@ const InterviewProcessEditPage: React.FC = () => {
       </div>
 
       {error && (
-        <div className="mb-4 p-4 bg-red-100 text-red-700 rounded">
-          {error}
-        </div>
+        <Card className="mb-4 bg-red-50 border-red-200">
+          <p className="text-red-700">{error}</p>
+        </Card>
       )}
 
-      <div className="bg-white p-6 rounded shadow">
+      <Card>
         <InterviewProcessForm 
           initialData={interviewProcess} 
           onSubmit={handleSubmit} 
           isEdit={true} 
         />
-      </div>
+      </Card>
     </div>
   );
 };

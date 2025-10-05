@@ -143,7 +143,7 @@ export class JobApplicationsService {
       .find()
       .sort({ createdAt: -1 }) // Sort by newest first
       .exec();
-    return applications.map((app) => this.mapToResponseDto(app));
+    return await Promise.all(applications.map((app) => this.mapToResponseDto(app)));
   }
 
   async findByJob(jobId: string): Promise<JobApplicationResponseDto[]> {
@@ -151,7 +151,7 @@ export class JobApplicationsService {
       .find({ jobId })
       .sort({ createdAt: -1 }) // Sort by newest first
       .exec();
-    return applications.map((app) => this.mapToResponseDto(app));
+    return await Promise.all(applications.map((app) => this.mapToResponseDto(app)));
   }
 
   /**
@@ -170,7 +170,7 @@ export class JobApplicationsService {
       .sort({ createdAt: -1 }) // Sort by newest first
       .exec();
 
-    return applications.map((app) => this.mapToResponseDto(app));
+    return await Promise.all(applications.map((app) => this.mapToResponseDto(app)));
   }
 
   async findOne(id: string): Promise<JobApplicationResponseDto> {
@@ -180,7 +180,7 @@ export class JobApplicationsService {
       throw new NotFoundException(`Job application with ID ${id} not found`);
     }
 
-    return this.mapToResponseDto(application);
+    return await this.mapToResponseDto(application);
   }
   
   /**
@@ -210,7 +210,7 @@ export class JobApplicationsService {
       );
     }
 
-    return this.mapToResponseDto(application);
+    return await this.mapToResponseDto(application);
   }
 
   async getResume(id: string): Promise<{
@@ -252,7 +252,7 @@ export class JobApplicationsService {
     id: string,
     updateStatusDto: UpdateApplicationStatusDto,
   ): Promise<JobApplicationResponseDto> {
-    const application = await this.jobApplicationModel.findById(id).exec();
+    const application = await this.jobApplicationModel.findById(id).populate('jobId').exec();
 
     if (!application) {
       throw new NotFoundException(`Job application with ID ${id} not found`);
@@ -265,9 +265,77 @@ export class JobApplicationsService {
       application.interviewerVisibility = true;
     }
 
+    // Calculate and update progress based on the new status
+    const progress = await this.calculateProgress(application.jobId, updateStatusDto.status);
+    application.progress = progress;
+
     await application.save();
 
     return this.mapToResponseDto(application);
+  }
+
+  /**
+   * Calculate application progress percentage based on current stage
+   * @param jobId The job ID to get interview process stages
+   * @param status The current application status/stage
+   * @returns Progress percentage (0-100)
+   */
+  private async calculateProgress(jobId: any, status: string): Promise<number> {
+    try {
+      // Define standard stages with their order
+      const standardStages = [
+        { id: 'new', order: 0 },
+        { id: 'reviewed', order: 1 },
+      ];
+      
+      const finalStages = [
+        { id: 'debrief', order: 1000 },
+        { id: 'offered', order: 1001 },
+        { id: 'hired', order: 1002 },
+      ];
+
+      // Get the job to find its interview process
+      const job = await this.jobApplicationModel.db.collection('jobs').findOne({ _id: jobId });
+      
+      let customStages: any[] = [];
+      
+      if (job && job.interviewProcessId) {
+        // Get the interview process stages
+        const interviewProcess = await this.jobApplicationModel.db
+          .collection('interviewprocesses')
+          .findOne({ _id: job.interviewProcessId });
+
+        if (interviewProcess && interviewProcess.stages && interviewProcess.stages.length > 0) {
+          // Map custom stages with adjusted order (starting after 'reviewed')
+          customStages = interviewProcess.stages.map((stage: any, index: number) => ({
+            id: stage._id.toString(),
+            order: 2 + index, // Start custom stages after 'new' and 'reviewed'
+          }));
+        }
+      }
+
+      // Combine all stages: standard -> custom -> final
+      const allStages = [...standardStages, ...customStages, ...finalStages];
+      
+      // Sort all stages by order
+      const sortedStages = allStages.sort((a, b) => a.order - b.order);
+
+      // Find the current stage index
+      const currentStageIndex = sortedStages.findIndex(
+        (stage) => stage.id === status || stage.id === `stage-${status}`
+      );
+
+      if (currentStageIndex === -1) {
+        return 0;
+      }
+
+      // Calculate progress percentage
+      const progress = Math.round((currentStageIndex / (sortedStages.length - 1)) * 100);
+      return progress;
+    } catch (error) {
+      console.error('Error calculating progress:', error);
+      return 0;
+    }
   }
 
   /**
@@ -585,7 +653,7 @@ export class JobApplicationsService {
     application.interviewerVisibility = visibility;
     await application.save();
 
-    return this.mapToResponseDto(application);
+    return await this.mapToResponseDto(application);
   }
 
   /**
@@ -749,9 +817,12 @@ export class JobApplicationsService {
   /**
    * Map a JobApplicationDocument to a JobApplicationResponseDto
    */
-  private mapToResponseDto(
+  private async mapToResponseDto(
     application: JobApplicationDocument,
-  ): JobApplicationResponseDto {
+  ): Promise<JobApplicationResponseDto> {
+    // Build stages list
+    const stages = await this.buildStagesForApplication(application.jobId);
+
     return {
       id: application._id?.toString() || '',
       firstName: application.firstName,
@@ -768,6 +839,8 @@ export class JobApplicationsService {
           ? application.jobId.toString()
           : application.jobId,
       status: application.status,
+      progress: application.progress,
+      stages,
       interviewerVisibility: application.interviewerVisibility || false,
       refereeId: application.refereeId?.toString(),
       refereeName: application.refereeName,
@@ -778,5 +851,66 @@ export class JobApplicationsService {
       createdAt: application.createdAt,
       updatedAt: application.updatedAt,
     };
+  }
+
+  /**
+   * Build complete stages list for an application
+   * Includes: standard initial stages -> custom interview process stages -> standard final stages
+   */
+  private async buildStagesForApplication(jobId: any): Promise<any[]> {
+    try {
+      // Get the job to find its interview process
+      const job = await this.jobApplicationModel.db.collection('jobs').findOne({ _id: jobId });
+      
+      let processId = '';
+      let customStages: any[] = [];
+      
+      if (job && job.interviewProcessId) {
+        processId = job.interviewProcessId.toString();
+        
+        // Get the interview process stages
+        const interviewProcess = await this.jobApplicationModel.db
+          .collection('interviewprocesses')
+          .findOne({ _id: job.interviewProcessId });
+
+        if (interviewProcess && interviewProcess.stages && interviewProcess.stages.length > 0) {
+          customStages = interviewProcess.stages.map((stage: any, index: number) => ({
+            id: stage._id.toString(),
+            title: stage.title,
+            order: stage.order || index,
+            processId,
+            emailTemplate: stage.emailTemplate,
+          }));
+        }
+      }
+
+      // Standard initial stages
+      const standardInitialStages = [
+        { id: 'new', title: 'New', order: -2, processId },
+        { id: 'reviewed', title: 'Reviewed', order: -1, processId },
+      ];
+
+      // Standard final stages
+      const standardFinalStages = [
+        { id: 'debrief', title: 'Debrief', order: 996, processId },
+        { id: 'offered', title: 'Offered', order: 997, processId },
+        { id: 'hired', title: 'Hired', order: 998, processId },
+        { id: 'rejected', title: 'Rejected', order: 999, processId },
+      ];
+
+      // Combine all stages
+      return [...standardInitialStages, ...customStages, ...standardFinalStages];
+    } catch (error) {
+      console.error('Error building stages for application:', error);
+      // Return default stages if there's an error
+      return [
+        { id: 'new', title: 'New', order: -2, processId: '' },
+        { id: 'reviewed', title: 'Reviewed', order: -1, processId: '' },
+        { id: 'debrief', title: 'Debrief', order: 996, processId: '' },
+        { id: 'offered', title: 'Offered', order: 997, processId: '' },
+        { id: 'hired', title: 'Hired', order: 998, processId: '' },
+        { id: 'rejected', title: 'Rejected', order: 999, processId: '' },
+      ];
+    }
   }
 }

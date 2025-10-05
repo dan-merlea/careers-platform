@@ -6,7 +6,6 @@ export enum ApplicationStatus {
   NEW = 'new',
   REVIEWED = 'reviewed',
   CONTACTED = 'contacted',
-  INTERVIEWING = 'interviewing',
   DEBRIEF = 'debrief',
   OFFERED = 'offered',
   HIRED = 'hired',
@@ -25,6 +24,7 @@ export interface JobApplicant {
   createdAt: string; // Date when the application was created
   updatedAt: string; // Date when the application was last updated
   status: string;
+  progress?: number; // Application progress percentage (0-100)
   jobId: string;
   interviewerVisibility?: boolean; // Whether interviewers can see each other's feedback
   refereeId?: string; // ID of the user who referred this applicant

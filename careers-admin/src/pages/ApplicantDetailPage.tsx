@@ -205,41 +205,19 @@ const ApplicantDetailPage: React.FC = () => {
         { id: 'new', title: 'New', order: 0, processId: '' },
         { id: 'reviewed', title: 'Reviewed', order: 1, processId: '' },
         { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
-        { id: 'interviewing', title: 'Interviewing', order: 3, processId: '' },
-        { id: 'debrief', title: 'Debrief', order: 4, processId: '' },
-        { id: 'offered', title: 'Offered', order: 5, processId: '' },
-        { id: 'hired', title: 'Hired', order: 6, processId: '' },
-        { id: 'rejected', title: 'Rejected', order: 7, processId: '' }
+        { id: 'debrief', title: 'Debrief', order: 3, processId: '' },
+        { id: 'offered', title: 'Offered', order: 4, processId: '' },
+        { id: 'hired', title: 'Hired', order: 5, processId: '' },
+        { id: 'rejected', title: 'Rejected', order: 6, processId: '' }
       ]);
     } finally {
       setIsLoadingStages(false);
     }
   };
 
-  // Calculate progress percentage based on applicant status and real stages
-  const getStageProgress = (status: string): number => {
-    // If no stages are loaded yet, return 0
-    if (!interviewStages || interviewStages.length === 0) {
-      return 0;
-    }
-
-    // Find the current stage in the interview stages array
-    const currentStage = interviewStages.find(stage => stage.id === status || stage.id === `stage-${status}`);
-    if (!currentStage) {
-      return 0; // Stage not found
-    }
-
-    // Get all stages sorted by order
-    const sortedStages = [...interviewStages].sort((a, b) => a.order - b.order);
-    
-    // Find the index of the current stage
-    const currentIndex = sortedStages.findIndex(stage => stage.id === currentStage.id);
-    if (currentIndex === -1) {
-      return 0; // Stage not found in sorted array (shouldn't happen)
-    }
-
-    // Calculate progress percentage based on position in the stages array
-    return Math.round((currentIndex / (sortedStages.length - 1)) * 100);
+  // Get progress from backend (calculated when stage changes)
+  const getStageProgress = (): number => {
+    return applicant?.progress ?? 0;
   };
 
   const handleStatusChange = async (newStatus: string) => {
@@ -582,13 +560,13 @@ const ApplicantDetailPage: React.FC = () => {
                           </div>
                           <div className="text-right">
                             <span className="text-xs font-semibold inline-block text-green-600">
-                              {getStageProgress(applicant?.status || 'new')}%
+                              {getStageProgress()}%
                             </span>
                           </div>
                         </div>
                         <div className="overflow-hidden h-2 mb-1 text-xs flex rounded bg-green-200 mt-1">
                           <div 
-                            style={{ width: `${getStageProgress(applicant?.status || 'new')}%` }} 
+                            style={{ width: `${getStageProgress()}%` }} 
                             className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
                           ></div>
                         </div>

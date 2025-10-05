@@ -151,6 +151,9 @@ export class JobApplication {
   @Prop({ type: String })
   status: string;
 
+  @Prop({ type: Number, default: 0 })
+  progress: number; // Application progress percentage (0-100)
+
   @Prop({ type: Boolean, default: false })
   interviewerVisibility: boolean;
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
-  DocumentTextIcon, 
   EnvelopeIcon, 
   PhoneIcon, 
   LinkIcon,
@@ -11,15 +10,13 @@ import {
   ClockIcon,
   EyeIcon,
   UserPlusIcon,
-  EllipsisHorizontalIcon
 } from '@heroicons/react/24/outline';
 import jobApplicationService, { JobApplicant } from '../../services/jobApplicationService';
 import interviewProcessService from '../../services/interviewProcessService';
 import jobService from '../../services/jobService';
 import ScrollableTable from '../common/ScrollableTable';
-import Button from '../common/Button';
 import { formatDate, formatTime } from '../../utils/dateUtils';
-import ActionsMenu, { ActionsMenuItem } from '../common/ActionsMenu';
+import ActionsMenu from '../common/ActionsMenu';
 
 interface JobApplicantsListProps {
   jobId: string;
@@ -36,11 +33,6 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
   const [applicants, setApplicants] = useState<JobApplicant[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedApplicant, setExpandedApplicant] = useState<string | null>(null);
-  const [selectedApplicantId, setSelectedApplicantId] = useState<string | null>(null);
-  const [resumeUrl, setResumeUrl] = useState<string | null>(null);
-  const [resumeMimeType, setResumeMimeType] = useState<string>('');
-  const [isLoadingResume, setIsLoadingResume] = useState<boolean>(false);
   const [interviewStages, setInterviewStages] = useState<InterviewStageOption[]>([]);
   const [isLoadingStages, setIsLoadingStages] = useState<boolean>(false);
 
@@ -132,14 +124,13 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
             // Include default interview stages
             const defaultStages: InterviewStageOption[] = [
               { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
-              { id: 'interviewing', title: 'Interviewing', order: 3, processId: '' }
             ];
             
             // Include standard final statuses
             const defaultFinalStatuses: InterviewStageOption[] = [
-              { id: 'offered', title: 'Offered', order: 4, processId: '' },
-              { id: 'hired', title: 'Hired', order: 5, processId: '' },
-              { id: 'rejected', title: 'Rejected', order: 6, processId: '' }
+              { id: 'offered', title: 'Offered', order: 3, processId: '' },
+              { id: 'hired', title: 'Hired', order: 4, processId: '' },
+              { id: 'rejected', title: 'Rejected', order: 5, processId: '' }
             ];
             
             setInterviewStages([...defaultInitialStatuses, ...defaultStages, ...defaultFinalStatuses]);
@@ -155,14 +146,13 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
           // Include default interview stages
           const defaultStages: InterviewStageOption[] = [
             { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
-            { id: 'interviewing', title: 'Interviewing', order: 3, processId: '' }
           ];
           
           // Include standard final statuses
           const defaultFinalStatuses: InterviewStageOption[] = [
-            { id: 'offered', title: 'Offered', order: 4, processId: '' },
-            { id: 'hired', title: 'Hired', order: 5, processId: '' },
-            { id: 'rejected', title: 'Rejected', order: 6, processId: '' }
+            { id: 'offered', title: 'Offered', order: 3, processId: '' },
+            { id: 'hired', title: 'Hired', order: 4, processId: '' },
+            { id: 'rejected', title: 'Rejected', order: 5, processId: '' }
           ];
           
           setInterviewStages([...defaultInitialStatuses, ...defaultStages, ...defaultFinalStatuses]);
@@ -179,14 +169,13 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
         // Include default interview stages
         const defaultStages: InterviewStageOption[] = [
           { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
-          { id: 'interviewing', title: 'Interviewing', order: 3, processId: '' }
         ];
         
         // Include standard final statuses
         const defaultFinalStatuses: InterviewStageOption[] = [
-          { id: 'offered', title: 'Offered', order: 4, processId: '' },
-          { id: 'hired', title: 'Hired', order: 5, processId: '' },
-          { id: 'rejected', title: 'Rejected', order: 6, processId: '' }
+          { id: 'offered', title: 'Offered', order: 3, processId: '' },
+          { id: 'hired', title: 'Hired', order: 4, processId: '' },
+          { id: 'rejected', title: 'Rejected', order: 5, processId: '' }
         ];
         
         setInterviewStages([...defaultInitialStatuses, ...defaultStages, ...defaultFinalStatuses]);
@@ -198,55 +187,6 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
     fetchInterviewStages();
   }, [jobId]);
 
-  // Status changes are now handled in the applicant detail page
-
-  const toggleExpandApplicant = async (applicantId: string) => {
-    // If we're expanding this applicant
-    if (expandedApplicant !== applicantId) {
-      setExpandedApplicant(applicantId);
-      setSelectedApplicantId(applicantId);
-      
-      // Load resume content if available
-      const applicant = applicants.find(app => app.id === applicantId);
-      if (applicant && applicant.resumeFilename) {
-        await loadResumeContent(applicantId);
-      }
-    } else {
-      // If we're collapsing, reset everything
-      setExpandedApplicant(null);
-      setSelectedApplicantId(null);
-      setResumeUrl(null);
-    }
-  };
-  
-  const loadResumeContent = async (applicantId: string) => {
-    try {
-      setIsLoadingResume(true);
-      const { url, mimeType } = await jobApplicationService.getResumeContentUrl(applicantId);
-      setResumeUrl(url);
-      setResumeMimeType(mimeType);
-    } catch (err) {
-      console.error('Error loading resume content:', err);
-      setError('Failed to load resume content. Please try again.');
-    } finally {
-      setIsLoadingResume(false);
-    }
-  };
-  
-  const handleViewResume = async (applicantId: string, event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    try {
-      // Download the resume with proper authentication
-      await jobApplicationService.downloadResume(applicantId);
-    } catch (err) {
-      console.error('Error downloading resume:', err);
-      setError('Failed to download resume. Please try again.');
-    }
-  };
-  
-  // Date formatting is now handled by the dateUtils utility
 
   const getStatusBadgeClass = (status: string) => {
     // Check if the status is one of the interview stages
@@ -261,8 +201,6 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
           return 'bg-purple-100 text-purple-800';
         case 'contacted':
           return 'bg-yellow-100 text-yellow-800';
-        case 'interviewing':
-          return 'bg-indigo-100 text-indigo-800';
         case 'offered':
           return 'bg-orange-100 text-orange-800';
         case 'hired':
@@ -344,9 +282,6 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
             Status
           </th>
-          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-            Details
-          </th>
           <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
             Actions
           </th>
@@ -402,22 +337,9 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                   </span>
                 )}
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button
-                  onClick={() => toggleExpandApplicant(applicant.id)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  {expandedApplicant === applicant.id ? (
-                    <ChevronUpIcon className="h-5 w-5" />
-                  ) : (
-                    <ChevronDownIcon className="h-5 w-5" />
-                  )}
-                </button>
-              </td>
               <td className="px-6 py-4 whitespace-nowrap text-center">
                 <ActionsMenu
                   buttonAriaLabel="Applicant actions"
-                  buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
                   align="right"
                   menuWidthPx={192}
                   items={[
@@ -440,116 +362,6 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                 />
               </td>
             </tr>
-            {expandedApplicant === applicant.id && (
-              <tr className="bg-gray-50">
-                <td colSpan={5} className="px-6 py-4">
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {applicant.linkedin && (
-                        <div className="p-2 rounded-lg border border-gray-200">
-                          <span className="text-sm text-gray-500 block font-medium">LinkedIn:</span>
-                          <a 
-                            href={applicant.linkedin}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline flex items-center"
-                          >
-                            <LinkIcon className="h-4 w-4 mr-1" />
-                            {applicant.linkedin}
-                          </a>
-                        </div>
-                      )}
-                      {applicant.website && (
-                        <div className="p-2 rounded-lg border border-gray-200">
-                          <span className="text-sm text-gray-500 block font-medium">Website:</span>
-                          <a 
-                            href={applicant.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline flex items-center"
-                          >
-                            <LinkIcon className="h-4 w-4 mr-1" />
-                            {applicant.website}
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {applicant.isReferral && applicant.refereeName && (
-                      <div className="p-2 rounded-lg border border-gray-200 bg-green-50">
-                        <span className="text-sm text-gray-500 block font-medium">Referred by:</span>
-                        <div className="text-sm flex items-center">
-                          <UserPlusIcon className="h-4 w-4 mr-1 text-green-600" />
-                          <span>{applicant.refereeName}</span>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {selectedApplicantId && (
-                      <div className="mt-4 border rounded-lg overflow-hidden">
-                        <div className="bg-gray-100 px-4 py-2 border-b flex justify-between items-center">
-                          <h3 className="font-medium">Resume</h3>
-                          <Button 
-                            onClick={(e) => handleViewResume(selectedApplicantId, e)}
-                            variant="primary"
-                            className="!h-auto py-1 px-2 text-sm"
-                            leadingIcon={<DocumentTextIcon className="h-4 w-4" />}
-                          >
-                            Download Resume
-                          </Button>
-                        </div>
-                        <div className="bg-white">
-                          {isLoadingResume ? (
-                            <div className="flex justify-center items-center p-12">
-                              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                            </div>
-                          ) : resumeUrl ? (
-                            <div className="h-96 overflow-hidden">
-                              {resumeMimeType.includes('pdf') ? (
-                                <iframe 
-                                  src={resumeUrl} 
-                                  className="w-full h-full" 
-                                  title="Resume Preview"
-                                />
-                              ) : resumeMimeType.includes('image') ? (
-                                <img 
-                                  src={resumeUrl} 
-                                  alt="Resume" 
-                                  className="max-w-full max-h-full mx-auto"
-                                />
-                              ) : (
-                                <div className="py-3 flex flex-col items-center justify-center text-center">
-                                  <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
-                                  <p className="text-gray-600 mb-4">Resume is available but cannot be previewed in browser</p>
-                                  <Button
-                                    onClick={(e) => handleViewResume(selectedApplicantId, e)}
-                                    variant="primary"
-                                    leadingIcon={<DocumentTextIcon className="h-5 w-5" />}
-                                  >
-                                    Download Resume
-                                  </Button>
-                                </div>
-                              )}
-                            </div>
-                          ) : (
-                            <div className="py-3 flex flex-col items-center justify-center text-center">
-                              <DocumentTextIcon className="h-16 w-16 text-gray-400 mb-2" />
-                              <p className="text-gray-600 mb-4">Failed to load resume preview</p>
-                              <Button
-                                onClick={() => loadResumeContent(selectedApplicantId)}
-                                variant="primary"
-                              >
-                                Retry
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            )}
           </React.Fragment>
         ))}
       </tbody>

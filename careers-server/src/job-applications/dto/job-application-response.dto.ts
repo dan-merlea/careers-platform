@@ -1,3 +1,11 @@
+export interface InterviewStageDto {
+  id: string;
+  title: string;
+  order: number;
+  processId: string;
+  emailTemplate?: string;
+}
+
 export class JobApplicationResponseDto {
   id: string;
   firstName: string;
@@ -11,6 +19,8 @@ export class JobApplicationResponseDto {
   consentExpiresAt: Date;
   jobId: string;
   status: string;
+  progress?: number; // Application progress percentage (0-100)
+  stages?: InterviewStageDto[]; // Complete list of stages for this application
   interviewerVisibility?: boolean;
   refereeId?: string;
   refereeName?: string;

@@ -50,11 +50,6 @@ const OfficesList: React.FC<OfficesListProps> = ({ offices, onEdit, onDelete, on
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-center">
                 <ActionsMenu
-                  buttonContent={
-                    <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-                    </svg>
-                  }
                   items={[
                     {
                       label: 'Edit',

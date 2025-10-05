@@ -155,7 +155,6 @@ const JobDetailPage: React.FC = () => {
         </div>
         <ActionsMenu
           buttonAriaLabel="Job actions"
-          buttonContent={<EllipsisHorizontalIcon className="w-6 h-6 text-gray-600" />}
           align="right"
           menuWidthPx={192}
           items={[

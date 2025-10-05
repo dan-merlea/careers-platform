@@ -418,7 +418,6 @@ const JobsPage: React.FC = () => {
                     <div className="flex justify-end">
                       <ActionsMenu
                         buttonAriaLabel="Job actions"
-                        buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
                         align="right"
                         menuWidthPx={192}
                         items={(() => {

@@ -10,6 +10,7 @@ import ScrollableTable from '../components/common/ScrollableTable';
 import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
 import { useCompany } from '../context/CompanyContext';
 import Button from '../components/common/Button';
+import Card from '../components/common/Card';
 
 const JobBoardJobsPage: React.FC = () => {
   const { jobBoardId } = useParams<{ jobBoardId: string }>();
@@ -200,92 +201,93 @@ const JobBoardJobsPage: React.FC = () => {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : !jobs || jobs.length === 0 ? (
-        <div className="bg-white p-6 rounded shadow text-center">
+        <Card className="text-center">
           {jobBoard && !jobBoard.isExternal ? (
             <p className="text-gray-500">No jobs found. Create your first job to get started.</p>
           ) : (
             <p className="text-gray-500">No jobs found in this job board.</p>
           )}
-        </div>
+        </Card>
       ) : (
-        <ScrollableTable>
-            <thead className="bg-gray-50">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Title
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Location
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Created
-                </th>
-                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {jobs?.map((job) => (
-                <tr key={job.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div 
-                      className="text-sm font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
-                      onClick={() => handleViewJob(job.id)}
-                    >
-                      {job.title}
-                    </div>
-                    {job.internalId !== "" ? <div className="text-sm text-gray-500">{job.internalId}</div> : <></>}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{job.location}</div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {getStatusBadge(job.status)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(job.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
-                    <div className="flex justify-end">
-                      <ActionsMenu
-                        buttonAriaLabel="Job actions"
-                        buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
-                        align="right"
-                        menuWidthPx={192}
-                        items={(() => {
-                          const items: ActionsMenuItem[] = [
-                            { label: 'View', onClick: () => handleViewJob(job.id), icon: <EyeIcon className="w-4 h-4" /> },
-                          ];
-                          if (jobBoard && !jobBoard.isExternal) {
-                            items.push({ label: 'Edit', onClick: () => handleEditJob(job.id), icon: <PencilIcon className="w-4 h-4" /> });
-                            if (job.status === 'draft') {
-                              items.push({ label: 'Submit for approval', onClick: () => handleSubmitForApproval(job.id), icon: <ClockIcon className="w-4 h-4" /> });
-                            }
-                            if (job.status === 'approved') {
-                              items.push({ label: 'Publish', onClick: () => handlePublishJob(job.id), icon: <CheckCircleIcon className="w-4 h-4" /> });
-                            }
-                            if (job.status === 'published') {
-                              items.push({ label: 'Archive', onClick: () => handleArchiveJob(job.id), icon: (
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                </svg>
-                              ) });
-                            }
-                            items.push({ label: 'Delete', onClick: () => openDeleteModal(job), icon: <TrashIcon className="w-4 h-4" />, variant: 'danger' });
-                          }
-                          return items;
-                        })()}
-                      />
-                    </div>
-                  </td>
+        <Card>
+          <ScrollableTable>
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Title
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Location
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Created
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-        </ScrollableTable>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {jobs?.map((job) => (
+                  <tr key={job.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div 
+                        className="text-sm font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
+                        onClick={() => handleViewJob(job.id)}
+                      >
+                        {job.title}
+                      </div>
+                      {job.internalId !== "" ? <div className="text-sm text-gray-500">{job.internalId}</div> : <></>}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{job.location}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(job.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(job.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                      <div className="flex justify-end">
+                        <ActionsMenu
+                          buttonAriaLabel="Job actions"
+                          align="right"
+                          menuWidthPx={192}
+                          items={(() => {
+                            const items: ActionsMenuItem[] = [
+                              { label: 'View', onClick: () => handleViewJob(job.id), icon: <EyeIcon className="w-4 h-4" /> },
+                            ];
+                            if (jobBoard && !jobBoard.isExternal) {
+                              items.push({ label: 'Edit', onClick: () => handleEditJob(job.id), icon: <PencilIcon className="w-4 h-4" /> });
+                              if (job.status === 'draft') {
+                                items.push({ label: 'Submit for approval', onClick: () => handleSubmitForApproval(job.id), icon: <ClockIcon className="w-4 h-4" /> });
+                              }
+                              if (job.status === 'approved') {
+                                items.push({ label: 'Publish', onClick: () => handlePublishJob(job.id), icon: <CheckCircleIcon className="w-4 h-4" /> });
+                              }
+                              if (job.status === 'published') {
+                                items.push({ label: 'Archive', onClick: () => handleArchiveJob(job.id), icon: (
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                  </svg>
+                                ) });
+                              }
+                              items.push({ label: 'Delete', onClick: () => openDeleteModal(job), icon: <TrashIcon className="w-4 h-4" />, variant: 'danger' });
+                            }
+                            return items;
+                          })()}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+          </ScrollableTable>
+        </Card>
       )}
 
       {/* Delete Confirmation Modal */}

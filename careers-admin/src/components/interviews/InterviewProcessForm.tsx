@@ -12,6 +12,9 @@ import {
 } from '../../services/interviewProcessService';
 import { jobRoleService, JobRole } from '../../services/jobRoleService';
 import Button from '../common/Button';
+import Card from '../common/Card';
+import Select from '../common/Select';
+import Input from '../common/Input';
 
 interface InterviewProcessFormProps {
   initialData?: InterviewProcess;
@@ -38,6 +41,8 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [activeStageIndex, setActiveStageIndex] = useState<number | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
+  const [savedStageData, setSavedStageData] = useState<InterviewStage | null>(null);
 
   useEffect(() => {
     const fetchJobRoles = async () => {
@@ -65,6 +70,15 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
   };
 
   const handleAddStage = () => {
+    // Check for unsaved changes
+    if (hasUnsavedChanges && activeStageIndex !== null) {
+      if (!window.confirm('You have unsaved changes. Do you want to save them before adding a new stage?')) {
+        return;
+      }
+      // Save current stage data
+      handleSaveStage();
+    }
+    
     const newStage: InterviewStage = {
       title: '',
       description: '',
@@ -80,6 +94,34 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
     
     // Set the new stage as active for editing
     setActiveStageIndex((formData.stages || []).length);
+    setHasUnsavedChanges(false);
+  };
+  
+  const handleSaveStage = () => {
+    if (activeStageIndex !== null && formData.stages?.[activeStageIndex]) {
+      setSavedStageData({ ...formData.stages[activeStageIndex] });
+      setHasUnsavedChanges(false);
+      toast.success('Stage saved');
+    }
+  };
+  
+  const handleStageClick = (index: number) => {
+    // Check for unsaved changes before switching
+    if (hasUnsavedChanges && activeStageIndex !== null && activeStageIndex !== index) {
+      if (!window.confirm('You have unsaved changes. Do you want to save them before switching stages?')) {
+        return;
+      }
+      // Save current stage data
+      handleSaveStage();
+    }
+    
+    setActiveStageIndex(index);
+    setHasUnsavedChanges(false);
+    
+    // Load saved data for the new stage
+    if (formData.stages?.[index]) {
+      setSavedStageData({ ...formData.stages[index] });
+    }
   };
 
   const handleRemoveStage = (index: number) => {
@@ -117,6 +159,9 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
       ...formData,
       stages: updatedStages
     });
+    
+    // Mark as having unsaved changes
+    setHasUnsavedChanges(true);
   };
 
   const handleAddConsideration = (stageIndex: number) => {
@@ -165,6 +210,9 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
       ...formData,
       stages: updatedStages
     });
+    
+    // Mark as having unsaved changes
+    setHasUnsavedChanges(true);
   };
 
   const handleMoveStage = (index: number, direction: 'up' | 'down') => {
@@ -259,21 +307,13 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
           <label htmlFor="jobRoleId" className="block text-xs font-medium text-gray-700 mb-1">
             Job Role *
           </label>
-          <select
-            id="jobRoleId"
-            name="jobRoleId"
-            value={formData.jobRoleId || ''}
-            onChange={handleInputChange}
-            className="w-full p-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            required
-          >
-            <option value="">Select a job role</option>
-            {jobRoles.map(role => (
-              <option key={role._id} value={role._id}>
-                {role.title}
-              </option>
-            ))}
-          </select>
+          <Select
+            value={formData.jobRoleId || undefined}
+            onChange={(val) => setFormData({ ...formData, jobRoleId: val || '' })}
+            placeholder="Select a job role"
+            className="w-full"
+            options={jobRoles.map(role => ({ label: role.title, value: role._id }))}
+          />
         </div>
         
         <p className="text-xs text-gray-500 italic">
@@ -299,14 +339,14 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
 
         {formData.stages && formData.stages.length > 0 ? (
           <div className="space-y-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="w-full md:w-1/4">
+            <div className="flex flex-col xl:flex-row gap-4">
+              <div className="w-full xl:w-1/4">
                 <ul className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
                   {(formData.stages || []).map((stage, index) => (
                     <li 
                       key={index}
                       className={`p-4 border-b border-gray-200 last:border-b-0 cursor-pointer transition-all duration-200 hover:bg-gray-50 ${activeStageIndex === index ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}
-                      onClick={() => setActiveStageIndex(index)}
+                      onClick={() => handleStageClick(index)}
                     >
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
@@ -361,19 +401,18 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                 </ul>
               </div>
 
-              <div className="w-full md:w-3/4">
+              <div className="w-full xl:w-3/4">
                 {activeStageIndex !== null && formData.stages && formData.stages[activeStageIndex] ? (
                   <div className="bg-white rounded border border-gray-200 p-4 space-y-4">
                     <div>
                       <label htmlFor={`stage-title-${activeStageIndex}`} className="block text-xs font-medium text-gray-700 mb-1">
                         Stage Title *
                       </label>
-                      <input
+                      <Input
                         type="text"
                         id={`stage-title-${activeStageIndex}`}
                         value={formData.stages?.[activeStageIndex]?.title || ''}
                         onChange={(e) => handleStageInputChange(activeStageIndex, 'title', e.target.value)}
-                        className="w-full p-1.5 text-sm border border-gray-300 rounded"
                         required
                       />
                     </div>
@@ -392,22 +431,11 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                     </div>
 
                     <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="block text-xs font-medium text-gray-700">
-                          Interview Considerations
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => handleAddConsideration(activeStageIndex)}
-                          className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                          </svg>
-                          Add Consideration
-                        </button>
-                      </div>
-                      <div className="space-y-4">
+                      <label className="block text-xs font-medium text-gray-700">
+                        Interview Considerations
+                      </label>
+                      <p className="text-xs italic">"Considerations are important traits for the role used by interviewers to rate candidates."</p>
+                      <div className="space-y-4 mb-2">
                         {formData.stages?.[activeStageIndex]?.considerations?.map((consideration, idx) => (
                           <div key={idx} className="border border-gray-200 rounded-md p-3 bg-gray-50">
                             <div className="flex justify-between items-start mb-2">
@@ -425,11 +453,10 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                             <div className="space-y-3">
                               <div>
                                 <label className="block text-xs font-medium text-gray-500 mb-1">Title</label>
-                                <input
+                                <Input
                                   type="text"
                                   value={consideration.title}
                                   onChange={(e) => handleConsiderationChange(activeStageIndex, idx, 'title', e.target.value)}
-                                  className="w-full p-1.5 text-sm border border-gray-300 rounded"
                                   placeholder="Enter consideration title"
                                 />
                               </div>
@@ -449,12 +476,28 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                           <p className="text-xs text-gray-500 italic">No considerations added yet.</p>
                         )}
                       </div>
+                      <div className="flex items-end justify-end mb-4">
+                        <Button
+                          type="button"
+                          onClick={() => handleAddConsideration(activeStageIndex)}
+                          variant="outline"
+                          className="!h-auto !py-1 !px-3 !text-sm"
+                          leadingIcon={
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
+                            </svg>
+                          }
+                        >
+                          Add Consideration
+                        </Button>
+                      </div>
                     </div>
 
                     <div>
                       <label htmlFor={`stage-email-${activeStageIndex}`} className="block text-xs font-medium text-gray-700 mb-1">
                         Email Template *
                       </label>
+                      <p className="text-xs italic">"This template can be sent to the candidate before the interview for this stage."</p>
                       <ReactQuill
                         theme="snow"
                         value={formData.stages?.[activeStageIndex]?.emailTemplate || ''}
@@ -479,8 +522,16 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                       />
                     </div>
                     
-                    <div className="mt-6 flex justify-end">
-                      <Button type="button" onClick={() => setActiveStageIndex(null)} variant="primary" leadingIcon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}>
+                    <div className="mt-6 flex justify-end space-x-2">
+                      <Button 
+                        type="button" 
+                        onClick={() => {
+                          handleSaveStage();
+                          setActiveStageIndex(null);
+                        }} 
+                        variant="primary" 
+                        leadingIcon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
+                      >
                         Save & Collapse
                       </Button>
                     </div>

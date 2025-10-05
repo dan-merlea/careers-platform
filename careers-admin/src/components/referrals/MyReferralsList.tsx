@@ -61,8 +61,6 @@ const MyReferralsList: React.FC = () => {
         return 'bg-purple-100 text-purple-800';
       case 'contacted':
         return 'bg-yellow-100 text-yellow-800';
-      case 'interviewing':
-        return 'bg-indigo-100 text-indigo-800';
       case 'debrief':
         return 'bg-orange-100 text-orange-800';
       case 'offered':
@@ -76,20 +74,28 @@ const MyReferralsList: React.FC = () => {
     }
   };
 
-  const getStatusProgress = (status: string): { label: string; percentage: number; color: string } => {
-    // Map status to approximate progress percentage
-    const statusMap: Record<string, { percentage: number; label: string; color: string }> = {
-      'new': { percentage: 10, label: 'Application Received', color: 'bg-blue-500' },
-      'reviewed': { percentage: 25, label: 'Under Review', color: 'bg-blue-500' },
-      'contacted': { percentage: 40, label: 'Contacted', color: 'bg-blue-500' },
-      'interviewing': { percentage: 60, label: 'Interviewing', color: 'bg-indigo-500' },
-      'debrief': { percentage: 75, label: 'In Debrief', color: 'bg-indigo-500' },
-      'offered': { percentage: 90, label: 'Offer Extended', color: 'bg-orange-500' },
-      'hired': { percentage: 100, label: 'Hired', color: 'bg-green-500' },
-      'rejected': { percentage: 0, label: 'Rejected', color: 'bg-red-500' },
+  const getStatusProgress = (referral: JobApplicant): { label: string; percentage: number; color: string } => {
+    // Use progress from backend
+    const percentage = referral.progress ?? 0;
+    
+    // Map status to label and color
+    const statusMap: Record<string, { label: string; color: string }> = {
+      'new': { label: 'Application Received', color: 'bg-blue-500' },
+      'reviewed': { label: 'Under Review', color: 'bg-blue-500' },
+      'contacted': { label: 'Contacted', color: 'bg-blue-500' },
+      'debrief': { label: 'In Debrief', color: 'bg-indigo-500' },
+      'offered': { label: 'Offer Extended', color: 'bg-orange-500' },
+      'hired': { label: 'Hired', color: 'bg-green-500' },
+      'rejected': { label: 'Rejected', color: 'bg-red-500' },
     };
     
-    return statusMap[status] || { percentage: 0, label: 'Unknown', color: 'bg-gray-500' };
+    const statusInfo = statusMap[referral.status] || { label: 'Unknown', color: 'bg-gray-500' };
+    
+    return {
+      percentage,
+      label: statusInfo.label,
+      color: statusInfo.color
+    };
   };
 
   if (isLoading) {
@@ -132,13 +138,13 @@ const MyReferralsList: React.FC = () => {
           {/* Progress Bar */}
           <div className="mt-3">
             <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-              <span>{getStatusProgress(referral.status).label}</span>
-              <span>{getStatusProgress(referral.status).percentage}%</span>
+              <span>{getStatusProgress(referral).label}</span>
+              <span>{getStatusProgress(referral).percentage}%</span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
-                className={`h-2 rounded-full transition-all duration-300 ${getStatusProgress(referral.status).color}`}
-                style={{ width: `${getStatusProgress(referral.status).percentage}%` }}
+                className={`h-2 rounded-full transition-all duration-300 ${getStatusProgress(referral).color}`}
+                style={{ width: `${getStatusProgress(referral).percentage}%` }}
               ></div>
             </div>
           </div>

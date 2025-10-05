@@ -257,7 +257,6 @@ const UsersPage: React.FC = () => {
                             {isAdmin ? (
                               <ActionsMenu
                                 buttonAriaLabel="User actions"
-                                buttonContent={<EllipsisHorizontalIcon className="w-5 h-5 text-gray-600" />}
                                 align="right"
                                 menuWidthPx={224}
                                 items={(() => {

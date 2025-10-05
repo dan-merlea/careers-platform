@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import interviewProcessService, { InterviewProcess } from '../services/interviewProcessService';
 import { formatDate } from '../utils/dateUtils';
 import { toast } from 'react-toastify';
 import Button from '../components/common/Button';
 import Card from '../components/common/Card';
+import ActionsMenu from '../components/common/ActionsMenu';
 
 const InterviewProcessDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -54,7 +55,7 @@ const InterviewProcessDetailPage: React.FC = () => {
     return (
       <div className="py-3">
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="animate-spin rounded-full h-12 w-12"></div>
         </div>
       </div>
     );
@@ -77,70 +78,80 @@ const InterviewProcessDetailPage: React.FC = () => {
 
   return (
     <div className="py-3">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <button 
-            onClick={() => navigate('/interviews?tab=processes')}
-            className="mr-4 p-2 hover:bg-gray-100 rounded-full"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-            </svg>
-          </button>
-          <h1 className="text-2xl font-bold text-gray-800 inline-block">{interviewProcess.jobRole.title}</h1>
-        </div>
-        <div className="flex space-x-2">
-          <Link
-            to={`/interview-processes/${id}/edit`}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-            </svg>
-            Edit
-          </Link>
-          <Button onClick={handleDelete} variant="primary" leadingIcon={<svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" /></svg>}>
-            Delete
-          </Button>
+      <div className="flex items-center mb-6">
+        <button 
+          onClick={() => navigate('/interviews?tab=processes')}
+          className="mr-4 p-2 hover:bg-gray-100 rounded-full"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+          </svg>
+        </button>
+        <h1 className="text-2xl font-bold text-gray-800">{interviewProcess.jobRole.title}</h1>
+        <div className="ml-4">
+          <ActionsMenu
+            items={[
+              {
+                label: 'Edit',
+                href: `/interview-processes/${id}/edit`,
+                icon: (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                ),
+              },
+              {
+                label: 'Delete',
+                onClick: handleDelete,
+                variant: 'danger',
+                icon: (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                ),
+              },
+            ]}
+          />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <Card className="border-t-4 border-blue-500">
-          <h2 className="text-lg font-semibold mb-4 text-blue-800">Process Details</h2>
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <div className="bg-blue-100 p-2 rounded-full mr-3">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500 block">Job Role</span>
-                <p className="font-medium text-lg">{interviewProcess.jobRole.title}</p>
-              </div>
+      {/* Process Details - Horizontal Layout */}
+      <Card className="mb-6">
+        <h2 className="text-lg font-semibold mb-4 text-blue-800">Process Details</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="flex items-center">
+            <div className="bg-blue-100 p-2 rounded-full mr-3">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
             </div>
             <div>
-              <span className="text-sm text-gray-500 block">Created By:</span>
-              <p className="font-medium">
-                {interviewProcess.createdBy 
-                  ? `${interviewProcess.createdBy.name} (${interviewProcess.createdBy.email})` 
-                  : 'System'}
-              </p>
-            </div>
-            <div>
-              <span className="text-sm text-gray-500 block">Created On:</span>
-              <p className="font-medium">{formatDate(interviewProcess.createdAt)}</p>
-            </div>
-            <div>
-              <span className="text-sm text-gray-500 block">Last Updated:</span>
-              <p className="font-medium">{formatDate(interviewProcess.updatedAt)}</p>
+              <span className="text-sm text-gray-500 block">Job Role</span>
+              <p className="font-medium">{interviewProcess.jobRole.title}</p>
             </div>
           </div>
-        </Card>
+          <div>
+            <span className="text-sm text-gray-500 block">Created By</span>
+            <p className="font-medium">
+              {interviewProcess.createdBy 
+                ? interviewProcess.createdBy.name
+                : 'System'}
+            </p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-500 block">Created On</span>
+            <p className="font-medium">{formatDate(interviewProcess.createdAt)}</p>
+          </div>
+          <div>
+            <span className="text-sm text-gray-500 block">Last Updated</span>
+            <p className="font-medium">{formatDate(interviewProcess.updatedAt)}</p>
+          </div>
+        </div>
+      </Card>
 
-        <Card className="md:col-span-2 border-t-4 border-blue-500">
-          <div className="-mx-6 -mt-6 mb-6 p-6 border-b border-gray-200 bg-blue-50">
+      {/* Interview Stages */}
+      <Card>
+          <div className="-mx-6 -mt-6 mb-6 p-6 border-b border-gray-200 bg-blue-50 rounded-t-2xl">
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-lg font-semibold text-blue-800">Interview Stages</h2>
@@ -258,7 +269,6 @@ const InterviewProcessDetailPage: React.FC = () => {
             </div>
           </div>
         </Card>
-      </div>
     </div>
   );
 };
