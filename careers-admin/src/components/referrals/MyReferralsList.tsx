@@ -53,48 +53,17 @@ const MyReferralsList: React.FC = () => {
     fetchReferrals();
   }, []);
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'new':
-        return 'bg-blue-100 text-blue-800';
-      case 'reviewed':
-        return 'bg-purple-100 text-purple-800';
-      case 'contacted':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'debrief':
-        return 'bg-orange-100 text-orange-800';
-      case 'offered':
-        return 'bg-orange-100 text-orange-800';
-      case 'hired':
-        return 'bg-green-100 text-green-800';
-      case 'rejected':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
+  
   const getStatusProgress = (referral: JobApplicant): { label: string; percentage: number; color: string } => {
     // Use progress from backend
     const percentage = referral.progress ?? 0;
     
-    // Map status to label and color
-    const statusMap: Record<string, { label: string; color: string }> = {
-      'new': { label: 'Application Received', color: 'bg-blue-500' },
-      'reviewed': { label: 'Under Review', color: 'bg-blue-500' },
-      'contacted': { label: 'Contacted', color: 'bg-blue-500' },
-      'debrief': { label: 'In Debrief', color: 'bg-indigo-500' },
-      'offered': { label: 'Offer Extended', color: 'bg-orange-500' },
-      'hired': { label: 'Hired', color: 'bg-green-500' },
-      'rejected': { label: 'Rejected', color: 'bg-red-500' },
-    };
-    
-    const statusInfo = statusMap[referral.status] || { label: 'Unknown', color: 'bg-gray-500' };
-    
+    const currentStage = referral.stages.find(stage => stage.id == referral.status)
+
     return {
       percentage,
-      label: statusInfo.label,
-      color: statusInfo.color
+      label: currentStage?.title ?? 'Unknown',
+      color: currentStage?.color ?? 'bg-gray-300',
     };
   };
 
@@ -129,7 +98,7 @@ const MyReferralsList: React.FC = () => {
               <p className="text-sm font-medium text-blue-600 truncate">
                 {referral.firstName} {referral.lastName}
               </p>
-              <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(referral.status)}`}>
+              <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusProgress(referral).color}`}>
                 {referral.status.charAt(0).toUpperCase() + referral.status.slice(1)}
               </span>
             </div>

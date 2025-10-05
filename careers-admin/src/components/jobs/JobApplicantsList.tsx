@@ -22,19 +22,10 @@ interface JobApplicantsListProps {
   jobId: string;
 }
 
-interface InterviewStageOption {
-  id: string;
-  title: string;
-  order: number;
-  processId: string;
-}
-
 const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
   const [applicants, setApplicants] = useState<JobApplicant[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [interviewStages, setInterviewStages] = useState<InterviewStageOption[]>([]);
-  const [isLoadingStages, setIsLoadingStages] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchApplicants = async () => {
@@ -62,187 +53,24 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
     
     fetchApplicants();
   }, [jobId]);
-  
-  useEffect(() => {
-    const fetchInterviewStages = async () => {
-      setIsLoadingStages(true);
-      try {
-        // First get the job to find its role ID
-        const job = await jobService.getJob(jobId);
-        
-        // Find the interview process for this job role
-        if (job && job.title) { // Use job.title instead of roleTitle
-          // Get all interview processes
-          const processes = await interviewProcessService.getAllProcesses();
-          
-          // Find processes that match the job role title
-          const matchingProcesses = processes.filter(process => 
-            process.jobRole.title.toLowerCase() === job.title.toLowerCase()
-          );
-          
-          if (matchingProcesses.length > 0) {
-            // Use the first matching process
-            const process = matchingProcesses[0];
-            
-            // Create standard initial statuses
-            const standardInitialStatuses: InterviewStageOption[] = [
-              { id: 'new', title: 'New', order: -2, processId: process.id },
-              { id: 'reviewed', title: 'Reviewed', order: -1, processId: process.id }
-            ];
-            
-            // Create stage options from the process stages
-            const processStages: InterviewStageOption[] = process.stages.map((stage, index) => ({
-              id: `stage-${index}`,
-              title: stage.title,
-              order: stage.order || index,
-              processId: process.id
-            }));
-            
-            // Create standard final statuses
-            const standardFinalStatuses: InterviewStageOption[] = [
-              { id: 'offered', title: 'Offered', order: 997, processId: process.id },
-              { id: 'hired', title: 'Hired', order: 998, processId: process.id },
-              { id: 'rejected', title: 'Rejected', order: 999, processId: process.id }
-            ];
-            
-            // Combine all statuses
-            const allStages = [...standardInitialStatuses, ...processStages, ...standardFinalStatuses];
-            
-            // Sort by order
-            allStages.sort((a, b) => a.order - b.order);
-            
-            setInterviewStages(allStages);
-            console.log(allStages);
-          } else {
-            // No matching process found, use default statuses
-            // Include standard initial statuses
-            const defaultInitialStatuses: InterviewStageOption[] = [
-              { id: 'new', title: 'New', order: 0, processId: '' },
-              { id: 'reviewed', title: 'Reviewed', order: 1, processId: '' }
-            ];
-            
-            // Include default interview stages
-            const defaultStages: InterviewStageOption[] = [
-              { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
-            ];
-            
-            // Include standard final statuses
-            const defaultFinalStatuses: InterviewStageOption[] = [
-              { id: 'offered', title: 'Offered', order: 3, processId: '' },
-              { id: 'hired', title: 'Hired', order: 4, processId: '' },
-              { id: 'rejected', title: 'Rejected', order: 5, processId: '' }
-            ];
-            
-            setInterviewStages([...defaultInitialStatuses, ...defaultStages, ...defaultFinalStatuses]);
-          }
-        } else {
-          // No job role found, use default statuses
-          // Include standard initial statuses
-          const defaultInitialStatuses: InterviewStageOption[] = [
-            { id: 'new', title: 'New', order: 0, processId: '' },
-            { id: 'reviewed', title: 'Reviewed', order: 1, processId: '' }
-          ];
-          
-          // Include default interview stages
-          const defaultStages: InterviewStageOption[] = [
-            { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
-          ];
-          
-          // Include standard final statuses
-          const defaultFinalStatuses: InterviewStageOption[] = [
-            { id: 'offered', title: 'Offered', order: 3, processId: '' },
-            { id: 'hired', title: 'Hired', order: 4, processId: '' },
-            { id: 'rejected', title: 'Rejected', order: 5, processId: '' }
-          ];
-          
-          setInterviewStages([...defaultInitialStatuses, ...defaultStages, ...defaultFinalStatuses]);
-        }
-      } catch (err) {
-        console.error('Error fetching interview stages:', err);
-        // Use default statuses as fallback
-        // Include standard initial statuses
-        const defaultInitialStatuses: InterviewStageOption[] = [
-          { id: 'new', title: 'New', order: 0, processId: '' },
-          { id: 'reviewed', title: 'Reviewed', order: 1, processId: '' }
-        ];
-        
-        // Include default interview stages
-        const defaultStages: InterviewStageOption[] = [
-          { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
-        ];
-        
-        // Include standard final statuses
-        const defaultFinalStatuses: InterviewStageOption[] = [
-          { id: 'offered', title: 'Offered', order: 3, processId: '' },
-          { id: 'hired', title: 'Hired', order: 4, processId: '' },
-          { id: 'rejected', title: 'Rejected', order: 5, processId: '' }
-        ];
-        
-        setInterviewStages([...defaultInitialStatuses, ...defaultStages, ...defaultFinalStatuses]);
-      } finally {
-        setIsLoadingStages(false);
-      }
-    };
-    
-    fetchInterviewStages();
-  }, [jobId]);
 
 
-  const getStatusBadgeClass = (status: string) => {
-    // Check if the status is one of the interview stages
-    const stageIndex = interviewStages.findIndex(stage => stage.id === status);
-    
-    if (stageIndex === -1) {
-      // If not found in stages, use the old status mapping
-      switch (status) {
-        case 'new':
-          return 'bg-blue-100 text-blue-800';
-        case 'reviewed':
-          return 'bg-purple-100 text-purple-800';
-        case 'contacted':
-          return 'bg-yellow-100 text-yellow-800';
-        case 'offered':
-          return 'bg-orange-100 text-orange-800';
-        case 'hired':
-          return 'bg-green-100 text-green-800';
-        case 'rejected':
-          return 'bg-red-100 text-red-800';
-        default:
-          return 'bg-gray-100 text-gray-800';
-      }
-    } else {
-      // For interview stages, use a color based on the stage order
-      const totalStages = interviewStages.length;
-      const stagePosition = stageIndex / (totalStages - 1); // 0 to 1 range
-      
-      if (status === 'rejected') {
-        return 'bg-red-100 text-red-800';
-      } else if (stagePosition < 0.33) {
-        return 'bg-blue-100 text-blue-800';
-      } else if (stagePosition < 0.66) {
-        return 'bg-indigo-100 text-indigo-800';
-      } else if (stagePosition < 0.9) {
-        return 'bg-orange-100 text-orange-800';
-      } else {
-        return 'bg-green-100 text-green-800';
-      }
-    }
+  const getStatusBadgeClass = (applicant: JobApplicant) => {
+    const stage = applicant.stages.find(stage => stage.id === applicant.status);
+    return stage?.color.replace('500', '100') + ' text-' + stage?.color.replace('500', '800');
   };
   
-  // Map the applicant status to a display stage
-  const mapStatusToDisplayStage = (status: JobApplicant['status']): string => {
-    // Find a matching interview stage by ID or title
-    const matchingStage = interviewStages.find(stage => 
-      stage.id === status || 
-      stage.title.toLowerCase() === status.toLowerCase()
+  const mapStatusToDisplayStage = (applicant: JobApplicant): string => {
+    const matchingStage = applicant.stages.find(stage => 
+      stage.id === applicant.status || 
+      stage.title.toLowerCase() === applicant.status.toLowerCase()
     );
     
     if (matchingStage) {
       return matchingStage.title;
     }
     
-    // If no matching stage found, return the status with first letter capitalized
-    return status.charAt(0).toUpperCase() + status.slice(1);
+    return applicant.status.charAt(0).toUpperCase() + applicant.status.slice(1);
   };
 
   if (isLoading) {
@@ -326,16 +154,9 @@ const JobApplicantsList: React.FC<JobApplicantsListProps> = ({ jobId }) => {
                 </div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {isLoadingStages ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500 mr-2"></div>
-                    <span className="text-sm text-gray-500">Loading stages...</span>
-                  </div>
-                ) : (
-                  <span className={`inline-flex text-xs font-semibold rounded-full px-2.5 py-0.5 ${getStatusBadgeClass(applicant.status)}`}>
-                    {mapStatusToDisplayStage(applicant.status)}
-                  </span>
-                )}
+                <span className={`inline-flex text-xs font-semibold rounded-full px-2.5 py-0.5 ${getStatusBadgeClass(applicant)}`}>
+                  {mapStatusToDisplayStage(applicant)}
+                </span>
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-center">
                 <ActionsMenu

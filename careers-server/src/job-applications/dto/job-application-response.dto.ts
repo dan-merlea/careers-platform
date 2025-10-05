@@ -4,6 +4,7 @@ export interface InterviewStageDto {
   order: number;
   processId: string;
   emailTemplate?: string;
+  color: string;
 }
 
 export class JobApplicationResponseDto {

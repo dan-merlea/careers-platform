@@ -1,15 +1,13 @@
 import { api, getAuthToken } from '../utils/api';
 import { API_URL } from '../config';
 
-// Valid application status values from the server
-export enum ApplicationStatus {
-  NEW = 'new',
-  REVIEWED = 'reviewed',
-  CONTACTED = 'contacted',
-  DEBRIEF = 'debrief',
-  OFFERED = 'offered',
-  HIRED = 'hired',
-  REJECTED = 'rejected',
+export interface InterviewStageOption {
+  id: string;
+  title: string;
+  order: number;
+  processId: string;
+  emailTemplate?: string;
+  color: string;
 }
 
 export interface JobApplicant {
@@ -25,6 +23,7 @@ export interface JobApplicant {
   updatedAt: string; // Date when the application was last updated
   status: string;
   progress?: number; // Application progress percentage (0-100)
+  stages: InterviewStageOption[]; // Complete list of stages for this application
   jobId: string;
   interviewerVisibility?: boolean; // Whether interviewers can see each other's feedback
   refereeId?: string; // ID of the user who referred this applicant

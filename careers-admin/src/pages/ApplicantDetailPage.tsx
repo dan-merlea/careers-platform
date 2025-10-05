@@ -43,7 +43,6 @@ const ApplicantDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [interviewStages, setInterviewStages] = useState<InterviewStageOption[]>([]);
-  const [isLoadingStages, setIsLoadingStages] = useState<boolean>(false);
   const [notes, setNotes] = useState<string>('');
   const [savedNote, setSavedNote] = useState<Note | null>(null);
   const [isLoadingNotes, setIsLoadingNotes] = useState<boolean>(false);
@@ -66,6 +65,12 @@ const ApplicantDetailPage: React.FC = () => {
       setActiveTab('details');
     }
   }, [tab]);
+
+  useEffect(() => {
+    if (applicant) {
+      fetchInterviewStages();
+    }
+  }, [applicant]);
 
   // Function to fetch scheduled interviews for the applicant
   const fetchScheduledInterviews = async () => {
@@ -112,9 +117,6 @@ const ApplicantDetailPage: React.FC = () => {
         const jobData = await jobService.getJob(applicantData.jobId);
         setJob(jobData);
         
-        // Fetch interview stages
-        await fetchInterviewStages(applicantData.jobId);
-        
         // Fetch notes for this applicant
         await fetchApplicantNotes(id);
 
@@ -131,87 +133,15 @@ const ApplicantDetailPage: React.FC = () => {
     fetchApplicant();
   }, [id]);
 
-  const fetchInterviewStages = async (jobId: string) => {
-    setIsLoadingStages(true);
-    try {
-      // First get the job to find its role ID
-      const job = await jobService.getJob(jobId);
+  const fetchInterviewStages = async () => {
+    if (applicant?.stages) {
+      setInterviewStages(applicant.stages);
       
-      // Find the interview process for this job role
-      if (job && job.title) {
-        // Get all interview processes
-        const processes = await interviewProcessService.getAllProcesses();
-        
-        // Find processes that match the job role title
-        const matchingProcesses = processes.filter(process => 
-          process.jobRole.title.toLowerCase() === job.title.toLowerCase()
-        );
-        
-        if (matchingProcesses.length > 0) {
-          // Use the first matching process
-          const process = matchingProcesses[0];
-          
-          // Store the process ID for use with interviews
-          setProcessId(process.id);
-          
-          // Create standard initial statuses
-          const standardInitialStatuses: InterviewStageOption[] = [
-            { id: 'new', title: 'New', order: -2, processId: process.id },
-            { id: 'reviewed', title: 'Reviewed', order: -1, processId: process.id }
-          ];
-          
-          // Create stage options from the process stages
-          const processStages: InterviewStageOption[] = process.stages.map((stage, index) => ({
-            id: `stage-${index}`,
-            title: stage.title,
-            order: stage.order || index,
-            processId: process.id,
-            emailTemplate: stage.emailTemplate
-          }));
-          
-          // Create standard final statuses
-          const standardFinalStatuses: InterviewStageOption[] = [
-            { id: 'debrief', title: 'Debrief', order: 996, processId: process.id },
-            { id: 'offered', title: 'Offered', order: 997, processId: process.id },
-            { id: 'hired', title: 'Hired', order: 998, processId: process.id },
-            { id: 'rejected', title: 'Rejected', order: 999, processId: process.id }
-          ];
-          
-          // Combine all statuses
-          const allStages = [...standardInitialStatuses, ...processStages, ...standardFinalStatuses];
-          
-          // Sort by order
-          allStages.sort((a, b) => a.order - b.order);
-          
-          setInterviewStages(allStages);
-        } else {
-          // No matching process found, use default statuses
-          setInterviewStages([
-            { id: 'new', title: 'New', order: 0, processId: '' },
-            { id: 'reviewed', title: 'Reviewed', order: 1, processId: '' },
-            { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
-            { id: 'interviewing', title: 'Interviewing', order: 3, processId: '' },
-            { id: 'debrief', title: 'Debrief', order: 4, processId: '' },
-            { id: 'offered', title: 'Offered', order: 5, processId: '' },
-            { id: 'hired', title: 'Hired', order: 6, processId: '' },
-            { id: 'rejected', title: 'Rejected', order: 7, processId: '' }
-          ]);
-        }
+      // Extract processId from stages if available
+      const stageWithProcessId = applicant.stages.find(stage => stage.processId);
+      if (stageWithProcessId) {
+        setProcessId(stageWithProcessId.processId);
       }
-    } catch (err) {
-      console.error('Error fetching interview stages:', err);
-      // Use default statuses as fallback
-      setInterviewStages([
-        { id: 'new', title: 'New', order: 0, processId: '' },
-        { id: 'reviewed', title: 'Reviewed', order: 1, processId: '' },
-        { id: 'contacted', title: 'Contacted', order: 2, processId: '' },
-        { id: 'debrief', title: 'Debrief', order: 3, processId: '' },
-        { id: 'offered', title: 'Offered', order: 4, processId: '' },
-        { id: 'hired', title: 'Hired', order: 5, processId: '' },
-        { id: 'rejected', title: 'Rejected', order: 6, processId: '' }
-      ]);
-    } finally {
-      setIsLoadingStages(false);
     }
   };
 
@@ -459,25 +389,19 @@ const ApplicantDetailPage: React.FC = () => {
                       <p className="font-medium">{formatDate(applicant.updatedAt)}</p>
                     </div>
                   </div>
-                  
-                  {isLoadingStages ? (
-                    <div className="flex justify-center items-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-                    </div>
-                  ) : (
-                    <div className="bg-white shadow rounded-lg overflow-hidden">
-                      <ApplicantStagesList 
-                        stages={interviewStages}
-                        currentStage={applicant.status}
-                        onStageChange={handleStatusChange}
-                        applicantName={`${applicant.firstName} ${applicant.lastName}`}
-                        jobTitle={job?.title || 'the position'}
-                        applicationId={id || ''}
-                        candidateEmail={applicant.email}
-                        processId={processId}
-                      />
-                    </div>
-                  )}
+
+                  <div className="bg-white shadow rounded-lg overflow-hidden">
+                    <ApplicantStagesList 
+                      stages={interviewStages}
+                      currentStage={applicant.status}
+                      onStageChange={handleStatusChange}
+                      applicantName={`${applicant.firstName} ${applicant.lastName}`}
+                      jobTitle={job?.title || 'the position'}
+                      applicationId={id || ''}
+                      candidateEmail={applicant.email}
+                      processId={processId}
+                    />
+                  </div>
                 </div>
             </Card>
           </div>
@@ -564,7 +488,7 @@ const ApplicantDetailPage: React.FC = () => {
                             </span>
                           </div>
                         </div>
-                        <div className="overflow-hidden h-2 mb-1 text-xs flex rounded bg-green-200 mt-1">
+                        <div className="overflow-hidden h-2 mb-1 text-xs flex rounded bg-green-200 mt-2">
                           <div 
                             style={{ width: `${getStageProgress()}%` }} 
                             className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500"
