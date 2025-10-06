@@ -10,7 +10,7 @@ import {
   JobApplicationDocument,
   Interview,
 } from '../job-applications/schemas/job-application.schema';
-import { Job, JobDocument } from '../jobs/schemas/job.schema';
+import { Job, JobDocument } from '../job/job.entity';
 
 // Interview data transfer object
 export interface InterviewDto {

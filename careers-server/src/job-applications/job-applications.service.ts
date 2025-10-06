@@ -18,7 +18,10 @@ import {
 } from './schemas/job-application.schema';
 import { CreateJobApplicationDto } from './dto/create-job-application.dto';
 import { CreateReferralDto } from './dto/create-referral.dto';
-import { InterviewStageDto, JobApplicationResponseDto } from './dto/job-application-response.dto';
+import {
+  InterviewStageDto,
+  JobApplicationResponseDto,
+} from './dto/job-application-response.dto';
 import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
 import { CreateNoteDto } from './dto/create-note.dto';
 import { NoteDto } from './dto/note.dto';
@@ -27,6 +30,7 @@ import { InterviewDto } from './dto/get-interview.dto';
 import { User } from '../users/schemas/user.schema';
 import { GridFsService } from '../gridfs/gridfs.service';
 import { NotificationGeneratorService } from '../notifications/notification-generator.service';
+import { Job, JobDocument } from '../job/job.entity';
 
 interface MulterFile {
   fieldname: string;
@@ -45,16 +49,24 @@ export class JobApplicationsService {
   constructor(
     @InjectModel(JobApplication.name)
     private jobApplicationModel: Model<JobApplicationDocument>,
+    @InjectModel(Job.name)
+    private jobModel: Model<JobDocument>,
     @InjectModel(User.name) private userModel: Model<User>,
     private readonly gridFsService: GridFsService,
     private readonly calendarProviderService: CalendarProviderService,
-    private readonly notificationGenerator: NotificationGeneratorService,
+    private readonly notificationGeneratorService: NotificationGeneratorService,
   ) {}
 
   async create(
     createJobApplicationDto: CreateJobApplicationDto,
     file: MulterFile,
   ): Promise<JobApplicationResponseDto> {
+    // Fetch the job to get the companyId
+    const job = await this.jobModel.findById(createJobApplicationDto.jobId);
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
     // Calculate consent expiration date
     const consentExpiresAt = new Date();
     consentExpiresAt.setMonth(
@@ -74,6 +86,7 @@ export class JobApplicationsService {
       resumeFilename: file.originalname,
       resumeMimeType: file.mimetype,
       consentExpiresAt,
+      companyId: job.companyId,
       status: 'new', // Automatically set status to 'new'
       source: createJobApplicationDto.source || 'careers-page', // Use provided source or default
     });
@@ -306,9 +319,7 @@ export class JobApplicationsService {
         { id: 'hired', order: 1002 },
       ];
 
-      let customStages: any[] = [
-        { id: 'interviewing', order: 0 },
-      ];
+      let customStages: any[] = [{ id: 'interviewing', order: 0 }];
 
       // Get the job to find its interview process
       const job = await this.jobApplicationModel.db
@@ -890,7 +901,13 @@ export class JobApplicationsService {
 
       let processId = '';
       let customStages: InterviewStageDto[] = [
-        { id: 'interviewing', title: 'Interviewing', order: 0, processId: processId, color: 'bg-indigo-500' },
+        {
+          id: 'interviewing',
+          title: 'Interviewing',
+          order: 0,
+          processId: processId,
+          color: 'bg-indigo-500',
+        },
       ];
 
       if (job && job.interviewProcessId) {
@@ -913,7 +930,7 @@ export class JobApplicationsService {
               order: stage.order || index,
               processId,
               emailTemplate: stage.emailTemplate,
-              color: 'bg-indigo-500'
+              color: 'bg-indigo-500',
             }),
           );
         }
@@ -922,13 +939,31 @@ export class JobApplicationsService {
       // Standard initial stages
       const standardInitialStages = [
         { id: 'new', title: 'New', order: -2, processId, color: 'bg-blue-500' },
-        { id: 'reviewed', title: 'Reviewed', order: -1, processId, color: 'bg-blue-500' },
+        {
+          id: 'reviewed',
+          title: 'Reviewed',
+          order: -1,
+          processId,
+          color: 'bg-blue-500',
+        },
       ];
 
       // Standard final stages
       const standardFinalStages = [
-        { id: 'debrief', title: 'Debrief', order: 996, processId, color: 'bg-pink-500' },
-        { id: 'offered', title: 'Offered', order: 997, processId, color: 'bg-orange-500' },
+        {
+          id: 'debrief',
+          title: 'Debrief',
+          order: 996,
+          processId,
+          color: 'bg-pink-500',
+        },
+        {
+          id: 'offered',
+          title: 'Offered',
+          order: 997,
+          processId,
+          color: 'bg-orange-500',
+        },
         {
           id: 'hired',
           title: 'Hired',

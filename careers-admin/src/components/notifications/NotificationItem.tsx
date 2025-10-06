@@ -49,20 +49,27 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
   const timeAgo = formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true });
 
   return (
-    <li className={`${!notification.read ? 'bg-blue-50' : ''}`}>
+    <li className={`${!notification.read ? 'bg-blue-50/30' : ''} transition-colors`}>
       <Link 
         to={link} 
-        className="block hover:bg-gray-50"
+        className="block hover:bg-gray-50/50 transition-colors"
         onClick={handleClick}
       >
-        <div className="px-4 py-4 flex items-start">
+        <div className="px-6 py-4 flex items-start">
           <div className="flex-shrink-0 pt-0.5">
-            {getIcon()}
+            <div className={`p-2 rounded-lg ${!notification.read ? 'bg-white shadow-sm' : 'bg-gray-50'}`}>
+              {getIcon()}
+            </div>
           </div>
-          <div className="ml-3 w-0 flex-1">
-            <p className="text-sm font-medium text-gray-900">{notification.title}</p>
-            <p className="mt-1 text-sm text-gray-500">{notification.message}</p>
-            <p className="mt-1 text-xs text-gray-400">{timeAgo}</p>
+          <div className="ml-4 w-0 flex-1">
+            <div className="flex items-start justify-between">
+              <p className="text-sm font-semibold text-gray-900">{notification.title}</p>
+              {!notification.read && (
+                <span className="ml-2 flex-shrink-0 inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
+              )}
+            </div>
+            <p className="mt-1 text-sm text-gray-600">{notification.message}</p>
+            <p className="mt-2 text-xs text-gray-400">{timeAgo}</p>
           </div>
         </div>
       </Link>

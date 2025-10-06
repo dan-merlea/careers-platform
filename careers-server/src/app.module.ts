@@ -14,6 +14,7 @@ import { InterviewsModule } from './interviews/interviews.module';
 import { UserLogsModule } from './user-logs/user-logs.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { AuthModule } from './auth/auth.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { UserLogsInterceptor } from './user-logs/user-logs.interceptor';
@@ -37,6 +38,7 @@ import { AnalyticsInterceptor } from './analytics/interceptors/analytics.interce
     UserLogsModule,
     NotificationsModule,
     AnalyticsModule,
+    DashboardModule,
     AuthModule,
   ],
   controllers: [AppController],

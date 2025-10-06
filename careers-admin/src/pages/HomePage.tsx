@@ -1,28 +1,95 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { api } from '../utils/api';
-import { useAuth } from '../context/AuthContext';
+import Card from '../components/common/Card';
+import ReferralsWidget from '../components/dashboard/ReferralsWidget';
+import InterviewsWidget from '../components/dashboard/InterviewsWidget';
+import HeadcountRequestsWidget from '../components/dashboard/HeadcountRequestsWidget';
+import NewCandidatesWidget from '../components/dashboard/NewCandidatesWidget';
+import { 
+  CalendarIcon, 
+  BriefcaseIcon, 
+  DocumentTextIcon, 
+  UserPlusIcon,
+  ArrowUpIcon,
+  ArrowDownIcon
+} from '@heroicons/react/24/outline';
 
 // Define types for our dashboard data
 interface DashboardStats {
-  users: {
+  interviews: {
     total: number;
-    growth: number;
-    premium: number;
+    change: number;
+    changeType: 'increase' | 'decrease';
   };
   jobs: {
     active: number;
-    growth: number;
+    change: number;
+    changeType: 'increase' | 'decrease';
   };
   applications: {
     total: number;
-    growth: number;
+    change: number;
+    changeType: 'increase' | 'decrease';
+  };
+  referrals: {
+    total: number;
+    change: number;
+    changeType: 'increase' | 'decrease';
   };
   recentActivity: Array<{
     id: string;
     type: string;
     description: string;
     date: string;
+  }>;
+  userReferrals: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    jobId: string;
+    status: string;
+    progress: number;
+    createdAt: string;
+    stages: Array<{
+      id: string;
+      title: string;
+      order: number;
+      color: string;
+    }>;
+  }>;
+  userInterviews: Array<{
+    id: string;
+    scheduledDate: string;
+    title: string;
+    description?: string;
+    interviewers: Array<{
+      userId: string;
+      name: string;
+    }>;
+    stage: string;
+    status: string;
+    applicantId: string;
+    applicantName: string;
+    jobTitle: string;
+    createdAt: string;
+  }>;
+  headcountRequests: Array<{
+    id: string;
+    title: string;
+    department: string;
+    requestedBy: string;
+    status: string;
+    createdAt: string;
+  }>;
+  newCandidates: Array<{
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    jobId: string;
+    jobTitle: string;
+    createdAt: string;
   }>;
 }
 
@@ -31,10 +98,6 @@ const HomePage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>('');
-  const { userRole } = useAuth();
-  
-  // Check if user is a manager (can create headcount requests)
-  const canCreateHeadcount = userRole === 'manager' || userRole === 'admin';
   
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -51,18 +114,6 @@ const HomePage: React.FC = () => {
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
         setError('Failed to load dashboard data. Please try again later.');
-        
-        // For demo purposes, set mock data if API fails
-        setStats({
-          users: { total: 1254, growth: 12, premium: 287 },
-          jobs: { active: 423, growth: 5 },
-          applications: { total: 3752, growth: 18 },
-          recentActivity: [
-            { id: '1', type: 'user', description: 'New user registered', date: '2025-08-15T10:30:00Z' },
-            { id: '2', type: 'job', description: 'New job posted', date: '2025-08-15T09:45:00Z' },
-            { id: '3', type: 'application', description: 'Application submitted', date: '2025-08-15T08:20:00Z' },
-          ]
-        });
       } finally {
         setLoading(false);
       }
@@ -114,131 +165,150 @@ const HomePage: React.FC = () => {
         <div className="text-sm text-gray-500">Last updated: {lastUpdated}</div>
       </div>
       
-      {/* Quick Actions Section */}
-      {canCreateHeadcount && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-800 mb-4">Quick Actions</h2>
-          <div className="flex flex-wrap gap-4">
-            <Link 
-              to="/headcount/new" 
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-              </svg>
-              New Headcount Request
-            </Link>
-          </div>
-        </div>
-      )}
-      
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Stats Cards */}
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-          <div className="text-sm font-medium text-gray-500">Total Users</div>
-          <div className="mt-2 flex items-baseline">
-            <span className="text-3xl font-bold text-gray-900">{stats?.users.total.toLocaleString()}</span>
-            <span className="ml-2 text-sm text-green-600">+{stats?.users.growth}%</span>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-          <div className="text-sm font-medium text-gray-500">Active Jobs</div>
-          <div className="mt-2 flex items-baseline">
-            <span className="text-3xl font-bold text-gray-900">{stats?.jobs.active.toLocaleString()}</span>
-            <span className="ml-2 text-sm text-green-600">+{stats?.jobs.growth}%</span>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
-          <div className="text-sm font-medium text-gray-500">Applications</div>
-          <div className="mt-2 flex items-baseline">
-            <span className="text-3xl font-bold text-gray-900">{stats?.applications.total.toLocaleString()}</span>
-            <span className="ml-2 text-sm text-green-600">+{stats?.applications.growth}%</span>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
-          <div className="text-sm font-medium text-gray-500">Premium Users</div>
-          <div className="mt-2 flex items-baseline">
-            <span className="text-3xl font-bold text-gray-900">{stats?.users.premium.toLocaleString()}</span>
-            <span className="ml-2 text-sm text-green-600">+{stats?.users.growth}%</span>
-          </div>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-800 mb-4">Recent Activity</h2>
-          <div className="border-t border-gray-200">
-            {stats?.recentActivity && stats.recentActivity.length > 0 ? (
-              <div className="divide-y divide-gray-200">
-                {stats.recentActivity.map(activity => (
-                  <div key={activity.id} className="py-3 flex items-center">
-                    <div className="flex-shrink-0">
-                      {activity.type === 'user' && (
-                        <div className="bg-blue-100 p-2 rounded-full">
-                          <svg className="h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                          </svg>
-                        </div>
-                      )}
-                      {activity.type === 'job' && (
-                        <div className="bg-green-100 p-2 rounded-full">
-                          <svg className="h-4 w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      )}
-                      {activity.type === 'application' && (
-                        <div className="bg-purple-100 p-2 rounded-full">
-                          <svg className="h-4 w-4 text-purple-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900">{activity.description}</p>
-                      <p className="text-xs text-gray-500">{new Date(activity.date).toLocaleString()}</p>
-                    </div>
-                  </div>
-                ))}
+        {/* Interviews */}
+        <Card className="hover:shadow-xl transition-shadow">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
+                <CalendarIcon className="h-5 w-5 text-blue-500" />
+                <span>Interviews</span>
               </div>
-            ) : (
-              <p className="py-4 text-gray-500 text-center">No recent activity</p>
-            )}
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-lg font-medium text-gray-800 mb-4">User Growth</h2>
-          <div className="border-t border-gray-200">
-            <div className="py-4">
-              <div className="flex justify-between mb-1">
-                <span className="text-sm font-medium text-gray-700">Total Users</span>
-                <span className="text-sm font-medium text-gray-700">{stats?.users.total}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: '75%' }}></div>
-              </div>
-              
-              <div className="flex justify-between mb-1 mt-4">
-                <span className="text-sm font-medium text-gray-700">Premium Users</span>
-                <span className="text-sm font-medium text-gray-700">{stats?.users.premium}</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-yellow-500 h-2.5 rounded-full" style={{ width: '25%' }}></div>
-              </div>
-              
-              <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600">Monthly growth rate: +{stats?.users.growth}%</p>
+              <div className="text-3xl font-bold text-gray-900">{stats?.interviews.total}</div>
+              <div className="mt-2 flex items-center gap-1 text-sm">
+                {stats?.interviews.changeType === 'increase' ? (
+                  <ArrowUpIcon className="h-4 w-4 text-green-500" />
+                ) : (
+                  <ArrowDownIcon className="h-4 w-4 text-red-500" />
+                )}
+                <span className={stats?.interviews.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}>
+                  {stats?.interviews.change}
+                </span>
+                <span className="text-gray-500">vs yesterday</span>
               </div>
             </div>
           </div>
-        </div>
+        </Card>
+
+        {/* Active Jobs */}
+        <Card className="hover:shadow-xl transition-shadow">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
+                <BriefcaseIcon className="h-5 w-5 text-green-500" />
+                <span>Active Jobs</span>
+              </div>
+              <div className="text-3xl font-bold text-gray-900">{stats?.jobs.active}</div>
+              <div className="mt-2 flex items-center gap-1 text-sm">
+                {stats?.jobs.changeType === 'increase' ? (
+                  <ArrowUpIcon className="h-4 w-4 text-green-500" />
+                ) : (
+                  <ArrowDownIcon className="h-4 w-4 text-red-500" />
+                )}
+                <span className={stats?.jobs.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}>
+                  {stats?.jobs.change}
+                </span>
+                <span className="text-gray-500">vs yesterday</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Applications */}
+        <Card className="hover:shadow-xl transition-shadow">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
+                <DocumentTextIcon className="h-5 w-5 text-purple-500" />
+                <span>Applications</span>
+              </div>
+              <div className="text-3xl font-bold text-gray-900">{stats?.applications.total}</div>
+              <div className="mt-2 flex items-center gap-1 text-sm">
+                {stats?.applications.changeType === 'increase' ? (
+                  <ArrowUpIcon className="h-4 w-4 text-green-500" />
+                ) : (
+                  <ArrowDownIcon className="h-4 w-4 text-red-500" />
+                )}
+                <span className={stats?.applications.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}>
+                  {stats?.applications.change}
+                </span>
+                <span className="text-gray-500">vs yesterday</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* Referrals */}
+        <Card className="hover:shadow-xl transition-shadow">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-sm font-medium text-gray-500 mb-2">
+                <UserPlusIcon className="h-5 w-5 text-orange-500" />
+                <span>Referrals</span>
+              </div>
+              <div className="text-3xl font-bold text-gray-900">{stats?.referrals.total}</div>
+              <div className="mt-2 flex items-center gap-1 text-sm">
+                {stats?.referrals.changeType === 'increase' ? (
+                  <ArrowUpIcon className="h-4 w-4 text-green-500" />
+                ) : (
+                  <ArrowDownIcon className="h-4 w-4 text-red-500" />
+                )}
+                <span className={stats?.referrals.changeType === 'increase' ? 'text-green-600' : 'text-red-600'}>
+                  {stats?.referrals.change}
+                </span>
+                <span className="text-gray-500">vs yesterday</span>
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
+      
+      {/* Referrals and Interviews Widgets */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ReferralsWidget referrals={stats?.userReferrals || []} />
+        <InterviewsWidget interviews={stats?.userInterviews || []} />
+      </div>
+
+      {/* Headcount Requests and New Candidates Widgets */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <HeadcountRequestsWidget requests={stats?.headcountRequests || []} />
+        <NewCandidatesWidget candidates={stats?.newCandidates || []} />
+      </div>
+
+      {/* Recent Activity */}
+      {stats?.recentActivity && stats.recentActivity.length > 0 && (
+        <Card>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h2>
+          <div className="divide-y divide-gray-200">
+            {stats.recentActivity.map(activity => (
+              <div key={activity.id} className="py-3 flex items-center">
+                <div className="flex-shrink-0">
+                  {activity.type === 'application' && (
+                    <div className="bg-purple-100 p-2 rounded-full">
+                      <DocumentTextIcon className="h-4 w-4 text-purple-600" />
+                    </div>
+                  )}
+                  {activity.type === 'job' && (
+                    <div className="bg-green-100 p-2 rounded-full">
+                      <BriefcaseIcon className="h-4 w-4 text-green-600" />
+                    </div>
+                  )}
+                  {activity.type === 'interview' && (
+                    <div className="bg-blue-100 p-2 rounded-full">
+                      <CalendarIcon className="h-4 w-4 text-blue-600" />
+                    </div>
+                  )}
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-900">{activity.description}</p>
+                  <p className="text-xs text-gray-500">{new Date(activity.date).toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 };

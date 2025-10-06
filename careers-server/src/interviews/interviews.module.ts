@@ -7,7 +7,7 @@ import { InterviewsController } from './interviews.controller';
 import { InterviewFeedbackController } from './interview-feedback.controller';
 import { InterviewsService } from './interviews.service';
 import { JobApplication, JobApplicationSchema } from '../job-applications/schemas/job-application.schema';
-import { Job, JobSchema } from '../jobs/schemas/job.schema';
+import { Job, JobSchema } from '../job/job.entity';
 
 @Module({
   imports: [

@@ -149,7 +149,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
 
   // Determine sidebar classes based on mobile state and isOpen
   const sidebarClasses = isMobile 
-    ? `fixed inset-y-0 left-0 z-40 bg-white flex flex-col w-full md:w-80 md:inset-y-4 md:left-4 md:rounded-3xl transform ${isOpen ? 'translate-x-0' : 'md:-translate-x-[400px] sm:-translate-x-full'} transition-transform duration-300 ease-in-out shadow-lg`
+    ? `fixed inset-y-0 left-0 z-40 bg-white flex flex-col w-full md:w-80 md:inset-y-4 md:left-4 md:rounded-3xl transform ${isOpen ? 'translate-x-0' : 'md:-translate-x-[600px] -translate-x-full'} transition-transform duration-300 ease-in-out shadow-lg`
     : 'w-64 h-full bg-white/50 border border-white flex flex-col rounded-2xl shadow-lg';
 
   return (

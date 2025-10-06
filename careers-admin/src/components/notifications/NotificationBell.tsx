@@ -25,9 +25,19 @@ const NotificationBell: React.FC = () => {
       </button>
 
       {isOpen && (
-        <div className="origin-top-right absolute right-0 mt-2 w-80 md:w-96 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
-          <NotificationPanel onClose={() => setIsOpen(false)} />
-        </div>
+        <>
+          {/* Backdrop for mobile */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-25 z-40 md:hidden"
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
+          
+          {/* Notification Panel */}
+          <div className="fixed inset-x-4 top-16 md:absolute md:inset-x-auto md:top-auto md:right-0 md:mt-2 w-auto md:w-96 rounded-2xl shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+            <NotificationPanel onClose={() => setIsOpen(false)} />
+          </div>
+        </>
       )}
     </div>
   );
