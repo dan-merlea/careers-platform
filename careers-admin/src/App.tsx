@@ -21,7 +21,6 @@ import JobDetailPage from './pages/JobDetailPage';
 import HeadcountListPage from './pages/HeadcountListPage';
 import HeadcountRequestForm from './pages/HeadcountRequestForm';
 import DebugJobApplications from './pages/DebugJobApplications';
-import DebugUserManagement from './pages/DebugUserManagement';
 import InterviewsPage from './pages/InterviewsPage';
 import InterviewProcessCreatePage from './pages/InterviewProcessCreatePage';
 import InterviewProcessEditPage from './pages/InterviewProcessEditPage';
@@ -310,7 +309,6 @@ const AppRoutes: React.FC = () => {
                 element={
                   <RoleGuard requiredRoles={['admin']} showUnauthorized>
                     <DebugJobApplications />
-                    <DebugUserManagement />
                   </RoleGuard>
                 }
               />
