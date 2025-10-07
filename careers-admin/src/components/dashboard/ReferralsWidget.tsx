@@ -36,7 +36,7 @@ const ReferralsWidget: React.FC<ReferralsWidgetProps> = ({ referrals }) => {
   }
 
   const getStageColor = (stage: { color: string } | undefined): string => {
-    return stage?.color || 'bg-gray-500';
+    return stage?.color || 'bg-gray-200';
   };
 
   return (
@@ -75,7 +75,7 @@ const ReferralsWidget: React.FC<ReferralsWidgetProps> = ({ referrals }) => {
                   </div>
                 </div>
                 <span className={`ml-2 px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0 ${getStageColor(currentStage)}`}>
-                  {currentStage?.title || referral.status}
+                  {currentStage?.title || referral.status.toUpperCase()}
                 </span>
               </div>
 

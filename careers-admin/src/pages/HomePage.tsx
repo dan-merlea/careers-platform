@@ -324,24 +324,37 @@ const HomePage: React.FC = () => {
         </Card>
       </div>
       
-      {/* Suggestions Widget */}
-      <SuggestionsWidget suggestions={stats?.suggestions || []} />
+      {/* Masonry/Pinterest Layout for Widgets */}
+      <div className="columns-1 md:columns-2 lg:columns-3 gap-6 space-y-6">
+        {/* Suggestions Widget */}
+        <div className="break-inside-avoid">
+          <SuggestionsWidget suggestions={stats?.suggestions || []} />
+        </div>
 
-      {/* Referrals and Interviews Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ReferralsWidget referrals={stats?.userReferrals || []} />
-        <InterviewsWidget interviews={stats?.userInterviews || []} />
-      </div>
+        {/* Referrals Widget */}
+        <div className="break-inside-avoid">
+          <ReferralsWidget referrals={stats?.userReferrals || []} />
+        </div>
 
-      {/* Job Approvals and Headcount Requests Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <JobApprovalsWidget jobs={stats?.pendingJobApprovals || []} />
-        <HeadcountRequestsWidget requests={stats?.headcountRequests || []} />
-      </div>
+        {/* Interviews Widget */}
+        <div className="break-inside-avoid">
+          <InterviewsWidget interviews={stats?.userInterviews || []} />
+        </div>
 
-      {/* New Candidates Widget */}
-      <div className="grid grid-cols-1 gap-6">
-        <NewCandidatesWidget candidates={stats?.newCandidates || []} />
+        {/* Job Approvals Widget */}
+        <div className="break-inside-avoid">
+          <JobApprovalsWidget jobs={stats?.pendingJobApprovals || []} />
+        </div>
+
+        {/* Headcount Requests Widget */}
+        <div className="break-inside-avoid">
+          <HeadcountRequestsWidget requests={stats?.headcountRequests || []} />
+        </div>
+
+        {/* New Candidates Widget */}
+        <div className="break-inside-avoid">
+          <NewCandidatesWidget candidates={stats?.newCandidates || []} />
+        </div>
       </div>
 
       {/* Recent Activity */}
