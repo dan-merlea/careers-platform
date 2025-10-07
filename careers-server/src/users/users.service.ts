@@ -193,6 +193,18 @@ export class UsersService {
     }));
   }
 
+  async findByCompany(companyId: string) {
+    const users = await this.userModel.find({ companyId }).exec();
+    return users.map((user) => ({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      departmentId: user.departmentId,
+      companyId: user.companyId,
+    }));
+  }
+
   async updateRole(id: string, role: string) {
     // Validate that the role is a valid UserRole
     if (!Object.values(UserRole).includes(role as UserRole)) {
@@ -318,6 +330,28 @@ export class UsersService {
       email: updatedUser.email,
       role: updatedUser.role,
       departmentId: updatedUser.departmentId,
+      companyId: updatedUser.companyId,
+    };
+  }
+
+  async updateStatus(userId: string, isActive: boolean) {
+    const user = await this.userModel.findById(userId).exec();
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Update active status
+    (user as any).isActive = isActive;
+    const updatedUser = await user.save();
+
+    return {
+      id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      isActive: (updatedUser as any).isActive,
+      companyId: updatedUser.companyId,
     };
   }
 

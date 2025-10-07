@@ -6,6 +6,11 @@ import { Job } from '../job/job.entity';
 import { HeadcountRequest } from '../headcount/headcount-request.model';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../users/schemas/user.schema';
+import { Company } from '../company/company.schema';
+import { JobRole } from '../company/schemas/job-role.schema';
+import { InterviewProcess } from '../interviews/interview-process.entity';
+import { Department } from '../company/schemas/department.schema';
+import { CalendarCredentials } from '../calendar/schemas/calendar-credentials.schema';
 
 export interface DashboardStats {
   interviews: {
@@ -40,6 +45,7 @@ export interface DashboardStats {
     lastName: string;
     email: string;
     jobId: string;
+    jobTitle: string;
     status: string;
     progress: number;
     createdAt: string;
@@ -83,6 +89,23 @@ export interface DashboardStats {
     jobTitle: string;
     createdAt: string;
   }>;
+  pendingJobApprovals: Array<{
+    id: string;
+    title: string;
+    department: string;
+    requestedBy: string;
+    requestedByName: string;
+    status: string;
+    createdAt: string;
+  }>;
+  suggestions: Array<{
+    id: string;
+    type: 'interview_process' | 'company_details' | 'department_assignment' | 'calendar_integration';
+    title: string;
+    description: string;
+    actionText: string;
+    actionLink: string;
+  }>;
 }
 
 @Injectable()
@@ -94,6 +117,16 @@ export class DashboardService {
     private jobModel: Model<Job>,
     @InjectModel(HeadcountRequest.name)
     private headcountRequestModel: Model<HeadcountRequest>,
+    @InjectModel(Company.name)
+    private companyModel: Model<Company>,
+    @InjectModel(JobRole.name)
+    private jobRoleModel: Model<JobRole>,
+    @InjectModel(InterviewProcess.name)
+    private interviewProcessModel: Model<InterviewProcess>,
+    @InjectModel(Department.name)
+    private departmentModel: Model<Department>,
+    @InjectModel(CalendarCredentials.name)
+    private calendarCredentialsModel: Model<CalendarCredentials>,
     private usersService: UsersService,
   ) {}
 
@@ -234,6 +267,7 @@ export class DashboardService {
       })
       .sort({ createdAt: -1 })
       .limit(3)
+      .populate('jobId', 'title')
       .exec();
 
     const userReferrals = userReferralsData.map((app: any) => {
@@ -243,7 +277,8 @@ export class DashboardService {
         firstName: app.firstName,
         lastName: app.lastName,
         email: app.email,
-        jobId: typeof app.jobId === 'string' ? app.jobId : app.jobId.toString(),
+        jobId: typeof app.jobId === 'string' ? app.jobId : app.jobId._id.toString(),
+        jobTitle: app.jobId?.title || 'Unknown Position',
         status: app.status,
         progress: app.progress || 0,
         createdAt: app.createdAt.toISOString(),
@@ -367,6 +402,133 @@ export class DashboardService {
       });
     }
 
+    // Get pending job approvals (only for approvers: ADMIN, DIRECTOR)
+    const pendingJobApprovals: Array<{
+      id: string;
+      title: string;
+      department: string;
+      requestedBy: string;
+      requestedByName: string;
+      status: string;
+      createdAt: string;
+    }> = [];
+    if (userRole === UserRole.ADMIN || userRole === UserRole.DIRECTOR) {
+      const pendingJobs = await this.jobModel
+        .find({
+          companyId,
+          status: 'pending',
+        })
+        .sort({ createdAt: -1 })
+        .limit(3)
+        .populate('createdBy', 'name')
+        .exec();
+
+      pendingJobs.forEach((job: any) => {
+        pendingJobApprovals.push({
+          id: job._id.toString(),
+          title: job.title,
+          department: job.department || 'N/A',
+          requestedBy: job.createdBy?._id?.toString() || '',
+          requestedByName: job.createdBy?.name || 'Unknown',
+          status: job.status,
+          createdAt: job.createdAt.toISOString(),
+        });
+      });
+    }
+
+    // Generate suggestions
+    const suggestions: Array<{
+      id: string;
+      type: 'interview_process' | 'company_details' | 'department_assignment' | 'calendar_integration';
+      title: string;
+      description: string;
+      actionText: string;
+      actionLink: string;
+    }> = [];
+
+    // Check for missing company details
+    const company = await this.companyModel.findById(companyId);
+    const hasCompanyDetails = company && 
+      company.description && 
+      company.industry && 
+      company.website;
+    
+    if (!hasCompanyDetails) {
+      suggestions.push({
+        id: 'company-details',
+        type: 'company_details',
+        title: 'Complete Company Profile',
+        description: 'Add your company description, industry, and website to attract better candidates.',
+        actionText: 'Add Company Details',
+        actionLink: '/company-details',
+      });
+    }
+
+    // Check for job roles without interview processes
+    const allJobRoles = await this.jobRoleModel.find({ companyId }).exec();
+    const jobRoleIds = allJobRoles.map(role => role._id.toString());
+    
+    const interviewProcesses = await this.interviewProcessModel
+      .find({ companyId })
+      .exec();
+    const processJobRoleIds = interviewProcesses.map(process => 
+      process.jobRoleId.toString()
+    );
+    
+    const rolesWithoutProcess = allJobRoles.filter(
+      role => !processJobRoleIds.includes(role._id.toString())
+    );
+
+    if (rolesWithoutProcess.length > 0) {
+      const roleNames = rolesWithoutProcess.slice(0, 3).map(r => r.title).join(', ');
+      const moreCount = rolesWithoutProcess.length > 3 ? ` and ${rolesWithoutProcess.length - 3} more` : '';
+      
+      suggestions.push({
+        id: 'interview-process',
+        type: 'interview_process',
+        title: 'Create Interview Processes',
+        description: `${rolesWithoutProcess.length} role${rolesWithoutProcess.length > 1 ? 's' : ''} missing interview process: ${roleNames}${moreCount}.`,
+        actionText: 'Create Interview Process',
+        actionLink: '/interview-processes/create',
+      });
+    }
+
+    // Check for managers/directors without department assignments
+    const allUsers = await this.usersService.findByCompany(companyId);
+    const managersAndDirectors = allUsers.filter(
+      u => (u.role === UserRole.MANAGER || u.role === UserRole.DIRECTOR) && !u.departmentId
+    );
+
+    if (managersAndDirectors.length > 0) {
+      const userNames = managersAndDirectors.slice(0, 3).map(u => u.name).join(', ');
+      const moreCount = managersAndDirectors.length > 3 ? ` and ${managersAndDirectors.length - 3} more` : '';
+      
+      suggestions.push({
+        id: 'department-assignment',
+        type: 'department_assignment',
+        title: 'Assign Department Leaders',
+        description: `${managersAndDirectors.length} manager${managersAndDirectors.length > 1 ? 's' : ''}/director${managersAndDirectors.length > 1 ? 's' : ''} without department assignment: ${userNames}${moreCount}. Create departments and assign leaders.`,
+        actionText: 'Manage Departments',
+        actionLink: '/company-details?tab=departments',
+      });
+    }
+
+    // Check for calendar integration
+    const calendarCredentials = await this.calendarCredentialsModel
+      .findOne({ userId })
+      .exec();
+    
+    if (!calendarCredentials) {
+      suggestions.push({
+        id: 'calendar-integration',
+        type: 'calendar_integration',
+        title: 'Connect Your Calendar',
+        description: 'Integrate Google Calendar or Microsoft Outlook to automatically schedule interviews and sync with your calendar.',
+        actionText: 'Setup Calendar Integration',
+        actionLink: '/setup',
+      });
+    }
+
     return {
       interviews: {
         total: totalInterviews,
@@ -393,6 +555,8 @@ export class DashboardService {
       userInterviews: allUserInterviews,
       headcountRequests,
       newCandidates,
+      pendingJobApprovals,
+      suggestions,
     };
   }
 }

@@ -154,6 +154,7 @@ export class JobApplicationsService {
   async findAll(): Promise<JobApplicationResponseDto[]> {
     const applications = await this.jobApplicationModel
       .find()
+      .populate('jobId', 'title')
       .sort({ createdAt: -1 }) // Sort by newest first
       .exec();
     return await Promise.all(

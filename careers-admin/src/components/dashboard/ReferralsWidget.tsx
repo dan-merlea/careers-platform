@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   UserPlusIcon,
@@ -6,7 +6,6 @@ import {
   BriefcaseIcon,
 } from '@heroicons/react/24/outline';
 import Card from '../common/Card';
-import { api } from '../../utils/api';
 
 interface Referral {
   id: string;
@@ -14,6 +13,7 @@ interface Referral {
   lastName: string;
   email: string;
   jobId: string;
+  jobTitle: string;
   status: string;
   progress: number;
   createdAt: string;
@@ -30,58 +30,9 @@ interface ReferralsWidgetProps {
 }
 
 const ReferralsWidget: React.FC<ReferralsWidgetProps> = ({ referrals }) => {
-  const [jobTitles, setJobTitles] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const fetchJobTitles = async () => {
-      if (referrals.length === 0) {
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(true);
-      try {
-        // Fetch job titles for referrals
-        const jobIdsSet = new Set<string>();
-        referrals.forEach(referral => jobIdsSet.add(referral.jobId));
-        const jobIds = Array.from(jobIdsSet);
-        const titles: Record<string, string> = {};
-        
-        await Promise.all(jobIds.map(async (jobId) => {
-          try {
-            const job = await api.get<{ title: string }>(`/jobs/${jobId}`);
-            titles[jobId] = job.title;
-          } catch (error) {
-            console.error(`Error fetching job ${jobId}:`, error);
-            titles[jobId] = 'Unknown Position';
-          }
-        }));
-        
-        setJobTitles(titles);
-      } catch (error) {
-        console.error('Error fetching job titles:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchJobTitles();
-  }, [referrals]);
-
   // Don't render if no referrals
   if (referrals.length === 0) {
     return null;
-  }
-
-  if (isLoading) {
-    return (
-      <Card>
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      </Card>
-    );
   }
 
   const getStageColor = (stage: { color: string } | undefined): string => {
@@ -119,7 +70,7 @@ const ReferralsWidget: React.FC<ReferralsWidgetProps> = ({ referrals }) => {
                   <div className="flex items-center gap-2 mt-1">
                     <BriefcaseIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
                     <span className="text-xs text-gray-600 truncate">
-                      {jobTitles[referral.jobId] || 'Loading...'}
+                      {referral.jobTitle}
                     </span>
                   </div>
                 </div>

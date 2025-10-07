@@ -124,6 +124,27 @@ export class UsersController {
     }
   }
 
+  @Patch(':id/status')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @LogAction('update_user_status', 'user')
+  async updateUserStatus(
+    @Param('id') id: string,
+    @Body() updateStatusDto: { isActive: boolean },
+  ) {
+    try {
+      return await this.usersService.updateStatus(
+        id,
+        updateStatusDto.isActive,
+      );
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      throw new HttpException('An error occurred', HttpStatus.BAD_REQUEST);
+    }
+  }
+
   @Post('signup')
   @LogAction('signup', 'user')
   async signup(

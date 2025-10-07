@@ -5,13 +5,16 @@ import ReferralsWidget from '../components/dashboard/ReferralsWidget';
 import InterviewsWidget from '../components/dashboard/InterviewsWidget';
 import HeadcountRequestsWidget from '../components/dashboard/HeadcountRequestsWidget';
 import NewCandidatesWidget from '../components/dashboard/NewCandidatesWidget';
+import JobApprovalsWidget from '../components/dashboard/JobApprovalsWidget';
+import SuggestionsWidget from '../components/dashboard/SuggestionsWidget';
 import { 
   CalendarIcon, 
   BriefcaseIcon, 
   DocumentTextIcon, 
   UserPlusIcon,
   ArrowUpIcon,
-  ArrowDownIcon
+  ArrowDownIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
 // Define types for our dashboard data
@@ -48,6 +51,7 @@ interface DashboardStats {
     lastName: string;
     email: string;
     jobId: string;
+    jobTitle: string;
     status: string;
     progress: number;
     createdAt: string;
@@ -91,6 +95,23 @@ interface DashboardStats {
     jobTitle: string;
     createdAt: string;
   }>;
+  pendingJobApprovals: Array<{
+    id: string;
+    title: string;
+    department: string;
+    requestedBy: string;
+    requestedByName: string;
+    status: string;
+    createdAt: string;
+  }>;
+  suggestions: Array<{
+    id: string;
+    type: 'interview_process' | 'company_details' | 'department_assignment' | 'calendar_integration';
+    title: string;
+    description: string;
+    actionText: string;
+    actionLink: string;
+  }>;
 }
 
 const HomePage: React.FC = () => {
@@ -99,26 +120,26 @@ const HomePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Fetch dashboard stats with authenticated request
+      const data = await api.get<DashboardStats>('/admin/dashboard/stats');
+      setStats(data);
+      
+      // Set last updated time
+      setLastUpdated(new Date().toLocaleString());
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Failed to load dashboard data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        // Fetch dashboard stats with authenticated request
-        const data = await api.get<DashboardStats>('/admin/dashboard/stats');
-        setStats(data);
-        
-        // Set last updated time
-        setLastUpdated(new Date().toLocaleString());
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchDashboardData();
     
     // Refresh data every 5 minutes
@@ -129,8 +150,36 @@ const HomePage: React.FC = () => {
   
   if (loading && !stats) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="h-8 bg-gray-200 rounded w-32 animate-pulse"></div>
+          <div className="h-6 bg-gray-200 rounded w-48 animate-pulse"></div>
+        </div>
+        
+        {/* Stats Cards Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-20 mb-4"></div>
+              <div className="h-8 bg-gray-200 rounded w-16 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-24"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Widgets Skeleton */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {[1, 2].map((i) => (
+            <div key={i} className="bg-white rounded-lg shadow p-6 animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-40 mb-4"></div>
+              <div className="space-y-3">
+                {[1, 2, 3].map((j) => (
+                  <div key={j} className="h-20 bg-gray-100 rounded"></div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -162,7 +211,18 @@ const HomePage: React.FC = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <div className="text-sm text-gray-500">Last updated: {lastUpdated}</div>
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-gray-500">Last updated: {lastUpdated}</div>
+          <button
+            onClick={fetchDashboardData}
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title="Refresh dashboard"
+          >
+            <ArrowPathIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
       </div>
       
       {/* Stats Cards */}
@@ -264,15 +324,23 @@ const HomePage: React.FC = () => {
         </Card>
       </div>
       
+      {/* Suggestions Widget */}
+      <SuggestionsWidget suggestions={stats?.suggestions || []} />
+
       {/* Referrals and Interviews Widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ReferralsWidget referrals={stats?.userReferrals || []} />
         <InterviewsWidget interviews={stats?.userInterviews || []} />
       </div>
 
-      {/* Headcount Requests and New Candidates Widgets */}
+      {/* Job Approvals and Headcount Requests Widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <JobApprovalsWidget jobs={stats?.pendingJobApprovals || []} />
         <HeadcountRequestsWidget requests={stats?.headcountRequests || []} />
+      </div>
+
+      {/* New Candidates Widget */}
+      <div className="grid grid-cols-1 gap-6">
         <NewCandidatesWidget candidates={stats?.newCandidates || []} />
       </div>
 

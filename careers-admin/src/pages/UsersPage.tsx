@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { departmentService, Department } from '../services/departmentService';
 import ScrollableTable from '../components/common/ScrollableTable';
 import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
-import { PencilIcon, BuildingOfficeIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, BuildingOfficeIcon, ArrowRightOnRectangleIcon, XCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import Select from '../components/common/Select';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
@@ -103,6 +103,29 @@ const UsersPage: React.FC = () => {
     } catch (err) {
       console.error('Error updating user department:', err);
       setError('Failed to update user department. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
+    if (!token) return;
+    
+    try {
+      setLoading(true);
+      const updatedUser = await authService.updateUserStatus(userId, !currentStatus, token);
+      
+      // Update local state
+      setUsers(prevUsers => 
+        prevUsers.map(user => 
+          user.id === userId ? updatedUser : user
+        )
+      );
+      
+      setError(null);
+    } catch (err) {
+      console.error('Error updating user status:', err);
+      setError('Failed to update user status. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -296,6 +319,15 @@ const UsersPage: React.FC = () => {
                                     icon: <ArrowRightOnRectangleIcon className="w-4 h-4" />,
                                     disabled: impersonating,
                                   });
+                                  
+                                  // Add activate/deactivate option
+                                  const isActive = user.isActive !== false;
+                                  items.push({
+                                    label: isActive ? 'Deactivate User' : 'Activate User',
+                                    onClick: () => toggleUserStatus(user.id, isActive),
+                                    icon: isActive ? <XCircleIcon className="w-4 h-4" /> : <CheckCircleIcon className="w-4 h-4" />,
+                                  });
+                                  
                                   return items;
                                 })()}
                               />

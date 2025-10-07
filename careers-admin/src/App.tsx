@@ -28,6 +28,7 @@ import InterviewProcessEditPage from './pages/InterviewProcessEditPage';
 import InterviewProcessDetailPage from './pages/InterviewProcessDetailPage';
 import InterviewDetailPage from './pages/InterviewDetailPage';
 import ApplicantDetailPage from './pages/ApplicantDetailPage';
+import ApplicantsPage from './pages/ApplicantsPage';
 import ReferralPage from './pages/ReferralPage';
 import LogsPage from './pages/LogsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -342,6 +343,16 @@ const AppRoutes: React.FC = () => {
                 }
               />
               
+              {/* Applicants List Page */}
+              <Route
+                path="/applicants"
+                element={
+                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                    <ApplicantsPage />
+                  </RoleGuard>
+                }
+              />
+
               {/* Applicant Detail Page */}
               <Route
                 path="/applicants/:id"

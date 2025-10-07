@@ -121,6 +121,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMobile }) => {
     { path: '/job-boards', text: 'Job boards', icon: <BriefcaseIcon />, roles: ['admin', 'manager', 'recruiter'] },
     { path: '/jobs', text: 'Openings', icon: <BriefcaseIcon />, roles: ['admin', 'director', 'manager'] },
     { path: '/headcount', text: 'Headcount', icon: <UsersIcon />, roles: ['admin', 'director', 'manager'] },
+    { path: '/applicants', text: 'Applicants', icon: <UsersIcon />, roles: ['admin', 'director', 'recruiter'] },
     { path: '/interviews', text: 'Interviews', icon: <ClipboardDocumentCheckIcon />, roles: ['admin', 'director', 'recruiter', 'user'] },
     { path: '/referrals', text: 'Refer a Candidate', icon: <UserPlusIcon />, roles: ['admin', 'director', 'manager', 'recruiter', 'user'] },
     { path: '/analytics', text: 'Analytics', icon: <ChartBarIcon />, roles: ['admin', 'director', 'manager', 'recruiter'] },

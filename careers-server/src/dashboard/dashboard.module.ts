@@ -11,6 +11,11 @@ import {
   HeadcountRequest,
   HeadcountRequestSchema,
 } from '../headcount/headcount-request.model';
+import { Company, CompanySchema } from '../company/schemas/company.schema';
+import { JobRole, JobRoleSchema } from '../company/schemas/job-role.schema';
+import { InterviewProcess, InterviewProcessSchema } from '../interviews/interview-process.entity';
+import { Department, DepartmentSchema } from '../company/schemas/department.schema';
+import { CalendarCredentials, CalendarCredentialsSchema } from '../calendar/schemas/calendar-credentials.schema';
 import { UsersModule } from '../users/users.module';
 
 @Module({
@@ -19,6 +24,11 @@ import { UsersModule } from '../users/users.module';
       { name: JobApplication.name, schema: JobApplicationSchema },
       { name: Job.name, schema: JobSchema },
       { name: HeadcountRequest.name, schema: HeadcountRequestSchema },
+      { name: Company.name, schema: CompanySchema },
+      { name: JobRole.name, schema: JobRoleSchema },
+      { name: InterviewProcess.name, schema: InterviewProcessSchema },
+      { name: Department.name, schema: DepartmentSchema },
+      { name: CalendarCredentials.name, schema: CalendarCredentialsSchema },
     ]),
     UsersModule,
   ],

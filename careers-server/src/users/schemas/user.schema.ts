@@ -42,6 +42,9 @@ export class User {
   })
   companyId: string;
 
+  @Prop({ default: true })
+  isActive: boolean;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 

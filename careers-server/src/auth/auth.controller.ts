@@ -136,6 +136,14 @@ export class AuthController {
         return res.redirect(url.toString());
       }
 
+      // Check if user is active
+      if (!(existingUser as any).isActive) {
+        const redirect = process.env.FRONTEND_LOGIN_REDIRECT || 'http://localhost:3000/login';
+        const url = new URL(redirect);
+        url.searchParams.set('error', 'Your account has been deactivated. Please contact an administrator.');
+        return res.redirect(url.toString());
+      }
+
       // User exists: issue our own JWT
       const token = this.authService.generateToken({
         sub: existingUser._id,

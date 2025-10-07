@@ -15,6 +15,7 @@ export interface User {
   role: UserRole;
   departmentId?: string;
   companyId?: string;
+  isActive?: boolean;
 }
 
 export interface LoginCredentials {
@@ -107,12 +108,18 @@ const impersonateUser = async (userId: string): Promise<AuthResponse> => {
   return api.post<AuthResponse>('/users/impersonate', { userId });
 };
 
+const updateUserStatus = async (userId: string, isActive: boolean, token: string): Promise<User> => {
+  // token is handled automatically by the api utility
+  return api.patch<User>(`/users/${userId}/status`, { isActive });
+};
+
 export const authService = {
   login,
   signup,
   getAllUsers,
   updateUserRole,
   updateUserDepartment,
+  updateUserStatus,
   getProfile,
   updateProfile,
   changePassword,

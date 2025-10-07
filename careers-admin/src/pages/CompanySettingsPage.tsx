@@ -49,10 +49,9 @@ const CompanySettingsPage: React.FC = () => {
       await companyService.saveCompanySettings({ ...settings, allowedDomains });
       toast.success('Settings saved successfully');
       
-      // Refresh company data
+      // Refresh company data to update context and reload sidebar
       if (company) {
-        const updatedCompany = await companyService.getCompanyDetails();
-        console.log('Updated company after save:', updatedCompany);
+        window.location.reload();
       }
     } catch (error) {
       console.error('Error saving company settings:', error);
