@@ -90,4 +90,18 @@ export class JobBoardsController {
       req.user.companyId,
     );
   }
+
+  @Post(':id/refresh')
+  @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
+  @LogAction('refresh_ats_jobs', 'job_board')
+  async refreshJobsFromATS(
+    @Param('id') id: string,
+    @Req() req: { user: { companyId: string; userId: string } },
+  ) {
+    return this.jobBoardsService.refreshJobsFromATS(
+      id,
+      req.user.companyId,
+      req.user.userId,
+    );
+  }
 }

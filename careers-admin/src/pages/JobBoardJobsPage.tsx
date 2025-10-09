@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PlusIcon, EyeIcon, PencilIcon, TrashIcon, ArrowLeftIcon, EllipsisHorizontalIcon, CheckCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, EyeIcon, PencilIcon, TrashIcon, ArrowLeftIcon, CheckCircleIcon, ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import jobBoardsService, { JobBoard } from '../services/jobBoardsService';
 import jobService, { Job, JobStatus } from '../services/jobService';
 import { getStatusBadgeClass } from '../utils/jobStatusUtils';
@@ -19,10 +19,18 @@ const JobBoardJobsPage: React.FC = () => {
   
   const [jobBoard, setJobBoard] = useState<JobBoard | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [locationFilter, setLocationFilter] = useState<string>('all');
+  
   // Actions menu handled by reusable component
   
   // Check if approval workflow is set to headcount
@@ -61,6 +69,34 @@ const JobBoardJobsPage: React.FC = () => {
       fetchJobs();
     }
   }, [jobBoardId, fetchJobBoardDetails, fetchJobs]);
+
+  // Apply filters whenever jobs or filter criteria change
+  useEffect(() => {
+    let filtered = [...jobs];
+
+    // Search filter
+    if (searchQuery) {
+      filtered = filtered.filter(job =>
+        job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        job.internalId?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(job => job.status === statusFilter);
+    }
+
+    // Location filter
+    if (locationFilter !== 'all') {
+      filtered = filtered.filter(job => job.location === locationFilter);
+    }
+
+    setFilteredJobs(filtered);
+  }, [jobs, searchQuery, statusFilter, locationFilter]);
+
+  // Get unique locations for filter dropdown
+  const uniqueLocations = Array.from(new Set(jobs.map(job => job.location).filter(Boolean)));
 
 
   const handleCreateJob = () => {
@@ -132,6 +168,24 @@ const JobBoardJobsPage: React.FC = () => {
     }
   };
 
+  const handleRefreshJobs = async () => {
+    if (!jobBoardId) return;
+    
+    setIsRefreshing(true);
+    try {
+      const result = await jobBoardsService.refreshJobsFromATS(jobBoardId);
+      await fetchJobBoardDetails();
+      await fetchJobs();
+      const message = `Jobs refreshed: ${result.imported} imported, ${result.updated} updated${result.deleted > 0 ? `, ${result.deleted} deleted` : ''} (${result.total} total)`;
+      toast.success(message);
+    } catch (err) {
+      console.error('Error refreshing jobs:', err);
+      toast.error('Failed to refresh jobs from ATS');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     return (
       <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(status as JobStatus)}`}>
@@ -141,7 +195,7 @@ const JobBoardJobsPage: React.FC = () => {
   };
 
   return (
-    <div className="py-3">
+    <div className="">
       <div className="flex items-center mb-6">
         <button 
           onClick={() => navigate('/job-boards')}
@@ -163,17 +217,16 @@ const JobBoardJobsPage: React.FC = () => {
       <div className="mb-6 flex justify-between items-center">
         <div>
           {jobBoard && (
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   jobBoard.isActive
                     ? 'bg-green-100 text-green-800'
                     : 'bg-gray-100 text-gray-800'
-                } mr-2`}
+                }`}
               >
                 {jobBoard.isActive ? 'Active' : 'Inactive'}
               </span>
-              
               {jobBoard.isExternal && (
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -189,12 +242,85 @@ const JobBoardJobsPage: React.FC = () => {
           )}
         </div>
         
-        {jobBoard && !jobBoard.isExternal && !isHeadcountApprovalWorkflow && (
-          <Button onClick={handleCreateJob} variant="secondary" leadingIcon={<PlusIcon className="w-5 h-5" />}> 
-            Create Job
-          </Button>
-        )}
+        {jobBoard && (<div>
+          {jobBoard.isExternal && (
+            <button
+              onClick={handleRefreshJobs}
+              disabled={isRefreshing}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Refresh jobs from ATS"
+            >
+              <ArrowPathIcon className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'Refreshing...' : 'Refresh from ATS'}
+            </button>
+          )}
+          {!jobBoard.isExternal && !isHeadcountApprovalWorkflow && (
+            <Button onClick={handleCreateJob} variant="secondary" leadingIcon={<PlusIcon className="w-5 h-5" />}> 
+              Create Job
+            </Button>
+          )}
+        </div>)}
       </div>
+
+      {/* Filters */}
+      <Card className="mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Search */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Search
+            </label>
+            <input
+              type="text"
+              placeholder="Search by title or ID..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          {/* Status Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Statuses</option>
+              <option value="draft">Draft</option>
+              <option value="pending_approval">Pending Approval</option>
+              <option value="approved">Approved</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+
+          {/* Location Filter */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Location
+            </label>
+            <select
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="all">All Locations</option>
+              {uniqueLocations.map(location => (
+                <option key={location} value={location}>{location}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Results count */}
+        <div className="mt-4 text-sm text-gray-600">
+          Showing {filteredJobs.length} of {jobs.length} jobs
+        </div>
+      </Card>
 
       {isLoading ? (
         <div className="flex justify-center items-center h-64">
@@ -208,12 +334,16 @@ const JobBoardJobsPage: React.FC = () => {
             <p className="text-gray-500">No jobs found in this job board.</p>
           )}
         </Card>
+      ) : filteredJobs.length === 0 ? (
+        <Card className="text-center">
+          <p className="text-gray-500">No jobs match your filters. Try adjusting your search criteria.</p>
+        </Card>
       ) : (
         <Card>
           <ScrollableTable>
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style={{ maxWidth: '300px' }}>
                     Title
                   </th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -231,12 +361,13 @@ const JobBoardJobsPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {jobs?.map((job) => (
+                {filteredJobs?.map((job) => (
                   <tr key={job.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4" style={{ maxWidth: '300px' }}>
                       <div 
-                        className="text-sm font-medium text-gray-900 hover:text-blue-600 cursor-pointer"
+                        className="text-sm font-medium text-gray-900 hover:text-blue-600 cursor-pointer truncate"
                         onClick={() => handleViewJob(job.id)}
+                        title={job.title}
                       >
                         {job.title}
                       </div>

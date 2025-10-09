@@ -142,7 +142,7 @@ const JobDetailPage: React.FC = () => {
   }
 
   return (
-    <div className="py-6">
+    <div className="py-3">
       <div className="flex items-center space-x-4 mb-6">
         <div className="flex items-center">
           <button 
@@ -220,7 +220,7 @@ const JobDetailPage: React.FC = () => {
               </div>
               <div>
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(job.status)}`}>
-                  {job.status}
+                  {job.status.toUpperCase()}
                 </span>
               </div>
             </div>
@@ -294,7 +294,21 @@ const JobDetailPage: React.FC = () => {
 
           <div>
             <h2 className="text-lg font-semibold mb-2">Job Description</h2>
-            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: job.content }} />
+            <div 
+              className="job-description-content bg-slate-100 p-6 rounded-lg"
+              style={{
+                lineHeight: '1.75',
+                color: '#374151'
+              }}
+              dangerouslySetInnerHTML={{ 
+                __html: job.content
+                  .replace(/&lt;/g, '<')
+                  .replace(/&gt;/g, '>')
+                  .replace(/&quot;/g, '"')
+                  .replace(/&#39;/g, "'")
+                  .replace(/&amp;/g, '&')
+              }} 
+            />
           </div>
         </Card>
       )}

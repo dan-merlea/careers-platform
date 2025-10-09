@@ -16,7 +16,7 @@ interface ScrollableTableProps {
 
 const ScrollableTable: React.FC<ScrollableTableProps> = ({ 
   children, 
-  maxHeight = '70vh',
+  maxHeight = '',
   className = '',
   pagination
 }) => {

@@ -73,7 +73,7 @@ const JobEditPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="py-6">
+      <div className="py-3">
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
@@ -82,7 +82,7 @@ const JobEditPage: React.FC = () => {
   }
 
   return (
-    <div className="py-6">
+    <div className="py-3">
       <div className="flex items-center mb-6">
         <button 
           onClick={() => navigate(-1)}

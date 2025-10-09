@@ -20,5 +20,5 @@ export class CreateApiKeyDto {
 
   @IsOptional()
   @IsString()
-  companyId?: string;
+  atsCompanyId?: string;
 }

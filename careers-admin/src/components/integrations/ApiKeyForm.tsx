@@ -12,13 +12,13 @@ interface ApiKeyFormProps {
     apiKey: string;
     apiSecret?: string;
     baseUrl?: string;
-    companyId?: string;
+    atsCompanyId?: string;
   }) => Promise<void>;
   initialValues?: {
     apiKey: string;
     apiSecret?: string;
     baseUrl?: string;
-    companyId?: string;
+    atsCompanyId?: string;
   };
   isLoading?: boolean;
 }
@@ -33,8 +33,7 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({
 }) => {
   const [apiKey, setApiKey] = useState(initialValues?.apiKey || '');
   const [apiSecret, setApiSecret] = useState(initialValues?.apiSecret || '');
-  const [baseUrl, setBaseUrl] = useState(initialValues?.baseUrl || '');
-  const [companyId, setCompanyId] = useState(initialValues?.companyId || '');
+  const [atsCompanyId, setAtsCompanyId] = useState(initialValues?.atsCompanyId || '');
   const [showApiKey, setShowApiKey] = useState(false);
   const [showApiSecret, setShowApiSecret] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,8 +51,10 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({
         type,
         apiKey,
         apiSecret: apiSecret || undefined,
-        baseUrl: baseUrl || undefined,
-        companyId: companyId || undefined,
+        baseUrl: type === IntegrationType.GREENHOUSE 
+          ? 'https://boards-api.greenhouse.io/v1/boards/' 
+          : 'https://api.ashbyhq.com/posting-api/job-board/',
+        atsCompanyId: atsCompanyId || undefined,
       });
       setSuccess('API key saved successfully');
     } catch (err) {
@@ -145,27 +146,6 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Base URL
-            <span className="ml-1 text-xs text-gray-500">(Optional)</span>
-          </label>
-          <div className="mb-1 text-xs text-gray-500">
-            {type === IntegrationType.GREENHOUSE ? 
-              'Default: https://boards-api.greenhouse.io/v1/boards/' : 
-              'Default: https://api.ashbyhq.com/posting-api/job-board/'}
-          </div>
-          <Input
-            type="text"
-            value={baseUrl}
-            onChange={(e) => setBaseUrl(e.target.value)}
-            placeholder={type === IntegrationType.GREENHOUSE ? 
-              "https://boards-api.greenhouse.io/v1/boards/" : 
-              "https://api.ashbyhq.com/posting-api/job-board/"}
-            disabled={isLoading || isSaving}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
             Company ID / Board ID
             <span className="ml-1 text-xs text-gray-500">(Required)</span>
           </label>
@@ -176,8 +156,8 @@ const ApiKeyForm: React.FC<ApiKeyFormProps> = ({
           </div>
           <Input
             type="text"
-            value={companyId}
-            onChange={(e) => setCompanyId(e.target.value)}
+            value={atsCompanyId}
+            onChange={(e) => setAtsCompanyId(e.target.value)}
             placeholder={type === IntegrationType.GREENHOUSE ? 
               "e.g., acme" : 
               "e.g., Ashby"}

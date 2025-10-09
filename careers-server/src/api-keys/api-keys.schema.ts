@@ -26,7 +26,7 @@ export class ApiKey {
   baseUrl?: string;
 
   @Prop()
-  companyReference?: string;
+  atsCompanyId?: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Company', required: true })
   companyId: MongooseSchema.Types.ObjectId;

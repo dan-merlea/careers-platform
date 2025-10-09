@@ -54,6 +54,11 @@ const jobBoardsService = {
   // Create an external job board (Greenhouse or Ashby)
   createExternalJobBoard: async (source: 'greenhouse' | 'ashby'): Promise<JobBoard> => {
     return api.post<JobBoard>(`/job-boards/external/${source}`);
+  },
+
+  // Refresh jobs from ATS (Greenhouse or Ashby)
+  refreshJobsFromATS: async (jobBoardId: string): Promise<{ imported: number; updated: number; deleted: number; total: number }> => {
+    return api.post<{ imported: number; updated: number; deleted: number; total: number }>(`/job-boards/${jobBoardId}/refresh`);
   }
 };
 

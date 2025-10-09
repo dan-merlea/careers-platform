@@ -24,7 +24,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
   items,
   menuWidthPx = 192,
   align = 'right',
-  buttonClassName = 'inline-flex items-center p-2 rounded hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500',
+  buttonClassName = 'inline-flex items-center p-2 rounded-3xl bg-white/30 hover:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500',
   buttonAriaLabel = 'Actions',
   buttonColor = 'text-gray-600',
 }) => {
@@ -84,7 +84,7 @@ const ActionsMenu: React.FC<ActionsMenuProps> = ({
         onClick={() => (open ? closeMenu() : openMenu())}
         className={buttonClassName}
       >
-        <EllipsisHorizontalIcon className={`w-5 h-5 ${buttonColor}`} />
+        <EllipsisHorizontalIcon className={`w-6 h-6 ${buttonColor}`} />
       </button>
       {open && pos && (
         <div
