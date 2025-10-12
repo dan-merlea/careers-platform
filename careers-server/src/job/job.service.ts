@@ -90,6 +90,7 @@ export class JobService {
       officeIds,
       createdBy,
       hiringManagerId,
+      roleId,
       ...jobData
     } = jobCreateDto;
 
@@ -128,6 +129,11 @@ export class JobService {
       newJob.hiringManagerId = new Types.ObjectId(hiringManagerId) as any;
     }
 
+    // Add roleId if provided
+    if (roleId) {
+      newJob.roleId = new Types.ObjectId(roleId) as any;
+    }
+
     // We don't need to set publishedDate since status is always DRAFT
 
     return newJob.save();
@@ -143,6 +149,7 @@ export class JobService {
       headcountRequestId,
       createdBy,
       hiringManagerId,
+      roleId,
       ...jobData
     } = jobCreateDto;
 
@@ -195,6 +202,11 @@ export class JobService {
     // Add hiringManagerId if provided
     if (hiringManagerId) {
       newJob.hiringManagerId = new Types.ObjectId(hiringManagerId) as any;
+    }
+
+    // Add roleId if provided
+    if (roleId) {
+      newJob.roleId = new Types.ObjectId(roleId) as any;
     }
 
     // Set approvedAt and approvedBy if we're skipping approval

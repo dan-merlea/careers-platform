@@ -43,8 +43,8 @@ const ApplicantsPage: React.FC = () => {
             firstName: app.firstName,
             lastName: app.lastName,
             email: app.email,
-            jobId: typeof app.jobId === 'string' ? app.jobId : app.jobId?._id,
-            jobTitle: typeof app.jobId === 'object' ? app.jobId?.title : 'Unknown Position',
+            jobId: typeof app.jobId === 'object' ? app.jobId?._id : app.jobId,
+            jobTitle: typeof app.jobId === 'object' && app.jobId?.title ? app.jobId.title : 'Unknown Position',
             status: app.status,
             createdAt: app.createdAt,
           }));

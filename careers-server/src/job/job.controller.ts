@@ -220,6 +220,7 @@ export class JobController {
       : undefined;
 
     return {
+      _id: jobId.toString(),
       id: jobId.toString(),
       internalId: job.internalId,
       title: job.title,
@@ -253,6 +254,7 @@ export class JobController {
       jobBoardId: jobBoardIdStr,
       createdBy: createdByInfo,
       hiringManager: hiringManagerInfo,
+      roleId: job.roleId?.toString(),
     };
   }
 }

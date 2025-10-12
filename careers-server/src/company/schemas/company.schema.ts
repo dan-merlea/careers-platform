@@ -49,6 +49,9 @@ export class Company {
   @Prop({ type: [String], default: [] })
   allowedDomains: string[];
 
+  @Prop({ type: [String], default: [] })
+  offices: string[];
+
   // Virtual field for jobs - will be populated when needed
   // Mongoose will handle this relationship differently than TypeORM
 

@@ -11,6 +11,9 @@ import {
   Interview,
 } from '../job-applications/schemas/job-application.schema';
 import { Job, JobDocument } from '../job/job.entity';
+import { User, UserDocument } from '../users/schemas/user.schema';
+import { GoogleCalendarService } from '../calendar/google-calendar.service';
+import { CompanyService } from '../company/company.service';
 
 // Interview data transfer object
 export interface InterviewDto {
@@ -27,6 +30,14 @@ export interface InterviewDto {
   applicantName: string;
   jobTitle: string;
   processId?: string;
+  googleEventId?: string;
+  onlineMeetingUrl?: string;
+  meetingId?: string;
+  googleMeetingDetails?: {
+    meetLink?: string;
+    conferenceId?: string;
+    htmlLink?: string;
+  };
 }
 
 @Injectable()
@@ -35,6 +46,9 @@ export class InterviewsService {
     @InjectModel(JobApplication.name)
     private jobApplicationModel: Model<JobApplicationDocument>,
     @InjectModel(Job.name) private jobModel: Model<JobDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private googleCalendarService: GoogleCalendarService,
+    private companyService: CompanyService,
   ) {}
 
   /**
@@ -218,7 +232,7 @@ export class InterviewsService {
   /**
    * Get interview by ID
    */
-  async getInterviewById(interviewId: string): Promise<InterviewDto> {
+  async getInterviewById(interviewId: string, userId?: string): Promise<InterviewDto> {
     let objectId;
     let query: Record<string, any>;
 
@@ -254,7 +268,7 @@ export class InterviewsService {
     const job = application.jobId as any;
     const jobTitle = job ? job.title : 'Unknown Position';
 
-    return {
+    const interviewDto: InterviewDto = {
       id: interview._id.toString(),
       scheduledDate: interview.scheduledDate,
       title: interview.title,
@@ -273,7 +287,43 @@ export class InterviewsService {
       processId: interview.processId
         ? interview.processId.toString()
         : undefined,
+      googleEventId: interview.googleEventId,
+      onlineMeetingUrl: interview.onlineMeetingUrl,
+      meetingId: interview.meetingId,
     };
+
+    // Fetch Google Calendar meeting details if available
+    if (interview.googleEventId && userId) {
+      try {
+        const user = await this.userModel.findById(userId).exec();
+        if (user && (user as any).googleAuth) {
+          const googleAuth = (user as any).googleAuth;
+          
+          // Check if Google auth is expired
+          if (googleAuth.expiryDate >= Date.now()) {
+            const eventDetails = await this.googleCalendarService.getEvent(
+              interview.googleEventId,
+              {
+                accessToken: googleAuth.accessToken,
+                refreshToken: googleAuth.refreshToken,
+                expiryDate: googleAuth.expiryDate,
+              },
+            );
+
+            interviewDto.googleMeetingDetails = {
+              meetLink: eventDetails.meetLink,
+              conferenceId: eventDetails.conferenceId,
+              htmlLink: eventDetails.htmlLink,
+            };
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Google Calendar event details:', error);
+        // Don't fail the request if we can't fetch meeting details
+      }
+    }
+
+    return interviewDto;
   }
 
   /**
@@ -356,6 +406,7 @@ export class InterviewsService {
   async rescheduleInterview(
     interviewId: string,
     scheduledDate: Date,
+    userId?: string,
   ): Promise<InterviewDto> {
     const application = (await this.jobApplicationModel
       .findOne({ 'interviews._id': new Types.ObjectId(interviewId) })
@@ -397,6 +448,81 @@ export class InterviewsService {
 
     await application.save();
 
+    // Update Google Calendar event if it exists
+    if (currentInterview.googleEventId && userId) {
+      try {
+        // Get user's Google tokens
+        const user = await this.userModel.findById(userId).exec();
+        if (user && (user as any).googleAuth) {
+          const googleAuth = (user as any).googleAuth;
+          
+          // Check if Google auth is expired
+          if (googleAuth.expiryDate < Date.now()) {
+            throw new BadRequestException('GOOGLE_AUTH_EXPIRED: Your Google Calendar connection has expired. Please reconnect your Google account to update this interview.');
+          }
+          
+          // Get company settings
+          const companyDetails = await this.companyService.getCompanyDetails(application.companyId.toString());
+          const usesGoogleWorkspace = companyDetails?.settings?.emailCalendarProvider === 'google';
+          
+          if (usesGoogleWorkspace) {
+            // Prepare attendees list
+            const attendees = currentInterview.interviewers.map((interviewer) => ({
+              email: '', // Email will be fetched from user records
+              name: interviewer.name,
+            }));
+
+            // Add candidate email
+            attendees.push({
+              email: application.email,
+              name: `${application.firstName} ${application.lastName}`,
+            });
+
+            // Fetch interviewer emails
+            const interviewerIds = currentInterview.interviewers.map(i => i.userId.toString());
+            const interviewerUsers = await this.userModel.find({ _id: { $in: interviewerIds } }).exec();
+            
+            for (let i = 0; i < attendees.length - 1; i++) {
+              const interviewerUser = interviewerUsers.find(u => (u as any)._id.toString() === interviewerIds[i]);
+              if (interviewerUser) {
+                attendees[i].email = interviewerUser.email;
+              }
+            }
+
+            // Calculate end date (1 hour after start)
+            const endDate = new Date(scheduledDate);
+            endDate.setHours(endDate.getHours() + 1);
+
+            // Update Google Calendar event
+            await this.googleCalendarService.updateEvent(
+              currentInterview.googleEventId,
+              {
+                title: currentInterview.title,
+                description: currentInterview.description || '',
+                startDate: scheduledDate,
+                endDate: endDate,
+                location: currentInterview.location,
+                attendees: attendees.filter(a => a.email),
+                uid: `interview-${interviewId}@careers-platform`,
+              },
+              {
+                accessToken: googleAuth.accessToken,
+                refreshToken: googleAuth.refreshToken,
+                expiryDate: googleAuth.expiryDate,
+              },
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error updating Google Calendar event:', error);
+        // Re-throw if it's an auth expired error
+        if (error instanceof BadRequestException && error.message.includes('GOOGLE_AUTH_EXPIRED')) {
+          throw error;
+        }
+        // Don't fail the reschedule for other Google Calendar errors
+      }
+    }
+
     // Return the updated interview
     return this.getInterviewById(interviewId);
   }
@@ -407,6 +533,7 @@ export class InterviewsService {
   async updateInterviewers(
     interviewId: string,
     interviewers: { userId: string; name: string }[],
+    userId?: string,
   ): Promise<InterviewDto> {
     const application = await this.jobApplicationModel
       .findOne({ 'interviews._id': new Types.ObjectId(interviewId) })
@@ -446,8 +573,335 @@ export class InterviewsService {
 
     await application.save();
 
+    // Update Google Calendar event if it exists
+    if (currentInterview.googleEventId && userId) {
+      try {
+        // Get user's Google tokens
+        const user = await this.userModel.findById(userId).exec();
+        if (user && (user as any).googleAuth) {
+          const googleAuth = (user as any).googleAuth;
+          
+          // Check if Google auth is expired
+          if (googleAuth.expiryDate < Date.now()) {
+            throw new BadRequestException('GOOGLE_AUTH_EXPIRED: Your Google Calendar connection has expired. Please reconnect your Google account to update this interview.');
+          }
+          
+          // Get company settings
+          const companyDetails = await this.companyService.getCompanyDetails(application.companyId.toString());
+          const usesGoogleWorkspace = companyDetails?.settings?.emailCalendarProvider === 'google';
+          
+          if (usesGoogleWorkspace) {
+            // Prepare attendees list with new interviewers
+            const attendees = interviewers.map((interviewer) => ({
+              email: '', // Email will be fetched from user records
+              name: interviewer.name,
+            }));
+
+            // Add candidate email
+            attendees.push({
+              email: application.email,
+              name: `${application.firstName} ${application.lastName}`,
+            });
+
+            // Fetch interviewer emails
+            const interviewerIds = interviewers.map(i => i.userId);
+            const interviewerUsers = await this.userModel.find({ _id: { $in: interviewerIds } }).exec();
+            
+            for (let i = 0; i < attendees.length - 1; i++) {
+              const interviewerUser = interviewerUsers.find(u => (u as any)._id.toString() === interviewerIds[i]);
+              if (interviewerUser) {
+                attendees[i].email = interviewerUser.email;
+              }
+            }
+
+            // Calculate end date (1 hour after start)
+            const endDate = new Date(currentInterview.scheduledDate);
+            endDate.setHours(endDate.getHours() + 1);
+
+            // Update Google Calendar event
+            await this.googleCalendarService.updateEvent(
+              currentInterview.googleEventId,
+              {
+                title: currentInterview.title,
+                description: currentInterview.description || '',
+                startDate: currentInterview.scheduledDate,
+                endDate: endDate,
+                location: currentInterview.location,
+                attendees: attendees.filter(a => a.email),
+                uid: `interview-${interviewId}@careers-platform`,
+              },
+              {
+                accessToken: googleAuth.accessToken,
+                refreshToken: googleAuth.refreshToken,
+                expiryDate: googleAuth.expiryDate,
+              },
+            );
+          }
+        }
+      } catch (error) {
+        console.error('Error updating Google Calendar event:', error);
+        // Re-throw if it's an auth expired error
+        if (error instanceof BadRequestException && error.message.includes('GOOGLE_AUTH_EXPIRED')) {
+          throw error;
+        }
+        // Don't fail the update for other Google Calendar errors
+      }
+    }
+
     // Return the updated interview
     return this.getInterviewById(interviewId);
+  }
+
+  /**
+   * Update interview details (title, description, location)
+   */
+  async updateInterview(
+    interviewId: string,
+    updateData: { title?: string; description?: string; location?: string },
+    userId?: string,
+  ): Promise<InterviewDto> {
+    const application = (await this.jobApplicationModel
+      .findOne({ 'interviews._id': new Types.ObjectId(interviewId) })
+      .populate('jobId')
+      .exec()) as JobApplicationDocument;
+
+    if (!application) {
+      throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+    }
+
+    const interviewIndex = application.interviews.findIndex(
+      (i) => i._id && i._id.toString() === interviewId,
+    );
+
+    if (interviewIndex === -1) {
+      throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+    }
+
+    const currentInterview = application.interviews[interviewIndex];
+
+    // Update the interview details
+    if (updateData.title !== undefined) {
+      application.interviews[interviewIndex].title = updateData.title;
+    }
+    if (updateData.description !== undefined) {
+      application.interviews[interviewIndex].description = updateData.description;
+    }
+    if (updateData.location !== undefined) {
+      application.interviews[interviewIndex].location = updateData.location;
+    }
+
+    application.interviews[interviewIndex].updatedAt = new Date();
+
+    // Mark the interviews array as modified
+    application.markModified('interviews');
+    await application.save();
+
+    // Update Google Calendar event if it exists
+    if (currentInterview.googleEventId && userId) {
+      try {
+        const user = await this.userModel.findById(userId).exec();
+        if (user && (user as any).googleAuth) {
+          const googleAuth = (user as any).googleAuth;
+
+          // Check if Google auth is expired
+          if (googleAuth.expiryDate < Date.now()) {
+            console.warn('Google auth expired, skipping calendar update');
+          } else {
+            // Get company settings
+            const companyDetails = await this.companyService.getCompanyDetails(
+              application.companyId.toString(),
+            );
+            const usesGoogleWorkspace =
+              companyDetails?.settings?.emailCalendarProvider === 'google';
+
+            if (usesGoogleWorkspace) {
+              // Prepare attendees list
+              const attendees = currentInterview.interviewers.map(
+                (interviewer) => ({
+                  email: '',
+                  name: interviewer.name,
+                }),
+              );
+
+              // Add candidate email
+              attendees.push({
+                email: application.email,
+                name: `${application.firstName} ${application.lastName}`,
+              });
+
+              // Fetch interviewer emails
+              const interviewerIds = currentInterview.interviewers.map((i) =>
+                i.userId.toString(),
+              );
+              const interviewerUsers = await this.userModel
+                .find({ _id: { $in: interviewerIds } })
+                .exec();
+
+              for (let i = 0; i < attendees.length - 1; i++) {
+                const interviewerUser = interviewerUsers.find(
+                  (u) => (u as any)._id.toString() === interviewerIds[i],
+                );
+                if (interviewerUser) {
+                  attendees[i].email = interviewerUser.email;
+                }
+              }
+
+              // Calculate end date (1 hour after start)
+              const endDate = new Date(currentInterview.scheduledDate);
+              endDate.setHours(endDate.getHours() + 1);
+
+              // Update Google Calendar event
+              await this.googleCalendarService.updateEvent(
+                currentInterview.googleEventId,
+                {
+                  title: application.interviews[interviewIndex].title,
+                  description: application.interviews[interviewIndex].description || '',
+                  startDate: currentInterview.scheduledDate,
+                  endDate: endDate,
+                  location: application.interviews[interviewIndex].location,
+                  attendees: attendees.filter((a) => a.email),
+                  uid: `interview-${interviewId}@careers-platform`,
+                },
+                {
+                  accessToken: googleAuth.accessToken,
+                  refreshToken: googleAuth.refreshToken,
+                  expiryDate: googleAuth.expiryDate,
+                },
+              );
+
+              console.log('Google Calendar event updated successfully');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error updating Google Calendar event:', error);
+        if (error.message === 'GOOGLE_AUTH_EXPIRED') {
+          throw error;
+        }
+        // Don't fail the update for other Google Calendar errors
+      }
+    }
+
+    // Return the updated interview
+    return this.getInterviewById(interviewId, userId);
+  }
+
+  /**
+   * Create Google Meet for an existing interview
+   */
+  async createGoogleMeetForInterview(
+    interviewId: string,
+    userId: string,
+  ): Promise<InterviewDto> {
+    const application = (await this.jobApplicationModel
+      .findOne({ 'interviews._id': new Types.ObjectId(interviewId) })
+      .populate('jobId')
+      .exec()) as JobApplicationDocument;
+
+    if (!application) {
+      throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+    }
+
+    const interviewIndex = application.interviews.findIndex(
+      (i) => i._id && i._id.toString() === interviewId,
+    );
+
+    if (interviewIndex === -1) {
+      throw new NotFoundException(`Interview with ID ${interviewId} not found`);
+    }
+
+    const currentInterview = application.interviews[interviewIndex];
+
+    // Check if interview already has a Google event
+    if (currentInterview.googleEventId) {
+      throw new BadRequestException('Interview already has a Google Calendar event');
+    }
+
+    // Get user's Google tokens
+    const user = await this.userModel.findById(userId).exec();
+    if (!user || !(user as any).googleAuth) {
+      throw new BadRequestException('User does not have Google Calendar connected');
+    }
+
+    const googleAuth = (user as any).googleAuth;
+
+    // Check if Google auth is expired
+    if (googleAuth.expiryDate < Date.now()) {
+      throw new BadRequestException('GOOGLE_AUTH_EXPIRED: Your Google Calendar connection has expired. Please reconnect your Google account.');
+    }
+
+    // Get company settings
+    const companyDetails = await this.companyService.getCompanyDetails(application.companyId.toString());
+    const usesGoogleWorkspace = companyDetails?.settings?.emailCalendarProvider === 'google';
+
+    if (!usesGoogleWorkspace) {
+      throw new BadRequestException('Company does not use Google Workspace');
+    }
+
+    // Prepare attendees list
+    const attendees = currentInterview.interviewers.map((interviewer) => ({
+      email: '', // Email will be fetched from user records
+      name: interviewer.name,
+    }));
+
+    // Add candidate email
+    attendees.push({
+      email: application.email,
+      name: `${application.firstName} ${application.lastName}`,
+    });
+
+    // Fetch interviewer emails
+    const interviewerIds = currentInterview.interviewers.map(i => i.userId.toString());
+    const interviewerUsers = await this.userModel.find({ _id: { $in: interviewerIds } }).exec();
+    
+    for (let i = 0; i < attendees.length - 1; i++) {
+      const interviewerUser = interviewerUsers.find(u => (u as any)._id.toString() === interviewerIds[i]);
+      if (interviewerUser) {
+        attendees[i].email = interviewerUser.email;
+      }
+    }
+
+    // Calculate end date (1 hour after start)
+    const endDate = new Date(currentInterview.scheduledDate);
+    endDate.setHours(endDate.getHours() + 1);
+
+    // Create Google Calendar event
+    const calendarResult = await this.googleCalendarService.createEvent(
+      {
+        title: currentInterview.title,
+        description: currentInterview.description || '',
+        startDate: currentInterview.scheduledDate,
+        endDate: endDate,
+        location: currentInterview.location,
+        attendees: attendees.filter(a => a.email),
+        uid: `interview-${interviewId}@careers-platform`,
+      },
+      {
+        accessToken: googleAuth.accessToken,
+        refreshToken: googleAuth.refreshToken,
+        expiryDate: googleAuth.expiryDate,
+      },
+    );
+
+    // Update interview with Google event details
+    application.interviews[interviewIndex].googleEventId = calendarResult.googleEventId;
+    application.interviews[interviewIndex].onlineMeetingUrl = calendarResult.googleMeetLink;
+    application.interviews[interviewIndex].meetingId = calendarResult.googleConferenceId;
+    application.interviews[interviewIndex].updatedAt = new Date();
+
+    // Mark the interviews array as modified so Mongoose saves the changes
+    application.markModified('interviews');
+    
+    await application.save();
+    
+    console.log('Saved interview with Google Meet details:', {
+      googleEventId: calendarResult.googleEventId,
+      onlineMeetingUrl: calendarResult.googleMeetLink,
+      meetingId: calendarResult.googleConferenceId,
+    });
+
+    // Return the updated interview
+    return this.getInterviewById(interviewId, userId);
   }
 
   /**

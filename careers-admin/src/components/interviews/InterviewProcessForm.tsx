@@ -84,7 +84,8 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
       description: '',
       considerations: [],
       emailTemplate: '',
-      order: formData.stages ? formData.stages.length : 0
+      order: formData.stages ? formData.stages.length : 0,
+      durationMinutes: 60 // Default to 60 minutes (1 hour)
     };
 
     setFormData({
@@ -428,6 +429,33 @@ const InterviewProcessForm: React.FC<InterviewProcessFormProps> = ({
                         className="w-full p-1.5 text-sm border border-gray-300 rounded h-20"
                         required
                       />
+                    </div>
+
+                    <div>
+                      <label htmlFor={`stage-duration-${activeStageIndex}`} className="block text-xs font-medium text-gray-700 mb-1">
+                        Interview Duration (minutes) *
+                      </label>
+                      <select
+                        id={`stage-duration-${activeStageIndex}`}
+                        value={formData.stages?.[activeStageIndex]?.durationMinutes || 60}
+                        onChange={(e) => handleStageInputChange(activeStageIndex, 'durationMinutes', e.target.value)}
+                        className="w-full p-1.5 text-sm border border-gray-300 rounded"
+                        required
+                      >
+                        <option value={15}>15 minutes</option>
+                        <option value={30}>30 minutes</option>
+                        <option value={45}>45 minutes</option>
+                        <option value={60}>1 hour</option>
+                        <option value={75}>1 hour 15 minutes</option>
+                        <option value={90}>1 hour 30 minutes</option>
+                        <option value={105}>1 hour 45 minutes</option>
+                        <option value={120}>2 hours</option>
+                        <option value={135}>2 hours 15 minutes</option>
+                        <option value={150}>2 hours 30 minutes</option>
+                        <option value={165}>2 hours 45 minutes</option>
+                        <option value={180}>3 hours</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">Duration must be a multiple of 15 minutes</p>
                     </div>
 
                     <div>

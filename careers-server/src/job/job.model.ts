@@ -17,6 +17,7 @@ export interface Job {
   createdAt: Date;
   jobBoardId?: string; // Reference to the job board
   hiringManagerId?: string; // Reference to the hiring manager (User)
+  roleId?: string; // Reference to the job role
 }
 
 export enum JobStatus {
@@ -40,6 +41,7 @@ export interface JobCreateDto {
   jobBoardId?: string;
   createdBy?: string; // User ID of the person who created the job
   hiringManagerId?: string; // User ID of the hiring manager for the job
+  roleId?: string; // Job role ID to link with the job
 }
 
 export interface JobCreateFromHeadcountDto extends JobCreateDto {
@@ -58,9 +60,11 @@ export interface JobUpdateDto {
   status?: JobStatus;
   jobBoardId?: string;
   hiringManagerId?: string;
+  roleId?: string;
 }
 
 export interface JobResponseDto {
+  _id: string;
   id: string;
   internalId: string;
   title: string;
@@ -96,4 +100,5 @@ export interface JobResponseDto {
     email: string;
     name: string;
   };
+  roleId?: string;
 }

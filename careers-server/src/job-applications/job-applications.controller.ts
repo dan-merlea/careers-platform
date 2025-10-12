@@ -303,7 +303,7 @@ export class JobApplicationsController {
     @Body() scheduleInterviewDto: ScheduleInterviewDto,
     @Req() req: RequestWithUser,
   ) {
-    return this.jobApplicationsService.scheduleInterview(id, scheduleInterviewDto);
+    return this.jobApplicationsService.scheduleInterview(id, scheduleInterviewDto, req.user.userId);
   }
 
   /**

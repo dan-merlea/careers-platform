@@ -17,6 +17,8 @@ interface EmailTemplateModalProps {
   };
   applicantName: string;
   jobTitle?: string;
+  applicationId?: string;
+  interviewId?: string;
 }
 
 const EmailTemplateModal: React.FC<EmailTemplateModalProps> = ({
@@ -26,18 +28,40 @@ const EmailTemplateModal: React.FC<EmailTemplateModalProps> = ({
   onSkip,
   stage,
   applicantName,
-  jobTitle = 'the position'
+  jobTitle = 'the position',
+  applicationId,
+  interviewId,
 }) => {
   const [emailContent, setEmailContent] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [includeTimeslotLink, setIncludeTimeslotLink] = useState(false);
 
   // Generate email template based on stage
   useEffect(() => {
     console.log(stage);
     if (isOpen) {
       setEmailContent(stage.emailTemplate ?? '');
+      setIncludeTimeslotLink(false); // Reset checkbox when modal opens
     }
   }, [isOpen, stage, applicantName, jobTitle]);
+
+  // Update email content when checkbox changes
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const baseContent = stage.emailTemplate ?? '';
+    
+    if (includeTimeslotLink && applicationId) {
+      const webUrl = process.env.REACT_APP_WEB_URL || 'http://localhost:3002';
+      const timeslotLink = interviewId 
+        ? `${webUrl}/timeslots/${applicationId}/interview/${interviewId}`
+        : `${webUrl}/timeslots/${applicationId}`;
+      const linkHtml = `\n\n<p><strong>Please select your available time slots:</strong></p><p><a href="${timeslotLink}" target="_blank">${timeslotLink}</a></p>`;
+      setEmailContent(baseContent + linkHtml);
+    } else {
+      setEmailContent(baseContent);
+    }
+  }, [includeTimeslotLink, applicationId, interviewId, isOpen, stage.emailTemplate]);
 
   const handleSend = async () => {
     setIsSending(true);
@@ -45,7 +69,7 @@ const EmailTemplateModal: React.FC<EmailTemplateModalProps> = ({
       // For now, just log the email content
       console.log('Sending email:', emailContent);
       
-      // Call the onSend callback
+      // Call the onSend callback (email content already includes link if checkbox was checked)
       onSend(emailContent);
     } finally {
       setIsSending(false);
@@ -99,22 +123,36 @@ const EmailTemplateModal: React.FC<EmailTemplateModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-          <button
-            type="button"
-            onClick={onSkip}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Skip Email
-          </button>
-          <button
-            type="button"
-            onClick={handleSend}
-            disabled={isSending}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-          >
-            {isSending ? 'Sending...' : 'Send Email & Update Stage'}
-          </button>
+        <div className="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="includeTimeslotLink"
+              checked={includeTimeslotLink}
+              onChange={(e) => setIncludeTimeslotLink(e.target.checked)}
+              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            />
+            <label htmlFor="includeTimeslotLink" className="ml-2 block text-sm text-gray-700">
+              Include time slot asking link
+            </label>
+          </div>
+          <div className="flex space-x-3">
+            <button
+              type="button"
+              onClick={onSkip}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Skip Email
+            </button>
+            <button
+              type="button"
+              onClick={handleSend}
+              disabled={isSending}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              {isSending ? 'Sending...' : 'Send Email & Update Stage'}
+            </button>
+          </div>
         </div>
       </div>
     </div>

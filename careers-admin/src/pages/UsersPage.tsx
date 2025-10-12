@@ -4,11 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { departmentService, Department } from '../services/departmentService';
 import ScrollableTable from '../components/common/ScrollableTable';
 import ActionsMenu, { ActionsMenuItem } from '../components/common/ActionsMenu';
-import { PencilIcon, BuildingOfficeIcon, ArrowRightOnRectangleIcon, XCircleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
-import Select from '../components/common/Select';
+import { PencilIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import Card from '../components/common/Card';
 import Button from '../components/common/Button';
 import UserCreateModal from '../components/modals/UserCreateModal';
+import UserEditModal from '../components/modals/UserEditModal';
 
 // User interface is now imported from auth.service.ts
 
@@ -20,6 +20,7 @@ const UsersPage: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [impersonating, setImpersonating] = useState<boolean>(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const { token, userRole, impersonateUser } = useAuth();
   
   // Only admins should be able to access this page
@@ -60,95 +61,20 @@ const UsersPage: React.FC = () => {
     fetchDepartments();
   }, [fetchUsers, fetchDepartments]);
 
-  const updateUserRole = async (userId: string, newRole: UserRole) => {
-    if (!token) return;
-    
-    try {
-      setLoading(true);
-      const updatedUser = await authService.updateUserRole(userId, newRole, token);
-      
-      // Update local state
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === userId ? updatedUser : user
-        )
-      );
-      
-      setEditingUser(null);
-      setError(null);
-    } catch (err) {
-      console.error('Error updating user role:', err);
-      setError('Failed to update user role. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateUserDepartment = async (userId: string, departmentId: string | null) => {
-    if (!token) return;
-    
-    try {
-      setLoading(true);
-      const updatedUser = await authService.updateUserDepartment(userId, departmentId, token);
-      
-      // Update local state
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === userId ? updatedUser : user
-        )
-      );
-      
-      setEditingUser(null);
-      setError(null);
-    } catch (err) {
-      console.error('Error updating user department:', err);
-      setError('Failed to update user department. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
-    if (!token) return;
-    
-    try {
-      setLoading(true);
-      const updatedUser = await authService.updateUserStatus(userId, !currentStatus, token);
-      
-      // Update local state
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === userId ? updatedUser : user
-        )
-      );
-      
-      setError(null);
-    } catch (err) {
-      console.error('Error updating user status:', err);
-      setError('Failed to update user status. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRoleChange = (userId: string, newRole: UserRole) => {
-    updateUserRole(userId, newRole);
-  };
-  
-  const handleDepartmentChange = (userId: string, departmentId: string | null | undefined) => {
-    // Convert undefined to null for the API call
-    updateUserDepartment(userId, departmentId || null);
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setShowEditModal(true);
   };
 
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
-      case 'admin':
+      case UserRole.ADMIN:
         return 'bg-red-100 text-red-800';
-      case 'director':
+      case UserRole.DIRECTOR:
         return 'bg-purple-100 text-purple-800';
-      case 'manager':
+      case UserRole.MANAGER:
         return 'bg-blue-100 text-blue-800';
-      case 'recruiter':
+      case UserRole.RECRUITER:
         return 'bg-green-100 text-green-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -226,116 +152,39 @@ const UsersPage: React.FC = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {editingUser?.id === user.id ? (
-                          <div className="flex flex-col space-y-3">
-                            <div className="flex items-center space-x-2">
-                              <Select
-                                value={editingUser.role}
-                                onChange={(val) =>
-                                  setEditingUser({ ...editingUser, role: (val as UserRole) || editingUser.role })
-                                }
-                                options={[
-                                  { label: 'Admin', value: 'admin' },
-                                  { label: 'Director', value: 'director' },
-                                  { label: 'Manager', value: 'manager' },
-                                  { label: 'Recruiter', value: 'recruiter' },
-                                  { label: 'User', value: 'user' },
-                                ]}
-                              />
-                              <button
-                                type="button"
-                                className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                onClick={() => handleRoleChange(user.id, editingUser.role)}
-                              >
-                                Save Role
-                              </button>
-                            </div>
-                            
-                            {['director', 'manager', 'admin'].includes(editingUser.role) && isAdmin && (
-                              <div className="flex items-center space-x-2">
-                                <Select
-                                  value={editingUser.departmentId || undefined}
-                                  onChange={(val) =>
-                                    setEditingUser({ ...editingUser, departmentId: val || undefined })
-                                  }
-                                  allowEmpty
-                                  placeholder="No Department"
-                                  options={departments.map((dept) => ({
-                                    label: dept.title,
-                                    value: (dept.id || (dept as any)._id) as string,
-                                  }))}
-                                />
-                                <button
-                                  type="button"
-                                  className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                                  onClick={() => handleDepartmentChange(user.id, editingUser.departmentId || null)}
-                                >
-                                  Save Dept
-                                </button>
-                              </div>
-                            )}
-                            
-                            <button
-                              type="button"
-                              className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                              onClick={() => setEditingUser(null)}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="relative inline-block text-left">
-                            {isAdmin ? (
-                              <ActionsMenu
-                                buttonAriaLabel="User actions"
-                                align="right"
-                                menuWidthPx={224}
-                                items={(() => {
-                                  const items: ActionsMenuItem[] = [
-                                    { label: 'Edit User', onClick: () => setEditingUser(user), icon: <PencilIcon className="w-4 h-4" /> },
-                                  ];
-                                  if (user.role === 'director' || user.role === 'manager') {
-                                    items.push({
-                                      label: 'Edit Department',
-                                      onClick: () => setEditingUser({
-                                        ...user,
-                                        departmentId: user.departmentId || undefined,
-                                      }),
-                                      icon: <BuildingOfficeIcon className="w-4 h-4" />,
-                                    });
-                                  }
-                                  items.push({
-                                    label: impersonating ? 'Signing in…' : 'Sign in as',
-                                    onClick: async () => {
-                                      try {
-                                        setImpersonating(true);
-                                        await impersonateUser(user.id);
-                                      } catch (error) {
-                                        console.error('Error impersonating user:', error);
-                                        setImpersonating(false);
-                                        alert('Failed to impersonate user. Please try again.');
-                                      }
-                                    },
-                                    icon: <ArrowRightOnRectangleIcon className="w-4 h-4" />,
-                                    disabled: impersonating,
-                                  });
-                                  
-                                  // Add activate/deactivate option
-                                  const isActive = user.isActive !== false;
-                                  items.push({
-                                    label: isActive ? 'Deactivate User' : 'Activate User',
-                                    onClick: () => toggleUserStatus(user.id, isActive),
-                                    icon: isActive ? <XCircleIcon className="w-4 h-4" /> : <CheckCircleIcon className="w-4 h-4" />,
-                                  });
-                                  
-                                  return items;
-                                })()}
-                              />
-                            ) : (
-                              <span className="text-gray-500">View Only</span>
-                            )}
-                          </div>
-                        )}
+                        <div className="relative inline-block text-left">
+                          {isAdmin ? (
+                            <ActionsMenu
+                              buttonAriaLabel="User actions"
+                              align="right"
+                              menuWidthPx={224}
+                              items={(() => {
+                                const items: ActionsMenuItem[] = [
+                                  { label: 'Edit User', onClick: () => handleEditUser(user), icon: <PencilIcon className="w-4 h-4" /> },
+                                ];
+                                items.push({
+                                  label: impersonating ? 'Signing in…' : 'Sign in as',
+                                  onClick: async () => {
+                                    try {
+                                      setImpersonating(true);
+                                      await impersonateUser(user.id);
+                                    } catch (error) {
+                                      console.error('Error impersonating user:', error);
+                                      setImpersonating(false);
+                                      alert('Failed to impersonate user. Please try again.');
+                                    }
+                                  },
+                                  icon: <ArrowRightOnRectangleIcon className="w-4 h-4" />,
+                                  disabled: impersonating,
+                                });
+                                
+                                return items;
+                              })()}
+                            />
+                          ) : (
+                            <span className="text-gray-500">View Only</span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -348,6 +197,17 @@ const UsersPage: React.FC = () => {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
         onUserCreated={fetchUsers}
+        departments={departments}
+      />
+
+      <UserEditModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingUser(null);
+        }}
+        onUserUpdated={fetchUsers}
+        user={editingUser}
         departments={departments}
       />
     </div>

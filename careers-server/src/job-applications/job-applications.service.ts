@@ -9,6 +9,8 @@ import {
   CalendarProviderService,
   CalendarEvent,
 } from '../calendar/calendar-provider.service';
+import { GoogleCalendarService } from '../calendar/google-calendar.service';
+import { CompanyService } from '../company/company.service';
 import {
   JobApplication,
   JobApplicationDocument,
@@ -54,6 +56,8 @@ export class JobApplicationsService {
     @InjectModel(User.name) private userModel: Model<User>,
     private readonly gridFsService: GridFsService,
     private readonly calendarProviderService: CalendarProviderService,
+    private readonly googleCalendarService: GoogleCalendarService,
+    private readonly companyService: CompanyService,
     private readonly notificationGeneratorService: NotificationGeneratorService,
   ) {}
 
@@ -289,8 +293,13 @@ export class JobApplicationsService {
     }
 
     // Calculate and update progress based on the new status
+    // Extract the actual ID if jobId is populated
+    const jobId = typeof application.jobId === 'object' && application.jobId !== null
+      ? (application.jobId as any)._id
+      : application.jobId;
+    
     const progress = await this.calculateProgress(
-      application.jobId,
+      jobId,
       updateStatusDto.status,
     );
     application.progress = progress;
@@ -327,11 +336,11 @@ export class JobApplicationsService {
         .collection('jobs')
         .findOne({ _id: jobId });
 
-      if (job && job.interviewProcessId) {
-        // Get the interview process stages
+      if (job && job.roleId) {
+        // Get the interview process based on roleId
         const interviewProcess = await this.jobApplicationModel.db
           .collection('interviewprocesses')
-          .findOne({ _id: job.interviewProcessId });
+          .findOne({ jobRoleId: job.roleId });
 
         if (
           interviewProcess &&
@@ -341,7 +350,7 @@ export class JobApplicationsService {
           // Map custom stages with adjusted order (starting after 'reviewed')
           customStages = interviewProcess.stages.map(
             (stage: any, index: number) => ({
-              id: stage._id.toString(),
+              id: stage._id.toString(), // Use MongoDB _id to match the status field
               order: 2 + index, // Start custom stages after 'new' and 'reviewed'
             }),
           );
@@ -518,6 +527,7 @@ export class JobApplicationsService {
   async scheduleInterview(
     applicationId: string,
     scheduleInterviewDto: ScheduleInterviewDto,
+    userId: string,
   ): Promise<InterviewDto> {
     const application = await this.jobApplicationModel.findById(applicationId);
 
@@ -525,6 +535,83 @@ export class JobApplicationsService {
       throw new NotFoundException(
         `Job application with ID ${applicationId} not found`,
       );
+    }
+
+    // Check if company uses Google Workspace
+    const company = await this.companyService.getCompanyDetails(application.companyId.toString());
+    const useGoogleWorkspace = company.settings?.emailCalendarProvider === 'google';
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException('Authenticated user not found');
+    }
+
+    let googleEventId: string | undefined;
+    let googleMeetLink: string | undefined;
+    let googleConferenceId: string | undefined;
+    let onlineMeetingUrl = scheduleInterviewDto.onlineMeetingUrl;
+    let meetingId = scheduleInterviewDto.meetingId;
+
+    // If using Google Workspace and no manual meeting details provided, create Google Meet
+    if (useGoogleWorkspace && user.googleAuth) {
+      try {
+        // Get interviewer emails
+        const interviewerEmails = await this.getInterviewerEmails(
+          scheduleInterviewDto.interviewers.map((i) => ({
+            userId: new Types.ObjectId(i.userId),
+            name: i.name,
+          })),
+        );
+
+        // Create calendar event
+        const startDate = new Date(scheduleInterviewDto.scheduledDate);
+        const endDate = new Date(startDate);
+        endDate.setHours(endDate.getHours() + 1);
+
+        const uid = `interview-${Date.now()}@careers-platform`;
+        
+        const attendees = [
+          {
+            name: `${application.firstName} ${application.lastName}`,
+            email: application.email,
+            role: 'REQ-PARTICIPANT' as const,
+          },
+          ...interviewerEmails.map((interviewer) => ({
+            name: interviewer.name,
+            email: interviewer.email,
+            role: 'REQ-PARTICIPANT' as const,
+          })),
+        ];
+
+        const calendarEvent: CalendarEvent = {
+          uid,
+          title: `Interview: ${scheduleInterviewDto.title}`,
+          description: scheduleInterviewDto.description || `Interview for ${application.firstName} ${application.lastName}`,
+          startDate,
+          endDate,
+          attendees,
+          location: scheduleInterviewDto.location,
+        };
+
+        // Create Google Calendar event with Meet link
+        const result = await this.googleCalendarService.createEvent(calendarEvent, user.googleAuth);
+        
+        googleEventId = result.googleEventId;
+        googleMeetLink = result.googleMeetLink;
+        googleConferenceId = result.googleConferenceId;
+        onlineMeetingUrl = result.googleMeetLink;
+        meetingId = result.googleConferenceId;
+      } catch (error) {
+        console.error('Failed to create Google Meet link:', error);
+        
+        // If Google auth expired, clear the user's tokens and throw a specific error
+        if (error.message === 'GOOGLE_AUTH_EXPIRED' && userId) {
+          await this.userModel.findByIdAndUpdate(userId, {
+            $unset: { googleAuth: 1 }
+          });
+          throw new Error('GOOGLE_AUTH_EXPIRED: Your Google Calendar connection has expired. Please reconnect your Google account.');
+        }
+      }
     }
 
     // Create a new interview
@@ -544,20 +631,32 @@ export class JobApplicationsService {
         ? new Types.ObjectId(scheduleInterviewDto.processId)
         : undefined,
       location: scheduleInterviewDto.location,
-      onlineMeetingUrl: scheduleInterviewDto.onlineMeetingUrl,
-      meetingId: scheduleInterviewDto.meetingId,
+      onlineMeetingUrl,
+      meetingId,
       meetingPassword: scheduleInterviewDto.meetingPassword,
+      googleEventId,
+      googleMeetLink,
+      googleConferenceId,
     };
+
+    console.log(newInterview);
 
     // Add the interview to the application's interviews array
     if (!application.interviews) {
       application.interviews = [];
     }
     application.interviews.push(newInterview);
-    await application.save();
+    const savedApplication = await application.save();
+
+    // Get the newly created interview with its generated _id
+    const createdInterview = savedApplication.interviews[savedApplication.interviews.length - 1];
+    
+    if (!createdInterview._id) {
+      throw new Error('Failed to create interview: ID not generated');
+    }
 
     // Return the created interview
-    return this.mapInterviewToDto(newInterview);
+    return this.mapInterviewToDto(createdInterview);
   }
 
   /**
@@ -857,7 +956,12 @@ export class JobApplicationsService {
     application: JobApplicationDocument,
   ): Promise<JobApplicationResponseDto> {
     // Build stages list
-    const stages = await this.buildStagesForApplication(application.jobId);
+    // Extract the actual ID if jobId is populated
+    const jobId = typeof application.jobId === 'object' && application.jobId !== null
+      ? (application.jobId as any)._id
+      : application.jobId;
+    
+    const stages = await this.buildStagesForApplication(jobId);
 
     return {
       id: application._id?.toString() || '',
@@ -871,7 +975,9 @@ export class JobApplicationsService {
       consentDuration: application.consentDuration,
       consentExpiresAt: application.consentExpiresAt,
       jobId:
-        typeof application.jobId === 'object'
+        typeof application.jobId === 'object' && application.jobId !== null && 'title' in application.jobId
+          ? { _id: (application.jobId as any)._id.toString(), title: (application.jobId as any).title || 'Unknown Position' }
+          : typeof application.jobId === 'object'
           ? application.jobId.toString()
           : application.jobId,
       status: application.status,
@@ -911,19 +1017,18 @@ export class JobApplicationsService {
         },
       ];
 
-      if (job && job.interviewProcessId) {
-        processId = job.interviewProcessId.toString();
-
-        // Get the interview process stages
+      if (job && job.roleId) {
+        // Get the interview process based on roleId
         const interviewProcess = await this.jobApplicationModel.db
           .collection('interviewprocesses')
-          .findOne({ _id: job.interviewProcessId });
+          .findOne({ jobRoleId: job.roleId });
 
         if (
           interviewProcess &&
           interviewProcess.stages &&
           interviewProcess.stages.length > 0
         ) {
+          processId = interviewProcess._id.toString();
           customStages = interviewProcess.stages.map(
             (stage: any, index: number) => ({
               id: stage._id.toString(),

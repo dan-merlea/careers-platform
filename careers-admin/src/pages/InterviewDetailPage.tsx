@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import EditInterviewersModal from '../components/modals/EditInterviewersModal';
-import EditInterviewModal from '../components/modals/EditInterviewModal';
+import InterviewScheduleModal from '../components/modals/InterviewScheduleModal';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import '../styles/QuillEditor.css';
@@ -28,6 +28,7 @@ import {
 import { StarIcon } from '@heroicons/react/24/solid';
 import interviewService, { Interview, Interviewer } from '../services/interviewService';
 import jobApplicationService, { JobApplicant } from '../services/jobApplicationService';
+import api from '../services/api';
 import jobService, { Job } from '../services/jobService';
 import { toast } from 'react-toastify';
 import Button from '../components/common/Button';
@@ -61,6 +62,7 @@ const InterviewDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isLoadingJob, setIsLoadingJob] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [googleAuthExpired, setGoogleAuthExpired] = useState<boolean>(false);
   
   // Get tab from URL query params or default to 'info'
   const getTabFromUrl = useCallback((): 'candidate' | 'resume' | 'feedback' | 'info' | 'job' => {
@@ -101,6 +103,7 @@ const InterviewDetailPage: React.FC = () => {
   const [isRescheduling, setIsRescheduling] = useState<boolean>(false);
   const [isUpdatingInterviewers, setIsUpdatingInterviewers] = useState<boolean>(false);
   const [isUpdatingInterview, setIsUpdatingInterview] = useState<boolean>(false);
+  const [isCreatingGoogleMeet, setIsCreatingGoogleMeet] = useState<boolean>(false);
   
   // State for feedback
   const [feedback, setFeedback] = useState<InterviewFeedback>({
@@ -131,6 +134,10 @@ const InterviewDetailPage: React.FC = () => {
         // Fetch interview details
         const interviewData = await interviewService.getInterviewById(id);
         setInterview(interviewData);
+        
+        // Check if user's Google auth is expired
+        const userData = await api.get<any>('/users/me');
+        setGoogleAuthExpired(userData.user?.googleAuthExpired || false);
         
         // Check if current user is an interviewer for this interview based on userId
         const isUserInterviewer = interviewData.interviewers.some(interviewer => interviewer.userId === userId);        
@@ -444,9 +451,25 @@ const InterviewDetailPage: React.FC = () => {
       // Refresh interview data
       const updatedInterview = await interviewService.getInterviewById(id);
       setInterview(updatedInterview);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error rescheduling interview:', err);
-      toast.error('Failed to reschedule interview. Please try again.');
+      
+      // Check if Google Calendar auth expired
+      if (err.message?.includes('GOOGLE_AUTH_EXPIRED') || err.response?.data?.message?.includes('GOOGLE_AUTH_EXPIRED')) {
+        toast.error('Your Google Calendar connection has expired. Please reconnect your Google account to update this interview.', {
+          autoClose: 8000,
+        });
+        // Show reconnect option
+        setTimeout(() => {
+          if (window.confirm('Would you like to reconnect your Google Calendar now?')) {
+            const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+            sessionStorage.setItem('oauthReturnUrl', window.location.pathname);
+            window.location.href = `${backendUrl}/auth/google?calendar=true`;
+          }
+        }, 500);
+      } else {
+        toast.error('Failed to reschedule interview. Please try again.');
+      }
     } finally {
       setIsRescheduling(false);
     }
@@ -464,24 +487,45 @@ const InterviewDetailPage: React.FC = () => {
     
     setIsUpdatingInterviewers(true);
     
+    const interviewersData = interviewers.map(interviewer => ({
+      userId: interviewer.userId,
+      name: interviewer.name,
+    }));
+    
     try {
-      await interviewService.updateInterviewers(id, interviewers);
+      await interviewService.updateInterviewers(id, interviewersData);
       toast.success('Interviewers updated successfully');
       setShowEditInterviewersModal(false);
       
       // Refresh interview data
       const updatedInterview = await interviewService.getInterviewById(id);
       setInterview(updatedInterview);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error updating interviewers:', err);
-      toast.error('Failed to update interviewers. Please try again.');
+      
+      // Check if Google Calendar auth expired
+      if (err.message?.includes('GOOGLE_AUTH_EXPIRED') || err.response?.data?.message?.includes('GOOGLE_AUTH_EXPIRED')) {
+        toast.error('Your Google Calendar connection has expired. Please reconnect your Google account to update this interview.', {
+          autoClose: 8000,
+        });
+        // Show reconnect option
+        setTimeout(() => {
+          if (window.confirm('Would you like to reconnect your Google Calendar now?')) {
+            const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+            sessionStorage.setItem('oauthReturnUrl', window.location.pathname);
+            window.location.href = `${backendUrl}/auth/google?calendar=true`;
+          }
+        }, 500);
+      } else {
+        toast.error('Failed to update interviewers. Please try again.');
+      }
     } finally {
       setIsUpdatingInterviewers(false);
     }
   };
   
   // Handle update interview details
-  const handleUpdateInterview = async (interviewData: Partial<Interview>) => {
+  const handleUpdateInterview = async (interviewData: Partial<Interview> | any) => {
     if (!id) return;
     
     // Check if interview has already passed
@@ -493,7 +537,15 @@ const InterviewDetailPage: React.FC = () => {
     setIsUpdatingInterview(true);
     
     try {
-      await interviewService.updateInterview(id, interviewData);
+      // Convert Date to string if needed
+      const dataToUpdate = {
+        ...interviewData,
+        scheduledDate: interviewData.scheduledDate instanceof Date 
+          ? interviewData.scheduledDate.toISOString() 
+          : interviewData.scheduledDate
+      };
+      
+      await interviewService.updateInterview(id, dataToUpdate);
       toast.success('Interview details updated successfully');
       setShowEditInterviewModal(false);
       
@@ -505,6 +557,53 @@ const InterviewDetailPage: React.FC = () => {
       toast.error('Failed to update interview details. Please try again.');
     } finally {
       setIsUpdatingInterview(false);
+    }
+  };
+  
+  // Handle create Google Meet
+  const handleCreateGoogleMeet = async () => {
+    if (!id) return;
+    
+    setIsCreatingGoogleMeet(true);
+    
+    try {
+      const updatedInterview = await interviewService.createGoogleMeet(id);
+      setInterview(updatedInterview);
+      toast.success('Google Meet created successfully!');
+    } catch (err: any) {
+      console.error('Error creating Google Meet:', err);
+      
+      // Check if Google Calendar auth expired
+      if (err.message?.includes('GOOGLE_AUTH_EXPIRED') || err.response?.data?.message?.includes('GOOGLE_AUTH_EXPIRED')) {
+        toast.error('Your Google Calendar connection has expired. Please reconnect your Google account.', {
+          autoClose: 8000,
+        });
+        // Show reconnect option
+        setTimeout(() => {
+          if (window.confirm('Would you like to reconnect your Google Calendar now?')) {
+            const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+            sessionStorage.setItem('oauthReturnUrl', window.location.pathname);
+            window.location.href = `${backendUrl}/auth/google?calendar=true`;
+          }
+        }, 500);
+      } else if (err.message?.includes('does not have Google Calendar connected') || err.response?.data?.message?.includes('does not have Google Calendar connected')) {
+        toast.error('Please connect your Google Calendar first.', {
+          autoClose: 5000,
+        });
+        setTimeout(() => {
+          if (window.confirm('Would you like to connect your Google Calendar now?')) {
+            const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+            sessionStorage.setItem('oauthReturnUrl', window.location.pathname);
+            window.location.href = `${backendUrl}/auth/google?calendar=true`;
+          }
+        }, 500);
+      } else if (err.message?.includes('does not use Google Workspace') || err.response?.data?.message?.includes('does not use Google Workspace')) {
+        toast.error('Your company does not use Google Workspace. Please contact your administrator.');
+      } else {
+        toast.error('Failed to create Google Meet. Please try again.');
+      }
+    } finally {
+      setIsCreatingGoogleMeet(false);
     }
   };
   
@@ -1056,15 +1155,61 @@ const InterviewDetailPage: React.FC = () => {
                   )}
                 </div>
                 
-                {interview.onlineMeetingUrl ? (
+                {/* Show Google Meet details if available */}
+                {interview.googleMeetingDetails?.meetLink ? (
                   <div className="ml-7 space-y-2">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M15 12L9 8.5V15.5L15 12Z" fill="#EA4335"/>
+                        <path d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="#34A853" strokeWidth="2"/>
+                      </svg>
+                      <span className="text-sm font-semibold text-gray-700">Google Meet</span>
+                    </div>
                     <div>
-                      <span className="font-medium text-sm">URL: </span>
+                      <a 
+                        href={interview.googleMeetingDetails.meetLink} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline inline-flex items-center font-medium"
+                      >
+                        <ExternalLinkIcon className="h-4 w-4 mr-1" />
+                        Join Meeting
+                      </a>
+                    </div>
+                    
+                    {interview.googleMeetingDetails.conferenceId && (
+                      <div>
+                        <span className="font-medium text-sm">Meeting Code: </span>
+                        <span className="text-gray-700 font-mono text-sm">{interview.googleMeetingDetails.conferenceId}</span>
+                      </div>
+                    )}
+                    
+                    {interview.googleMeetingDetails.htmlLink && (
+                      <div>
+                        <a 
+                          href={interview.googleMeetingDetails.htmlLink} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-sm text-gray-600 hover:text-gray-800 inline-flex items-center"
+                        >
+                          <CalendarIcon className="h-4 w-4 mr-1" />
+                          View in Google Calendar
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ) : interview.onlineMeetingUrl ? (
+                  <div className="ml-7 space-y-2">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <VideoCameraIcon className="h-5 w-5 text-blue-600" />
+                      <span className="text-sm font-semibold text-gray-700">Online Meeting</span>
+                    </div>
+                    <div>
                       <a 
                         href={interview.onlineMeetingUrl} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline inline-flex items-center"
+                        className="text-blue-600 hover:underline inline-flex items-center font-medium"
                       >
                         <ExternalLinkIcon className="h-4 w-4 mr-1" />
                         Join Meeting
@@ -1074,7 +1219,7 @@ const InterviewDetailPage: React.FC = () => {
                     {interview.meetingId && (
                       <div>
                         <span className="font-medium text-sm">Meeting ID: </span>
-                        <span className="text-gray-700">{interview.meetingId}</span>
+                        <span className="text-gray-700 font-mono text-sm">{interview.meetingId}</span>
                       </div>
                     )}
                     
@@ -1086,7 +1231,28 @@ const InterviewDetailPage: React.FC = () => {
                     )}
                   </div>
                 ) : (
-                  <p className="ml-7 text-gray-500 italic">No online meeting details available</p>
+                  <div className="ml-7">
+                    <p className="text-gray-500 italic mb-3">No online meeting details available</p>
+                    {!isInterviewPassed(interview.scheduledDate) && (
+                      <button
+                        onClick={handleCreateGoogleMeet}
+                        disabled={isCreatingGoogleMeet}
+                        className="bg-blue-600 text-white py-2 px-4 text-sm rounded-md hover:bg-blue-700 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isCreatingGoogleMeet ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-white mr-2"></div>
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <VideoCameraIcon className="h-4 w-4 mr-2" />
+                            Create Google Meet
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
               
@@ -1102,9 +1268,7 @@ const InterviewDetailPage: React.FC = () => {
                       onClick={() => setShowEditInterviewersModal(true)}
                       className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
-                      </svg>
+                      <PencilIcon className="h-4 w-4 mr-1" />
                       Edit
                     </button>
                   )}
@@ -1248,43 +1412,63 @@ const InterviewDetailPage: React.FC = () => {
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                     <h3 className="text-base leading-6 font-medium text-gray-900 mb-4">
                       Reschedule Interview
                     </h3>
-                    <div className="mt-2">
-                      <label htmlFor="newScheduledDate" className="block text-xs font-medium text-gray-700 mb-1">
-                        New Date and Time
-                      </label>
-                      <input
-                        type="datetime-local"
-                        id="newScheduledDate"
-                        value={newScheduledDate}
-                        onChange={(e) => setNewScheduledDate(e.target.value)}
-                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                      />
-                    </div>
+                    {googleAuthExpired ? (
+                      <div className="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-md">
+                        <p className="text-sm font-medium">⚠️ Google Calendar connection expired</p>
+                        <p className="text-xs mt-1 mb-3">Your Google Calendar access has expired. Please reconnect to update this interview.</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+                            sessionStorage.setItem('oauthReturnUrl', window.location.pathname);
+                            window.location.href = `${backendUrl}/auth/google?calendar=true`;
+                          }}
+                          className="px-4 py-2 bg-white border border-orange-300 rounded-md text-sm font-medium text-orange-900 hover:bg-orange-50"
+                        >
+                          Reconnect Google Calendar
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-2">
+                        <label htmlFor="newScheduledDate" className="block text-xs font-medium text-gray-700 mb-1">
+                          New Date and Time
+                        </label>
+                        <input
+                          type="datetime-local"
+                          id="newScheduledDate"
+                          value={newScheduledDate}
+                          onChange={(e) => setNewScheduledDate(e.target.value)}
+                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button
-                  type="button"
-                  onClick={handleRescheduleInterview}
-                  disabled={isRescheduling}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-1.5 bg-blue-600 text-xs font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-xs disabled:bg-blue-300"
-                >
-                  {isRescheduling ? 'Rescheduling...' : 'Reschedule'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowRescheduleModal(false)}
-                  disabled={isRescheduling}
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-3 py-1.5 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-xs"
-                >
-                  Cancel
-                </button>
-              </div>
+              {!googleAuthExpired && (
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button
+                    type="button"
+                    onClick={handleRescheduleInterview}
+                    disabled={isRescheduling}
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-3 py-1.5 bg-blue-600 text-xs font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-xs disabled:bg-blue-300"
+                  >
+                    {isRescheduling ? 'Rescheduling...' : 'Reschedule'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowRescheduleModal(false)}
+                    disabled={isRescheduling}
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-3 py-1.5 bg-white text-xs font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-xs"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1297,14 +1481,26 @@ const InterviewDetailPage: React.FC = () => {
         interviewers={interview?.interviewers || []}
         onSave={handleUpdateInterviewers}
         isLoading={isUpdatingInterviewers}
+        googleAuthExpired={googleAuthExpired}
       />
       
       {/* Edit Interview Details Modal */}
       {interview && (
-        <EditInterviewModal
+        <InterviewScheduleModal
           isOpen={showEditInterviewModal}
           onClose={() => setShowEditInterviewModal(false)}
-          interview={interview}
+          mode="edit"
+          existingInterview={{
+            id: interview.id,
+            title: interview.title,
+            description: interview.description,
+            scheduledDate: new Date(interview.scheduledDate),
+            location: interview.location,
+            onlineMeetingUrl: interview.onlineMeetingUrl,
+            meetingId: interview.meetingId,
+            meetingPassword: interview.meetingPassword,
+            interviewers: interview.interviewers,
+          }}
           onSave={handleUpdateInterview}
           isLoading={isUpdatingInterview}
         />

@@ -26,8 +26,8 @@ export class Interview {
   @Prop({ default: '' })
   stage: string;
 
-  @Prop({ default: '' })
-  status: string;
+  @Prop({ default: 'scheduled' })
+  status: string; // 'scheduled', 'completed', 'cancelled'
 
   @Prop()
   cancellationReason?: string;
@@ -43,6 +43,15 @@ export class Interview {
 
   @Prop()
   meetingPassword?: string;
+
+  @Prop()
+  googleEventId?: string;
+
+  @Prop()
+  googleMeetLink?: string;
+
+  @Prop()
+  googleConferenceId?: string;
 
   @Prop({
     type: MongooseSchema.Types.ObjectId,
@@ -81,6 +90,24 @@ export class Interview {
     default: [],
   })
   feedback?: any[];
+
+  @Prop({
+    type: [
+      {
+        date: { type: Date, required: true },
+        startTime: { type: String, required: true },
+        endTime: { type: String, required: true },
+        timezone: { type: String, required: true },
+      },
+    ],
+    default: [],
+  })
+  availableTimeSlots?: {
+    date: Date;
+    startTime: string;
+    endTime: string;
+    timezone: string;
+  }[];
 
   @Prop({ default: Date.now })
   createdAt: Date;
@@ -197,48 +224,26 @@ export class JobApplication {
   })
   userNotes: UserNote[];
 
+  @Prop({ type: [Interview], default: [] })
+  interviews: Interview[];
+
   @Prop({
     type: [
       {
-        scheduledDate: { type: Date, required: true },
-        title: { type: String, required: true },
-        description: String,
-        stage: { type: String, default: '' },
-        status: { type: String, default: '' },
-        cancellationReason: String,
-        processId: {
-          type: MongooseSchema.Types.ObjectId,
-          ref: 'InterviewProcess',
-        },
-        interviewers: [
-          {
-            userId: {
-              type: MongooseSchema.Types.ObjectId,
-              ref: 'User',
-              required: true,
-            },
-            name: { type: String, required: true },
-          },
-        ],
-        feedback: [
-          {
-            interviewerId: { type: String, required: true },
-            interviewerName: { type: String, required: true },
-            rating: { type: Number, required: true },
-            comments: { type: String },
-            decision: { type: String },
-            considerations: { type: Object },
-            createdAt: { type: Date, default: Date.now },
-            updatedAt: { type: Date, default: Date.now },
-          },
-        ],
-        createdAt: { type: Date, default: Date.now },
-        updatedAt: { type: Date, default: Date.now },
+        date: { type: Date, required: true },
+        startTime: { type: String, required: true },
+        endTime: { type: String, required: true },
+        timezone: { type: String, required: true },
       },
     ],
     default: [],
   })
-  interviews: Interview[];
+  availableTimeSlots?: {
+    date: Date;
+    startTime: string;
+    endTime: string;
+    timezone: string;
+  }[];
 }
 
 export const JobApplicationSchema =

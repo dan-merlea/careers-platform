@@ -1,15 +1,14 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Kokoro&display=swap');
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,9 +21,5 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Kokoro', sans-serif;
-}
-
-.font-kokoro {
-  font-family: 'Kokoro', sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
 }

@@ -18,7 +18,7 @@ export class JobApplicationResponseDto {
   resumeFilename: string;
   consentDuration: number;
   consentExpiresAt: Date;
-  jobId: string;
+  jobId: string | { _id: string; title: string };
   status: string;
   progress?: number; // Application progress percentage (0-100)
   stages?: InterviewStageDto[]; // Complete list of stages for this application

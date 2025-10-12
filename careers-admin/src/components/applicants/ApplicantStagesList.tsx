@@ -144,19 +144,20 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
   };
   
   // Handle email send and update stage
-  const handleSendEmail = (emailContent: string) => {
+  const handleSendEmail = async (emailContent: string) => {
     console.log('Email content to send:', emailContent);
-    console.log('Moving applicant to stage:', selectedStage?.id);
+    console.log('Moving applicant to stage:', selectedStage);
     
     if (selectedStage) {
-      onStageChange(selectedStage.id);
+      await onStageChange(selectedStage.id);
+      setIsModalOpen(false);
     }
   };
   
   // Handle skip email and just update stage
-  const handleSkipEmail = () => {
+  const handleSkipEmail = async () => {
     if (selectedStage) {
-      onStageChange(selectedStage.id);
+      await onStageChange(selectedStage.id);
     }
     setIsModalOpen(false);
   };
@@ -319,6 +320,7 @@ const ApplicantStagesList: React.FC<ApplicantStagesListProps> = ({
           stage={selectedStage}
           applicantName={applicantName}
           jobTitle={jobTitle}
+          applicationId={applicationId}
         />
       )}
       

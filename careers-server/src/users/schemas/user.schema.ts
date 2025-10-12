@@ -45,6 +45,14 @@ export class User {
   @Prop({ default: true })
   isActive: boolean;
 
+  @Prop({ type: Object, default: null })
+  googleAuth: {
+    accessToken: string;
+    refreshToken: string;
+    expiryDate: number;
+    scope: string;
+  } | null;
+
   @Prop({ default: Date.now })
   createdAt: Date;
 

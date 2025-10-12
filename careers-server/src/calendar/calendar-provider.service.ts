@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CompanyService } from '../company/company.service';
-import { EmailCalendarProvider } from '../company/dto/company-settings.dto';
 import { GoogleCalendarService } from './google-calendar.service';
-import { MicrosoftCalendarService } from './microsoft-calendar.service';
 
 export interface CalendarEvent {
   uid: string;
@@ -25,6 +23,9 @@ export interface CalendarInviteResult {
   content: string;
   contentType: string;
   filename: string;
+  googleEventId?: string;
+  googleMeetLink?: string;
+  googleConferenceId?: string;
 }
 
 @Injectable()
@@ -32,30 +33,19 @@ export class CalendarProviderService {
   constructor(
     private readonly companyService: CompanyService,
     private readonly googleCalendarService: GoogleCalendarService,
-    private readonly microsoftCalendarService: MicrosoftCalendarService
   ) {}
 
   /**
-   * Generate a calendar invite based on the company's email/calendar provider
+   * Generate a calendar invite in ICS format
    */
   async generateInvite(event: CalendarEvent): Promise<CalendarInviteResult> {
-    // Get the company's email/calendar provider setting
-    const company = await this.companyService.getCompanyDetails();
-    const provider = company.settings?.emailCalendarProvider || 'other';
-
+    // Always generate ICS invite as fallback
+    // Calendar provider integrations are configured separately in System Setup
     try {
-      switch (provider) {
-        case EmailCalendarProvider.GOOGLE:
-          return await this.googleCalendarService.createEvent(event);
-        case EmailCalendarProvider.MICROSOFT:
-          return await this.microsoftCalendarService.createEvent(event);
-        default:
-          return this.generateIcsInvite(event);
-      }
-    } catch (error) {
-      console.error(`Error generating invite with provider ${provider}:`, error);
-      // Fall back to standard ICS format if provider-specific integration fails
       return this.generateIcsInvite(event);
+    } catch (error) {
+      console.error('Error generating ICS invite:', error);
+      throw error;
     }
   }
 

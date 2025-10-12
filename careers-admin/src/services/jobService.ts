@@ -58,6 +58,7 @@ export interface Job {
     email: string;
     role: string;
   };
+  roleId?: string; // Reference to the job role
 }
 
 export interface JobCreateDto {
@@ -74,6 +75,7 @@ export interface JobCreateDto {
   skipApproval?: boolean; // Flag to skip approval process for jobs created from headcount requests
   roleTitle?: string; // Used for matching with job roles when creating from headcount requests
   hiringManagerId?: string; // Reference to the user who is the hiring manager for this job
+  roleId?: string; // Reference to the job role
 }
 
 export interface JobUpdateDto {
@@ -88,6 +90,7 @@ export interface JobUpdateDto {
   jobBoardId?: string;
   roleTitle?: string; // Used for matching with job roles when creating from headcount requests
   hiringManagerId?: string; // Reference to the user who is the hiring manager for this job
+  roleId?: string; // Reference to the job role
 }
 
 const jobService = {

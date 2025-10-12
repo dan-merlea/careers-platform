@@ -30,6 +30,9 @@ export class InterviewStage {
 
   @Prop({ default: 0 })
   order: number;
+
+  @Prop({ default: 60 })
+  durationMinutes: number; // Duration in minutes (must be multiple of 15)
 }
 
 export const InterviewStageSchema = SchemaFactory.createForClass(InterviewStage);

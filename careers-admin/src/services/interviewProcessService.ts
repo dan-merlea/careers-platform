@@ -11,6 +11,7 @@ export interface InterviewStage {
   considerations: Consideration[];
   emailTemplate: string;
   order: number;
+  durationMinutes?: number; // Duration in minutes (must be multiple of 15)
 }
 
 export interface InterviewProcess {

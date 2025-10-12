@@ -385,7 +385,14 @@ const JobForm: React.FC<JobFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Include roleId in the submission data
+    const submissionData = {
+      ...formData,
+      roleId: selectedJobRole || undefined
+    };
+    
+    onSubmit(submissionData);
   };
 
   if (isLoading) {

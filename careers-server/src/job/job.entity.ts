@@ -65,6 +65,9 @@ export class Job {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', default: null })
   hiringManagerId: MongooseSchema.Types.ObjectId | null;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'JobRole', default: null })
+  roleId?: MongooseSchema.Types.ObjectId;
+
   @Prop()
   externalId?: string;
 

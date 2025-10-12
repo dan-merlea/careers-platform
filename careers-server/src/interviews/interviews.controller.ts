@@ -53,8 +53,11 @@ export class InterviewsController {
     description: 'Returns the interview with the specified ID',
   })
   @ApiResponse({ status: 404, description: 'Interview not found' })
-  async getInterviewById(@Param('id') id: string) {
-    return this.interviewsService.getInterviewById(id);
+  async getInterviewById(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.interviewsService.getInterviewById(id, req.user.userId);
   }
 
   @Put(':id/cancel')
@@ -80,10 +83,32 @@ export class InterviewsController {
   async rescheduleInterview(
     @Param('id') id: string,
     @Body() rescheduleData: { scheduledDate: string },
+    @Request() req: { user: { userId: string } },
   ) {
     return this.interviewsService.rescheduleInterview(
       id,
       new Date(rescheduleData.scheduledDate),
+      req.user.userId,
+    );
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Update interview details' })
+  @ApiResponse({
+    status: 200,
+    description: 'Interview updated successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Interview not found' })
+  @LogAction('update_interview', 'interview')
+  async updateInterview(
+    @Param('id') id: string,
+    @Body() updateData: { title?: string; description?: string; location?: string },
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.interviewsService.updateInterview(
+      id,
+      updateData,
+      req.user.userId,
     );
   }
 
@@ -98,10 +123,31 @@ export class InterviewsController {
   async updateInterviewers(
     @Param('id') id: string,
     @Body() updateData: { interviewers: { userId: string; name: string }[] },
+    @Request() req: { user: { userId: string } },
   ) {
     return this.interviewsService.updateInterviewers(
       id,
       updateData.interviewers,
+      req.user.userId,
+    );
+  }
+
+  @Put(':id/create-google-meet')
+  @ApiOperation({ summary: 'Create Google Meet for an existing interview' })
+  @ApiResponse({
+    status: 200,
+    description: 'Google Meet created successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Interview not found' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @LogAction('create_google_meet', 'interview')
+  async createGoogleMeet(
+    @Param('id') id: string,
+    @Request() req: { user: { userId: string } },
+  ) {
+    return this.interviewsService.createGoogleMeetForInterview(
+      id,
+      req.user.userId,
     );
   }
 }

@@ -42,12 +42,20 @@ export class AuthController {
   }
 
   @Get('google')
-  googleAuth(@Res() res: Response) {
+  googleAuth(@Res() res: Response, @Query('calendar') calendar?: string) {
     this.logger.log('Starting Google OAuth flow...');
+    
+    // Include calendar scope if requested
+    const scopes = ['openid', 'email', 'profile'];
+    if (calendar === 'true') {
+      scopes.push('https://www.googleapis.com/auth/calendar');
+    }
+    
     const url = this.oauthClient.generateAuthUrl({
       access_type: 'offline',
-      scope: ['openid', 'email', 'profile'],
+      scope: scopes,
       prompt: 'consent',
+      state: calendar === 'true' ? 'calendar' : undefined,
     });
     this.logger.log(`Redirecting to Google Auth URL: ${url}`);
     return res.redirect(url);
@@ -58,6 +66,7 @@ export class AuthController {
     @Req() req: Request,
     @Res() res: Response,
     @Query('code') code?: string,
+    @Query('state') state?: string,
   ) {
     try {
       if (!code) {
@@ -89,6 +98,7 @@ export class AuthController {
       }
 
       const email = payload.email;
+      const isCalendarAuth = state === 'calendar';
       const domain = (email.split('@')[1] || '').toLowerCase();
 
       // Enforce existing users only
@@ -142,6 +152,25 @@ export class AuthController {
         const url = new URL(redirect);
         url.searchParams.set('error', 'Your account has been deactivated. Please contact an administrator.');
         return res.redirect(url.toString());
+      }
+
+      // If calendar auth, store tokens in user record
+      if (isCalendarAuth && tokens.access_token && tokens.refresh_token) {
+        await this.userModel.findByIdAndUpdate(existingUser._id, {
+          googleAuth: {
+            accessToken: tokens.access_token,
+            refreshToken: tokens.refresh_token,
+            expiryDate: tokens.expiry_date || Date.now() + 3600000,
+            scope: tokens.scope || 'calendar',
+          },
+        });
+        
+        // Redirect back to app with success - use stored return URL or default to homepage
+        const redirectOk = process.env.FRONTEND_APP_URL || 'http://localhost:3000';
+        const okUrl = new URL(redirectOk);
+        okUrl.searchParams.set('googleCalendarConnected', 'true');
+        okUrl.searchParams.set('timestamp', Date.now().toString()); // Force refresh
+        return res.redirect(okUrl.toString());
       }
 
       // User exists: issue our own JWT

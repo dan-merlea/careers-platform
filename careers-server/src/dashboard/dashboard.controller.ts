@@ -10,12 +10,6 @@ export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('stats')
-  @Roles(
-    UserRole.ADMIN,
-    UserRole.DIRECTOR,
-    UserRole.RECRUITER,
-    UserRole.MANAGER,
-  )
   async getStats(
     @CompanyId() companyId: string,
     @Request() req: { user: { userId: string } },

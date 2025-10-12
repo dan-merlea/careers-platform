@@ -25,6 +25,12 @@ export interface Interview {
   meetingId?: string; // Meeting ID for online meetings
   meetingPassword?: string; // Password for online meetings
   processId?: string; // ID of the interview process this interview belongs to
+  googleEventId?: string;
+  googleMeetingDetails?: {
+    meetLink?: string;
+    conferenceId?: string;
+    htmlLink?: string;
+  };
 }
 
 export interface InterviewFeedback {
@@ -98,6 +104,17 @@ const interviewService = {
       return response;
     } catch (error) {
       console.error(`Error fetching interview process with ID ${processId}:`, error);
+      throw error;
+    }
+  },
+
+  // Create Google Meet for an existing interview
+  createGoogleMeet: async (interviewId: string): Promise<Interview> => {
+    try {
+      const response = await api.put<Interview>(`/interviews/${interviewId}/create-google-meet`, {});
+      return response;
+    } catch (error) {
+      console.error(`Error creating Google Meet for interview ${interviewId}:`, error);
       throw error;
     }
   },

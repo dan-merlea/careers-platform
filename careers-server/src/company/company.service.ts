@@ -14,12 +14,10 @@ export class CompanyService {
   ) {}
 
   /**
-   * Get company details
-   * There should only be one company record in the database
+   * Get company details by ID
    */
-  async getCompanyDetails(): Promise<Company> {
-    // Find the first company record
-    const company = await this.companyModel.findOne().exec();
+  async getCompanyDetails(companyId: string): Promise<Company> {
+    const company = await this.companyModel.findById(companyId).exec();
 
     if (!company) {
       throw new Error('Company details not found');
@@ -31,14 +29,14 @@ export class CompanyService {
   /**
    * Create or update company details
    */
-  async saveCompanyDetails(companyDto: CompanyDto): Promise<Company> {
+  async saveCompanyDetails(companyId: string, companyDto: CompanyDto): Promise<Company> {
     // Check if company details already exist
-    const existingCompany = await this.companyModel.findOne().exec();
+    const existingCompany = await this.companyModel.findById(companyId).exec();
 
     if (existingCompany) {
       // Update existing company
       const updated = await this.companyModel
-        .findByIdAndUpdate(existingCompany._id, companyDto, { new: true })
+        .findByIdAndUpdate(companyId, companyDto, { new: true })
         .exec();
 
       if (!updated) {
@@ -47,8 +45,8 @@ export class CompanyService {
 
       return updated;
     } else {
-      // Create new company
-      const newCompany = new this.companyModel(companyDto);
+      // Create new company with the provided ID
+      const newCompany = new this.companyModel({ ...companyDto, _id: companyId });
       const savedCompany = await newCompany.save();
 
       // Create default job functions for the new company
@@ -64,10 +62,11 @@ export class CompanyService {
    * Update company settings
    */
   async updateCompanySettings(
+    companyId: string,
     settingsDto: CompanySettingsDto,
   ): Promise<Company> {
     // Get existing company
-    const company = await this.getCompanyDetails();
+    const company = await this.getCompanyDetails(companyId);
 
     // Update settings
     const currentSettings = company.settings || {};

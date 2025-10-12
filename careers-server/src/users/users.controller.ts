@@ -63,8 +63,11 @@ export class UsersController {
     let company: any = null;
     if (user.companyId) {
       company = await this.companyModel.findById(user.companyId).lean().exec();
-      console.log('Company found:', company);
     }
+
+    // Check if Google auth is expired
+    const googleAuth = (user as any).googleAuth;
+    const hasValidGoogleAuth = googleAuth && googleAuth.expiryDate > Date.now();
 
     return {
       user: {
@@ -75,6 +78,8 @@ export class UsersController {
         name: (user as any).name || '',
         departmentId: (user as any).departmentId || '',
         companyId: user.companyId ? String(user.companyId) : null,
+        hasGoogleCalendar: hasValidGoogleAuth,
+        googleAuthExpired: googleAuth && !hasValidGoogleAuth,
       },
       company: company
         ? {

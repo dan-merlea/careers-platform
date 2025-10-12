@@ -91,6 +91,21 @@ const LoginRoute: React.FC<LoginRouteProps> = ({ children }) => {
 
 // App Routes component - separated to use the auth context
 const AppRoutes: React.FC = () => {
+  const location = useLocation();
+  
+  // Handle OAuth redirect back from Google
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('googleCalendarConnected') === 'true') {
+      // Get stored return URL
+      const returnUrl = sessionStorage.getItem('oauthReturnUrl');
+      if (returnUrl && returnUrl !== location.pathname) {
+        sessionStorage.removeItem('oauthReturnUrl');
+        window.location.href = returnUrl;
+      }
+    }
+  }, [location]);
+  
   return (
     <>
       <SessionExpiredNotification />

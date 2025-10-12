@@ -90,11 +90,6 @@ const ApplicantDetailPage: React.FC = () => {
     }
   };
   
-  // Handle opening the interview scheduling modal
-  const handleOpenInterviewModal = () => {
-    setShowInterviewModal(true);
-  };
-  
   // Handle interview scheduled - navigate to interview details page
   const handleInterviewScheduled = (interviewId: string) => {
     // Navigate to the interview details page
@@ -150,6 +145,22 @@ const ApplicantDetailPage: React.FC = () => {
     return applicant?.progress ?? 0;
   };
 
+  // Get the stage title from the stage ID
+  const getCurrentStageTitle = (): string => {
+    if (!applicant?.status) return 'New';
+    
+    // First try to find in applicant.stages (most up-to-date)
+    const currentStageFromApplicant = applicant.stages?.find(stage => stage.id === applicant.status);
+    if (currentStageFromApplicant) {
+      return currentStageFromApplicant.title;
+    }
+    
+    // Fallback to interviewStages
+    const currentStage = interviewStages.find(stage => stage.id === applicant.status);
+    
+    return currentStage?.title || applicant.status;
+  };
+
   const handleStatusChange = async (newStatus: string) => {
     if (!id) return;
     
@@ -159,6 +170,17 @@ const ApplicantDetailPage: React.FC = () => {
       
       // Update the applicant in the local state
       setApplicant(updatedApplicant);
+      
+      // Update interview stages from the updated applicant data
+      if (updatedApplicant.stages) {
+        setInterviewStages(updatedApplicant.stages);
+        
+        // Extract processId from stages if available
+        const stageWithProcessId = updatedApplicant.stages.find(stage => stage.processId);
+        if (stageWithProcessId) {
+          setProcessId(stageWithProcessId.processId);
+        }
+      }
     } catch (err) {
       console.error('Error updating applicant status:', err);
       setError('Failed to update applicant status. Please try again.');
@@ -479,7 +501,7 @@ const ApplicantDetailPage: React.FC = () => {
                         <div className="flex items-center justify-between">
                           <div>
                             <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-600 bg-green-200">
-                              {applicant?.status || 'New'}
+                              {getCurrentStageTitle()}
                             </span>
                           </div>
                           <div className="text-right">

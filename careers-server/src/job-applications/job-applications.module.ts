@@ -8,6 +8,7 @@ import { GridFsModule } from '../gridfs/gridfs.module';
 import { User, UserSchema } from '../users/schemas/user.schema';
 import { Job, JobSchema } from '../job/job.entity';
 import { CalendarModule } from '../calendar/calendar.module';
+import { CompanyModule } from '../company/company.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
@@ -20,6 +21,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     MulterModule.register({}),
     GridFsModule,
     CalendarModule,
+    CompanyModule,
     NotificationsModule,
   ],
   controllers: [JobApplicationsController],

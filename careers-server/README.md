@@ -122,7 +122,6 @@ Check out a few resources that may come in handy when working with NestJS:
    GOOGLE_CLIENT_ID=your_client_id
    GOOGLE_CLIENT_SECRET=your_client_secret
    GOOGLE_REDIRECT_URI=your_redirect_uri
-   GOOGLE_REFRESH_TOKEN=your_refresh_token
    ```
 
 ### Microsoft 365 Integration

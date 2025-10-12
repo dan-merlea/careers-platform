@@ -32,10 +32,9 @@ export class UsersService {
       throw new Error('User with this email already exists');
     }
 
-    // Hash the password
-    const hashedPassword = await this.authService.hashPassword(
-      createUserDto.password,
-    );
+    // Hash the password if provided, otherwise generate a random one
+    const passwordToHash = createUserDto.password || Math.random().toString(36).slice(-12);
+    const hashedPassword = await this.authService.hashPassword(passwordToHash);
 
     // Check if this is the first user (make them admin)
     const userCount = await this.userModel.countDocuments().exec();

@@ -15,6 +15,7 @@ interface EditInterviewersModalProps {
   interviewers: Interviewer[];
   onSave: (interviewers: Interviewer[]) => void;
   isLoading: boolean;
+  googleAuthExpired?: boolean;
 }
 
 const EditInterviewersModal: React.FC<EditInterviewersModalProps> = ({
@@ -22,7 +23,8 @@ const EditInterviewersModal: React.FC<EditInterviewersModalProps> = ({
   onClose,
   interviewers,
   onSave,
-  isLoading
+  isLoading,
+  googleAuthExpired = false
 }) => {
   const [selectedInterviewers, setSelectedInterviewers] = useState<Interviewer[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -114,6 +116,24 @@ const EditInterviewersModal: React.FC<EditInterviewersModalProps> = ({
                   Edit Interviewers
                 </h3>
                 
+                {googleAuthExpired ? (
+                  <div className="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-md">
+                    <p className="text-sm font-medium">⚠️ Google Calendar connection expired</p>
+                    <p className="text-xs mt-1 mb-3">Your Google Calendar access has expired. Please reconnect to update this interview.</p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const backendUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+                        sessionStorage.setItem('oauthReturnUrl', window.location.pathname);
+                        window.location.href = `${backendUrl}/auth/google?calendar=true`;
+                      }}
+                      className="px-4 py-2 bg-white border border-orange-300 rounded-md text-sm font-medium text-orange-900 hover:bg-orange-50"
+                    >
+                      Reconnect Google Calendar
+                    </button>
+                  </div>
+                ) : (
+                  <>
                 <div className="mt-4">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Current Interviewers</h4>
                   {selectedInterviewers.length === 0 ? (
@@ -207,10 +227,13 @@ const EditInterviewersModal: React.FC<EditInterviewersModalProps> = ({
                     )}
                   </div>
                 </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
           
+          {!googleAuthExpired && (
           <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
             <button
               type="button"
@@ -229,6 +252,7 @@ const EditInterviewersModal: React.FC<EditInterviewersModalProps> = ({
               Cancel
             </button>
           </div>
+          )}
         </div>
       </div>
     </div>
