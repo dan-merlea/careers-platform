@@ -12,17 +12,13 @@ export default function Home() {
         <div className="relative max-w-[1200px] mx-auto px-6 py-24 sm:py-32 lg:py-40">
           <div className="text-center">
             {/* Badge */}
-            <div className="animated-border inline-flex items-center space-x-2 px-4 py-2 rounded-full backdrop-blur-sm mb-8">
+            <div className="hero-announcement inline-flex items-center space-x-2 px-4 py-2 rounded-full backdrop-blur-sm mb-8">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
               </span>
               <span className="text-sm text-gray-300">Your shortcut to career success</span>
             </div>
-
-            <a href="#" className="hero-announcement">
-              <span className="text">Introducing Hatch Beacon</span>
-            </a>
 
             {/* Main Headline */}
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6">
