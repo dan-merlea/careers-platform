@@ -1,5 +1,5 @@
 import { api } from '../utils/api';
-import { FilterParams } from '../pages/AnalyticsPage';
+import { FilterParams } from '../pages/analytics/AnalyticsPage';
 
 // Types for analytics data
 export interface KpiMetric {

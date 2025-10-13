@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import UnauthorizedPage from '../../pages/UnauthorizedPage';
+import UnauthorizedPage from '../../pages/auth/UnauthorizedPage';
 
 interface RoleGuardProps {
   children: React.ReactNode;

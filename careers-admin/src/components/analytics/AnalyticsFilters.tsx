@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Button from '../common/Button';
 import DateInput from '../common/DateInput';
-import { FilterParams } from '../../pages/AnalyticsPage';
+import { FilterParams } from '../../pages/analytics/AnalyticsPage';
 import { AdjustmentsHorizontalIcon, CalendarIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import Select from '../common/Select';
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FilterParams } from '../../pages/AnalyticsPage';
+import { FilterParams } from '../../pages/analytics/AnalyticsPage';
 import analyticsService, { KpiMetric } from '../../services/analyticsService';
 import MetricCard from './MetricCard';
 import Card from '../common/Card';

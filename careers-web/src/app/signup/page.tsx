@@ -1,42 +1,360 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Link from "next/link";
+import Select from "@/components/Select";
+import { COUNTRIES } from "@/lib/countries";
 
-export default function SignupRedirect() {
-  const router = useRouter();
+const COMPANY_SIZES = [
+  "1-10 employees",
+  "11-50 employees",
+  "51-200 employees",
+  "201-500 employees",
+  "501-1000 employees",
+  "1000+ employees"
+];
 
-  useEffect(() => {
-    // Redirect to admin signup page
-    window.location.href = "http://localhost:3000/signup";
-  }, []);
+const INDUSTRIES = [
+  "Technology",
+  "Healthcare",
+  "Finance",
+  "Education",
+  "Retail",
+  "Manufacturing",
+  "Consulting",
+  "Marketing & Advertising",
+  "Real Estate",
+  "Other"
+];
+
+const EXPECTED_HIRES = [
+  "1-5 hires",
+  "6-10 hires",
+  "11-20 hires",
+  "20+ hires"
+];
+
+export default function CompanySignup() {
+  const [formData, setFormData] = useState({
+    companyName: "",
+    companySize: "",
+    industry: "",
+    country: "",
+    website: "",
+    contactFirstName: "",
+    contactLastName: "",
+    contactEmail: "",
+    contactPhone: "",
+    jobTitle: "",
+    hiringNeeds: "",
+    expectedHires: ""
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const response = await fetch("http://localhost:3001/company-signups", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to submit signup");
+      }
+
+      setSubmitSuccess(true);
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (submitSuccess) {
+    return (
+      <div className="bg-black pt-24 min-h-screen">
+        <div className="max-w-[600px] mx-auto px-6 py-24">
+          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-12 text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FF6363] to-[#A855F7] flex items-center justify-center mx-auto mb-6">
+              <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-4">Thank You!</h1>
+            <p className="text-xl text-gray-400 mb-8">
+              We&apos;ve received your application. Our team will review it and get back to you within 2-3 business days.
+            </p>
+            <Link 
+              href="/" 
+              className="inline-flex items-center px-6 py-3 bg-white text-black rounded-xl font-semibold hover:bg-gray-100 transition-all"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-semibold text-gray-900">Redirecting to Sign Up...</h1>
-        <p className="mt-2 text-gray-600">Please wait, you are being redirected to the account creation page.</p>
-        <div className="mt-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+    <div className="bg-black pt-24 min-h-screen">
+      <div className="max-w-[800px] mx-auto px-6 py-24">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6">
+            Start <span className="gradient-text">Hiring</span> Today
+          </h1>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            Join hundreds of companies using Hatch Beacon to find top talent. Fill out the form below and we&apos;ll get you started.
+          </p>
         </div>
-        <p className="mt-4 text-sm text-gray-600">
-          If you are not redirected automatically, please choose an option below:
-        </p>
-        <div className="mt-6 flex flex-col sm:flex-row justify-center space-y-3 sm:space-y-0 sm:space-x-4">
-          <a 
-            href="http://localhost:3000/login" 
-            className="px-4 py-2 border border-blue-600 text-blue-600 rounded hover:bg-blue-50 transition-colors"
-          >
-            Sign In
-          </a>
-          <a 
-            href="http://localhost:3000/signup" 
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-          >
-            Create Account
-          </a>
-        </div>
+
+        <form onSubmit={handleSubmit} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400">
+              {error}
+            </div>
+          )}
+
+          {/* Company Information */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-white mb-6">Company Information</h2>
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="companyName" className="block text-sm font-medium text-white mb-2">
+                  Company Name *
+                </label>
+                <input
+                  type="text"
+                  id="companyName"
+                  name="companyName"
+                  required
+                  value={formData.companyName}
+                  onChange={handleChange}
+                  className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  placeholder="Acme Corporation"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="companySize" className="block text-sm font-medium text-white mb-2">
+                    Company Size *
+                  </label>
+                  <Select
+                    value={formData.companySize}
+                    onChange={(value) => setFormData({ ...formData, companySize: value || "" })}
+                    options={COMPANY_SIZES.map(size => ({ label: size, value: size }))}
+                    placeholder="Select size"
+                    ariaLabel="Company Size"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="industry" className="block text-sm font-medium text-white mb-2">
+                    Industry *
+                  </label>
+                  <Select
+                    value={formData.industry}
+                    onChange={(value) => setFormData({ ...formData, industry: value || "" })}
+                    options={INDUSTRIES.map(industry => ({ label: industry, value: industry }))}
+                    placeholder="Select industry"
+                    ariaLabel="Industry"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="country" className="block text-sm font-medium text-white mb-2">
+                    Country *
+                  </label>
+                  <Select
+                    value={formData.country}
+                    onChange={(value) => setFormData({ ...formData, country: value || "" })}
+                    options={COUNTRIES.map(country => ({ label: country, value: country }))}
+                    placeholder="Select country"
+                    searchable={true}
+                    ariaLabel="Country"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="website" className="block text-sm font-medium text-white mb-2">
+                    Website *
+                  </label>
+                  <input
+                    type="url"
+                    id="website"
+                    name="website"
+                    required
+                    value={formData.website}
+                    onChange={handleChange}
+                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="https://example.com"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Information */}
+          <div className="mb-8 pt-8 border-t border-white/10">
+            <h2 className="text-2xl font-bold text-white mb-6">Contact Information</h2>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="contactFirstName" className="block text-sm font-medium text-white mb-2">
+                    First Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="contactFirstName"
+                    name="contactFirstName"
+                    required
+                    value={formData.contactFirstName}
+                    onChange={handleChange}
+                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="John"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="contactLastName" className="block text-sm font-medium text-white mb-2">
+                    Last Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="contactLastName"
+                    name="contactLastName"
+                    required
+                    value={formData.contactLastName}
+                    onChange={handleChange}
+                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="Doe"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="jobTitle" className="block text-sm font-medium text-white mb-2">
+                  Job Title *
+                </label>
+                <input
+                  type="text"
+                  id="jobTitle"
+                  name="jobTitle"
+                  required
+                  value={formData.jobTitle}
+                  onChange={handleChange}
+                  className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  placeholder="HR Manager"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="contactEmail" className="block text-sm font-medium text-white mb-2">
+                    Email *
+                  </label>
+                  <input
+                    type="email"
+                    id="contactEmail"
+                    name="contactEmail"
+                    required
+                    value={formData.contactEmail}
+                    onChange={handleChange}
+                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="john@example.com"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="contactPhone" className="block text-sm font-medium text-white mb-2">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    id="contactPhone"
+                    name="contactPhone"
+                    required
+                    value={formData.contactPhone}
+                    onChange={handleChange}
+                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="+1 (555) 123-4567"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Hiring Needs */}
+          <div className="mb-8 pt-8 border-t border-white/10">
+            <h2 className="text-2xl font-bold text-white mb-6">Hiring Needs</h2>
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="expectedHires" className="block text-sm font-medium text-white mb-2">
+                  Expected Hires (Next 12 Months)
+                </label>
+                <Select
+                  value={formData.expectedHires}
+                  onChange={(value) => setFormData({ ...formData, expectedHires: value || "" })}
+                  options={EXPECTED_HIRES.map(range => ({ label: range, value: range }))}
+                  placeholder="Select range"
+                  allowEmpty={true}
+                  ariaLabel="Expected Hires"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="hiringNeeds" className="block text-sm font-medium text-white mb-2">
+                  Tell us about your hiring needs
+                </label>
+                <textarea
+                  id="hiringNeeds"
+                  name="hiringNeeds"
+                  rows={4}
+                  value={formData.hiringNeeds}
+                  onChange={handleChange}
+                  className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+                  placeholder="What roles are you looking to fill? Any specific requirements?"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1 py-4 px-6 bg-white text-black rounded-xl font-semibold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:scale-105"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Application"}
+            </button>
+            <Link
+              href="/"
+              className="flex-1 py-4 px-6 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all text-center border border-white/10"
+            >
+              Cancel
+            </Link>
+          </div>
+        </form>
       </div>
     </div>
   );

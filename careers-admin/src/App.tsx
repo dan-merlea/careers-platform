@@ -2,35 +2,50 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import './styles/ScrollFix.css';
 import Layout from './components/layout/Layout';
+// Dashboard
 import HomePage from './pages/HomePage';
-import SetupPage from './pages/SetupPage';
-import CompanyDetailsPage from './pages/CompanyDetailsPage';
-import UsersPage from './pages/UsersPage';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
-import CompanySignupPage from './pages/CompanySignupPage';
-import UnauthorizedPage from './pages/UnauthorizedPage';
-import ProfilePage from './pages/ProfilePage';
-import JobBoardsPage from './pages/JobBoardsPage';
-import JobBoardJobsPage from './pages/JobBoardJobsPage';
-import JobBoardJobCreatePage from './pages/JobBoardJobCreatePage';
-import JobsPage from './pages/JobsPage';
-import JobCreatePage from './pages/JobCreatePage';
-import JobEditPage from './pages/JobEditPage';
-import JobDetailPage from './pages/JobDetailPage';
-import HeadcountListPage from './pages/HeadcountListPage';
-import HeadcountRequestForm from './pages/HeadcountRequestForm';
-import DebugJobApplications from './pages/DebugJobApplications';
-import InterviewsPage from './pages/InterviewsPage';
-import InterviewProcessCreatePage from './pages/InterviewProcessCreatePage';
-import InterviewProcessEditPage from './pages/InterviewProcessEditPage';
-import InterviewProcessDetailPage from './pages/InterviewProcessDetailPage';
-import InterviewDetailPage from './pages/InterviewDetailPage';
-import ApplicantDetailPage from './pages/ApplicantDetailPage';
-import ApplicantsPage from './pages/ApplicantsPage';
-import ReferralPage from './pages/ReferralPage';
-import LogsPage from './pages/LogsPage';
-import AnalyticsPage from './pages/AnalyticsPage';
+
+// Company pages
+import SetupPage from './pages/company/SetupPage';
+import CompanyDetailsPage from './pages/company/CompanyDetailsPage';
+import UsersPage from './pages/company/UsersPage';
+import LogsPage from './pages/company/LogsPage';
+
+// Auth pages
+import LoginPage from './pages/auth/LoginPage';
+import SignupPage from './pages/auth/SignupPage';
+import CompanySignupPage from './pages/auth/CompanySignupPage';
+import UnauthorizedPage from './pages/auth/UnauthorizedPage';
+
+// Profile pages
+import ProfilePage from './pages/profile/ProfilePage';
+
+// Jobs pages
+import JobBoardsPage from './pages/jobs/JobBoardsPage';
+import JobBoardJobsPage from './pages/jobs/JobBoardJobsPage';
+import JobBoardJobCreatePage from './pages/jobs/JobBoardJobCreatePage';
+import JobsPage from './pages/jobs/JobsPage';
+import JobCreatePage from './pages/jobs/JobCreatePage';
+import JobEditPage from './pages/jobs/JobEditPage';
+import JobDetailPage from './pages/jobs/JobDetailPage';
+import HeadcountListPage from './pages/jobs/HeadcountListPage';
+import HeadcountRequestForm from './pages/jobs/HeadcountRequestForm';
+
+// Recruiting pages
+import InterviewsPage from './pages/recruiting/InterviewsPage';
+import InterviewProcessCreatePage from './pages/recruiting/InterviewProcessCreatePage';
+import InterviewProcessEditPage from './pages/recruiting/InterviewProcessEditPage';
+import InterviewProcessDetailPage from './pages/recruiting/InterviewProcessDetailPage';
+import InterviewDetailPage from './pages/recruiting/InterviewDetailPage';
+import ApplicantDetailPage from './pages/recruiting/ApplicantDetailPage';
+import ApplicantsPage from './pages/recruiting/ApplicantsPage';
+import ReferralPage from './pages/recruiting/ReferralPage';
+
+// Analytics pages
+import AnalyticsPage from './pages/analytics/AnalyticsPage';
+
+// Debug pages
+import DebugJobApplications from './pages/debug/DebugJobApplications';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CompanyProvider } from './context/CompanyContext';
 import { NotificationProvider } from './context/NotificationContext';

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FilterParams } from '../../pages/AnalyticsPage';
+import { FilterParams } from '../../pages/analytics/AnalyticsPage';
 import analyticsService, { FunnelStage } from '../../services/analyticsService';
 import Card from '../common/Card';
 import { FunnelChart, Funnel, Cell, Tooltip, ResponsiveContainer, LabelList, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';

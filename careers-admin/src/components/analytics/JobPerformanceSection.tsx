@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FilterParams } from '../../pages/AnalyticsPage';
+import { FilterParams } from '../../pages/analytics/AnalyticsPage';
 import analyticsService, { JobPerformance } from '../../services/analyticsService';
 import Card from '../common/Card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
