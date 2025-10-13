@@ -990,6 +990,7 @@ export class JobApplicationsService {
       refereeRelationship: application.refereeRelationship,
       isReferral: application.isReferral || false,
       source: application.source || 'careers-page',
+      availableTimeSlots: application.availableTimeSlots,
       createdAt: application.createdAt,
       updatedAt: application.updatedAt,
     };

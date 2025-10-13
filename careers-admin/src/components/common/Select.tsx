@@ -1,6 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-export type SelectOption = { label: string; value: string };
+export type SelectOption = { 
+  label: string; 
+  value: string;
+  highlighted?: boolean;
+  highlightColor?: string;
+};
 
 type SelectProps = {
   value?: string;
@@ -134,11 +139,11 @@ const Select: React.FC<SelectProps> = ({
           if (open) closeWithAnimation();
           else setOpen(true);
         }}
-        className={`block w-full pl-3 pr-10 py-2 bg-white border border-gray-300 rounded-md text-left text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 ${
+        className={`block w-full pl-3 pr-10 py-2 bg-white border border-gray-300 rounded-md text-left text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50 min-h-[38px] ${
           open ? 'ring-2 ring-blue-500 border-blue-500' : ''
         }`}
       >
-        <span className={`truncate ${!value && allowEmpty ? 'text-gray-400' : 'text-gray-900'}`}>
+        <span className={`truncate block ${!value && allowEmpty ? 'text-gray-400' : 'text-gray-900'}`}>
           {selectedLabel}
         </span>
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -193,24 +198,48 @@ const Select: React.FC<SelectProps> = ({
                 {placeholder}
               </button>
             )}
-            {filtered.map((opt, idx) => (
-              <button
-                type="button"
-                key={opt.value}
-                role="option"
-                aria-selected={opt.value === value}
-                className={`slc-item block w-full text-left px-4 py-2 text-sm ${
-                  opt.value === value ? 'text-blue-700' : 'text-gray-700'
-                } hover:bg-gray-50 ${idx === activeIndex ? 'bg-gray-50' : ''}`}
-                onMouseEnter={() => setActiveIndex(idx)}
-                onClick={() => {
-                  onChange(opt.value);
-                  closeWithAnimation();
-                }}
-              >
-                {opt.label}
-              </button>
-            ))}
+            {filtered.map((opt, idx) => {
+              const isHovered = idx === activeIndex;
+              const isSelected = opt.value === value;
+              const isHighlighted = opt.highlighted;
+              
+              let bgColor = 'white';
+              let textColor = '#374151';
+              
+              if (isHighlighted) {
+                bgColor = isHovered ? '#bbf7d0' : (opt.highlightColor || '#dcfce7');
+                textColor = '#166534';
+              } else if (isHovered) {
+                bgColor = '#f9fafb';
+                textColor = isSelected ? '#1d4ed8' : '#374151';
+              } else if (isSelected) {
+                textColor = '#1d4ed8';
+              }
+              
+              const fontWeight = isHighlighted ? '600' : 'normal';
+              
+              return (
+                <button
+                  type="button"
+                  key={opt.value}
+                  role="option"
+                  aria-selected={isSelected}
+                  className="slc-item block w-full text-left px-4 py-2 text-sm transition-colors"
+                  style={{
+                    backgroundColor: bgColor,
+                    color: textColor,
+                    fontWeight: fontWeight,
+                  }}
+                  onMouseEnter={() => setActiveIndex(idx)}
+                  onClick={() => {
+                    onChange(opt.value);
+                    closeWithAnimation();
+                  }}
+                >
+                  {isHighlighted && '🟢 '}{opt.label}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

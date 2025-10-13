@@ -29,6 +29,12 @@ export class JobApplicationResponseDto {
   refereeRelationship?: string;
   isReferral?: boolean;
   source: string;
+  availableTimeSlots?: {
+    date: Date;
+    startTime: string;
+    endTime: string;
+    timezone: string;
+  }[];
   createdAt: Date;
   updatedAt: Date;
 }
