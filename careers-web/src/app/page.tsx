@@ -360,7 +360,7 @@ export default function Home() {
               items={categories}
               activeIndex={activeCategory}
               onItemClick={handleCategoryChange}
-              className="w-full md:w-9/12 lg:w-8/12 xl:w-6/12"
+              className=""
               itemClassName="min-w-[120px]"
             />
           </div>

@@ -75,39 +75,59 @@ export default function CategorySlider({
   }, [activeIndex]);
 
   return (
-    <div
-      ref={scrollRef}
-      className={`relative flex gap-2 p-0.5 bg-gray-100 rounded-full border border-gray-300 overflow-x-auto scrollbar-hide justify-center ${className}`}
-      style={{
-        scrollbarWidth: 'none',
-        msOverflowStyle: 'none',
-      }}
-    >
-      {/* Animated Background */}
+    <div className={`relative w-full md:w-auto ${className}`}>
       <div
-        className="absolute h-[calc(100%-4px)] rounded-full transition-all duration-300 ease-out pointer-events-none top-[2px]"
+        ref={scrollRef}
+        className="relative flex gap-2 p-1 rounded-full overflow-x-auto scrollbar-hide"
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          background: 'rgba(255, 255, 255, 0.4)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          border: '1px solid rgba(255, 255, 255, 0.6)',
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.8)',
+        }}
+      >
+      {/* Animated Background - Liquid Glass Effect */}
+      <div
+        className="absolute h-[calc(100%-8px)] rounded-full transition-all duration-300 ease-out pointer-events-none top-[4px]"
         style={{
           left: `${sliderPosition.left}px`,
           width: `${sliderPosition.width}px`,
-          background:
-            'radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.25), rgba(71, 71, 71, 0.08) 70%)',
-          boxShadow: 'rgb(255 255 255 / 10%) 0px 2px 8px',
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)',
+          backdropFilter: 'blur(10px) saturate(200%)',
+          WebkitBackdropFilter: 'blur(10px) saturate(200%)',
+          boxShadow: '0 4px 16px 0 rgba(31, 38, 135, 0.2), inset 0 1px 0 0 rgba(255, 255, 255, 1), 0 0 0 1px rgba(255, 255, 255, 0.5)',
+          border: '1px solid rgba(255, 255, 255, 0.8)',
         }}
       />
-      {items.map((item, index) => (
-        <button
-          key={item.id}
-          onClick={() => onItemClick(index)}
-          className={`relative z-10 flex-shrink-0 flex items-center justify-center px-6 py-3 rounded-full text-sm font-medium transition-colors duration-300 ${
-            activeIndex === index
-              ? 'text-gray-900'
-              : 'text-gray-600 hover:text-gray-900'
-          } ${itemClassName}`}
-        >
-          {item.icon && <span className="flex items-center">{item.icon}</span>}
-          {item.label && <span>{item.label}</span>}
-        </button>
-      ))}
+        {items.map((item, index) => {
+          const isActive = activeIndex === index;
+          const showLabel = item.icon && item.label && isActive;
+          
+          return (
+            <button
+              key={item.id}
+              onClick={() => onItemClick(index)}
+              className={`relative z-10 flex-shrink-0 flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all duration-300 group/item ${
+                isActive
+                  ? 'text-gray-900 px-6 py-3'
+                  : 'text-gray-600 hover:text-gray-900 px-6 py-3'
+              } ${itemClassName}`}
+              title={item.label}
+            >
+              {item.icon && <span className="flex items-center flex-shrink-0">{item.icon}</span>}
+              {item.label && !item.icon && <span>{item.label}</span>}
+              {showLabel && (
+                <span className="whitespace-nowrap overflow-hidden transition-all duration-400">
+                  {item.label}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
