@@ -24,7 +24,7 @@ export default function RootLayout({
       <body className={`${inter.variable} font-kokoro antialiased`}>
         <div className="min-h-screen flex flex-col">
           <Navbar />
-          <main className="flex-grow">{children}</main>
+          <main className="flex-grow bg-[#FAFAFA]">{children}</main>
           <Footer />
         </div>
       </body>

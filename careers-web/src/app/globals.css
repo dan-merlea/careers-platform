@@ -201,11 +201,11 @@ a, button {
 }
 
 .category-card-exit {
-  animation: cardExit 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
+  animation: cardExit 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
 }
 
 .category-card-enter {
-  animation: cardEnter 0.5s cubic-bezier(0, 0, 0.2, 1) forwards;
+  animation: cardEnter 0.3s cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 
 @keyframes cardExit {
@@ -230,20 +230,13 @@ a, button {
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background: #111111;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #333333;
-  border-radius: 5px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #444444;
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }

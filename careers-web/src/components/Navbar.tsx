@@ -30,15 +30,13 @@ export default function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3 group">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#FF6363] via-[#A855F7] to-[#EC4899] flex items-center justify-center p-1">
-                <Image 
-                  src="/logo_white.svg" 
-                  alt="Hatch Beacon Logo" 
-                  width={32} 
-                  height={32}
-                  className="transition-opacity group-hover:opacity-80"
-                />
-              </div>
+              <Image 
+                src="/logo.svg" 
+                alt="Hatch Beacon Logo" 
+                width={36} 
+                height={36}
+                className="transition-opacity group-hover:opacity-80"
+              />
               <span className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">
                 Hatch Beacon
               </span>

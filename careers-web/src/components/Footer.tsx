@@ -123,14 +123,12 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             {/* Logo & Copyright */}
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FF6363] via-[#A855F7] to-[#EC4899] flex items-center justify-center p-1">
-                <Image 
-                  src="/logo_white.svg" 
-                  alt="Hatch Beacon Logo" 
-                  width={24} 
-                  height={24}
-                />
-              </div>
+              <Image 
+                src="/logo_white.svg" 
+                alt="Hatch Beacon Logo" 
+                width={24} 
+                height={24}
+              />
               <span className="text-gray-400 text-sm">
                 &copy; {new Date().getFullYear()} Hatch Beacon. All rights reserved.
               </span>

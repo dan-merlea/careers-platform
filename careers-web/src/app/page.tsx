@@ -11,10 +11,34 @@ export default function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [categoryVisible, setCategoryVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [sliderPosition, setSliderPosition] = useState({ left: 0, width: 0 });
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    // Update slider position when category changes or on mount
+    const updateSliderPosition = () => {
+      if (categoryScrollRef.current) {
+        const container = categoryScrollRef.current;
+        // Skip the background div (first child) and get the button
+        const buttons = Array.from(container.children).filter(child => child.tagName === 'BUTTON');
+        const button = buttons[activeCategory] as HTMLElement;
+        if (button) {
+          setSliderPosition({
+            left: button.offsetLeft,
+            width: button.offsetWidth
+          });
+        }
+      }
+    };
+
+    // Small delay to ensure DOM is updated
+    const timeoutId = setTimeout(updateSliderPosition, 0);
+    return () => clearTimeout(timeoutId);
+  }, [activeCategory, isMounted]);
 
   const handleCategoryChange = (index: number) => {
     if (index === activeCategory || isTransitioning) return;
@@ -25,7 +49,25 @@ export default function Home() {
     setTimeout(() => {
       setActiveCategory(index);
       setIsTransitioning(false);
-    }, 400); // Match the CSS transition duration
+      
+      // Scroll the selected button into view (centered)
+      if (categoryScrollRef.current) {
+        const container = categoryScrollRef.current;
+        const buttons = Array.from(container.children).filter(child => child.tagName === 'BUTTON');
+        const button = buttons[index] as HTMLElement;
+        if (button) {
+          const containerWidth = container.offsetWidth;
+          const buttonLeft = button.offsetLeft;
+          const buttonWidth = button.offsetWidth;
+          const scrollLeft = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
+          
+          container.scrollTo({
+            left: scrollLeft,
+            behavior: 'smooth'
+          });
+        }
+      }
+    }, 250); // Match the CSS transition duration
   };
 
   useEffect(() => {
@@ -180,7 +222,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-white">
+    <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Gradient Background */}
@@ -247,7 +289,7 @@ export default function Home() {
       </section>
 
       {/* Extension Highlight Section */}
-      <section ref={highlightRef} className="relative py-24 sm:py-32 overflow-hidden">
+      <section ref={highlightRef} className="relative py-16 sm:py-24 overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-20">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
@@ -341,34 +383,42 @@ export default function Home() {
       </section>
 
       {/* Category Features Section */}
-      <section ref={categoryRef} className="relative py-24 sm:py-32">
+      <section ref={categoryRef} className="relative py-16 sm:py-24">
         <div className="max-w-[1200px] mx-auto px-6">
           {/* Header with Title and Categories */}
           <div className="flex flex-col justify-between items-start lg:items-center mb-16 gap-8">
-            <div className="flex flex-row justify-between items-center gap-8">
+            <div className="flex flex-row justify-between items-center gap-8 max-w-full">
               <svg xmlns="http://www.w3.org/2000/svg" width="272" height="2" viewBox="0 0 272 2" fill="none"><path d="M272 1L0.5 0.999976" stroke="url(#paint0_linear_955_23505)"></path><defs><linearGradient id="paint0_linear_955_23505" x1="272.5" y1="1.49831" x2="0.500004" y2="0.998287" gradientUnits="userSpaceOnUse"><stop stopColor="#ECA5A7"></stop><stop offset="0.165137" stopColor="#581D27"></stop><stop offset="1" stopColor="#190E14"></stop></linearGradient></defs></svg>
-              <span className="text-gray-900 font-semibold">Explore by Category</span>
+              <span className="text-gray-900 font-semibold flex-none">Explore by Category</span>
               <svg xmlns="http://www.w3.org/2000/svg" width="272" height="2" viewBox="0 0 272 2" fill="none"><path d="M0 1L271.5 1" stroke="url(#paint0_linear_1193_9154)"></path><defs><linearGradient id="paint0_linear_1193_9154" x1="-0.500003" y1="0.501689" x2="271.5" y2="1.00169" gradientUnits="userSpaceOnUse"><stop stopColor="#ECA5A7"></stop><stop offset="0.165137" stopColor="#581D27"></stop><stop offset="1" stopColor="#190E14"></stop></linearGradient></defs></svg>
             </div>
             
             {/* Category Navigation */}
-            <div className="relative flex gap-2 p-0.5 bg-gray-100 rounded-full border border-gray-300 w-full lg:w-8/12 xl:w-6/12">
+            <div 
+              ref={categoryScrollRef}
+              className="relative flex gap-2 p-0.5 bg-gray-100 rounded-full border border-gray-300 w-full lg:w-8/12 xl:w-6/12 overflow-x-auto scrollbar-hide"
+              style={{
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}
+            >
               {/* Animated Background */}
-              
               <div 
-                className="category-slider-bg absolute h-[calc(100%-4px)] rounded-full transition-all duration-300 ease-out"
+                className="absolute h-[calc(100%-4px)] rounded-full transition-all duration-300 ease-out pointer-events-none top-[2px]"
                 style={{
-                  transform: `translateX(calc(${activeCategory * 100}% + ${activeCategory * 2}px))`,
-                  width: `calc(${100 / categories.length}% - 3px)`,
-                  background: 'white',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                  left: `${sliderPosition.left}px`,
+                  width: `${sliderPosition.width}px`,
+                  background: 'radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.25), rgba(71, 71, 71, 0.08) 70%)',
+                  boxShadow: 'rgb(255 255 255 / 10%) 0px 2px 8px'
                 }}
               />
               {categories.map((category, index) => (
                 <button
                   key={index}
                   onClick={() => handleCategoryChange(index)}
-                  className={`relative z-10 flex-1 px-6 py-3 rounded-full text-sm font-medium transition-colors duration-300 ${activeCategory === index ? 'text-gray-900' : 'text-gray-600 hover:text-gray-900'}`}
+                  className={`relative z-10 flex-shrink-0 min-w-[120px] px-6 py-3 rounded-full text-sm font-medium transition-colors duration-300 ${
+                    activeCategory === index ? 'text-gray-900' : 'text-gray-600 hover:text-gray-900'
+                  }`}
                 >
                   {category.name}
                 </button>
@@ -385,7 +435,7 @@ export default function Home() {
                   !isMounted ? 'category-card-hidden' : (isTransitioning ? 'category-card-exit' : (categoryVisible ? 'category-card-enter' : 'category-card-hidden'))
                 }`}
                 style={{
-                  transitionDelay: `${index * 50}ms`
+                  transitionDelay: `0ms`
                 }}
               >
                 {/* Card Header */}
@@ -425,7 +475,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="relative py-24 sm:py-32">
+      <section className="relative py-16 sm:py-24">
         <div className="max-w-[1200px] mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4">
@@ -529,7 +579,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative py-24 sm:py-32 bg-gray-50">
+      <section className="relative py-16 sm:py-24 bg-gray-50">
         <div className="relative max-w-4xl mx-auto px-6 lg:px-8">
           <div className="bg-gradient-to-br from-[#FF6363] via-[#A855F7] to-[#EC4899] rounded-3xl p-1">
             <div className="bg-white rounded-3xl p-12 sm:p-16">
