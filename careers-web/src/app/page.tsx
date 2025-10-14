@@ -37,7 +37,14 @@ export default function Home() {
 
     // Small delay to ensure DOM is updated
     const timeoutId = setTimeout(updateSliderPosition, 0);
-    return () => clearTimeout(timeoutId);
+    
+    // Add resize listener to reposition slider on window resize
+    window.addEventListener('resize', updateSliderPosition);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updateSliderPosition);
+    };
   }, [activeCategory, isMounted]);
 
   const handleCategoryChange = (index: number) => {
@@ -386,17 +393,17 @@ export default function Home() {
       <section ref={categoryRef} className="relative py-16 sm:py-24">
         <div className="max-w-[1200px] mx-auto px-6">
           {/* Header with Title and Categories */}
-          <div className="flex flex-col justify-between items-start lg:items-center mb-16 gap-8">
+          <div className="flex flex-col justify-between items-center mb-16 gap-8">
             <div className="flex flex-row justify-between items-center gap-8 max-w-full">
-              <svg xmlns="http://www.w3.org/2000/svg" width="272" height="2" viewBox="0 0 272 2" fill="none"><path d="M272 1L0.5 0.999976" stroke="url(#paint0_linear_955_23505)"></path><defs><linearGradient id="paint0_linear_955_23505" x1="272.5" y1="1.49831" x2="0.500004" y2="0.998287" gradientUnits="userSpaceOnUse"><stop stopColor="#ECA5A7"></stop><stop offset="0.165137" stopColor="#581D27"></stop><stop offset="1" stopColor="#190E14"></stop></linearGradient></defs></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="272" height="2" viewBox="0 0 272 2" fill="none"><path d="M272 1L0.5 0.999976" stroke="url(#paint0_linear_left)"></path><defs><linearGradient id="paint0_linear_left" x1="272.5" y1="1" x2="0.5" y2="1" gradientUnits="userSpaceOnUse"><stop stopColor="#074f6f"></stop><stop offset="1" stopColor="#FAFAFA"></stop></linearGradient></defs></svg>
               <span className="text-gray-900 font-semibold flex-none">Explore by Category</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="272" height="2" viewBox="0 0 272 2" fill="none"><path d="M0 1L271.5 1" stroke="url(#paint0_linear_1193_9154)"></path><defs><linearGradient id="paint0_linear_1193_9154" x1="-0.500003" y1="0.501689" x2="271.5" y2="1.00169" gradientUnits="userSpaceOnUse"><stop stopColor="#ECA5A7"></stop><stop offset="0.165137" stopColor="#581D27"></stop><stop offset="1" stopColor="#190E14"></stop></linearGradient></defs></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="272" height="2" viewBox="0 0 272 2" fill="none"><path d="M0 1L271.5 1" stroke="url(#paint0_linear_right)"></path><defs><linearGradient id="paint0_linear_right" x1="0" y1="1" x2="271.5" y2="1" gradientUnits="userSpaceOnUse"><stop stopColor="#074f6f"></stop><stop offset="1" stopColor="#FAFAFA"></stop></linearGradient></defs></svg>
             </div>
             
             {/* Category Navigation */}
             <div 
               ref={categoryScrollRef}
-              className="relative flex gap-2 p-0.5 bg-gray-100 rounded-full border border-gray-300 w-full lg:w-8/12 xl:w-6/12 overflow-x-auto scrollbar-hide"
+              className="relative flex gap-2 p-0.5 bg-gray-100 rounded-full border border-gray-300 w-full md:w-9/12 lg:w-8/12 xl:w-6/12 overflow-x-auto scrollbar-hide justify-center"
               style={{
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none'
