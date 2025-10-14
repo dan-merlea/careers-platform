@@ -236,7 +236,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-b from-purple-50 via-white to-gray-50"></div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-100/50 via-white to-gray-50"></div>
         
-        <div className="relative max-w-[1200px] mx-auto px-6 py-24 sm:py-32 lg:py-40">
+        <div className="relative max-w-[1200px] mx-auto px-6 py-32 lg:py-40">
           <div className="text-center">
             {/* Badge */}
             <div className="hero-announcement inline-flex items-center space-x-2 px-4 py-2 rounded-full mb-8 bg-gray-50">

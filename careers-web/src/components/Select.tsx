@@ -139,11 +139,11 @@ const Select: React.FC<SelectProps> = ({
           if (open) closeWithAnimation();
           else setOpen(true);
         }}
-        className={`block w-full pl-3 pr-10 py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-left text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 min-h-[48px] transition-all ${
+        className={`block w-full pl-3 pr-10 py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-left text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 min-h-[48px] transition-all ${
           open ? 'ring-2 ring-purple-500 border-transparent' : ''
         }`}
       >
-        <span className={`truncate block ${!value && allowEmpty ? 'text-gray-500' : 'text-white'}`}>
+        <span className={`truncate block ${!value && allowEmpty ? 'text-gray-500' : 'text-gray-900'}`}>
           {selectedLabel}
         </span>
         <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
@@ -165,17 +165,17 @@ const Select: React.FC<SelectProps> = ({
       {(open || exiting) && (
         <div
           ref={menuRef}
-          className={`${open ? 'slc-enter' : 'slc-exit'} absolute ${popUpward ? 'bottom-full mb-1' : 'mt-1'} w-full rounded-xl shadow-lg bg-black border border-white/10 ring-1 ring-black ring-opacity-5 z-20`}
+          className={`${open ? 'slc-enter' : 'slc-exit'} absolute ${popUpward ? 'bottom-full mb-1' : 'mt-1'} w-full rounded-xl shadow-lg bg-white border border-gray-200 ring-1 ring-gray-200 ring-opacity-5 z-20`}
           role="listbox"
         >
           {searchable && (
-            <div className="p-2 border-b border-white/10">
+            <div className="p-2 border-b border-gray-200">
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search..."
-                className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 aria-label="Search options"
               />
             </div>
@@ -187,8 +187,8 @@ const Select: React.FC<SelectProps> = ({
                 role="option"
                 aria-selected={!value}
                 className={`slc-item block w-full text-left px-4 py-2 text-sm ${
-                  !value ? 'text-purple-400' : 'text-gray-300'
-                } hover:bg-white/5`}
+                  !value ? 'text-purple-600' : 'text-gray-700'
+                } hover:bg-gray-50`}
                 onMouseEnter={() => setActiveIndex(-1)}
                 onClick={() => {
                   onChange(undefined);
@@ -204,16 +204,16 @@ const Select: React.FC<SelectProps> = ({
               const isHighlighted = opt.highlighted;
               
               let bgColor = 'transparent';
-              let textColor = '#d1d5db';
+              let textColor = '#374151';
               
               if (isHighlighted) {
-                bgColor = isHovered ? 'rgba(168, 85, 247, 0.2)' : (opt.highlightColor || 'rgba(168, 85, 247, 0.1)');
-                textColor = '#a855f7';
+                bgColor = isHovered ? 'rgba(168, 85, 247, 0.15)' : (opt.highlightColor || 'rgba(168, 85, 247, 0.08)');
+                textColor = '#7c3aed';
               } else if (isHovered) {
-                bgColor = 'rgba(255, 255, 255, 0.05)';
-                textColor = isSelected ? '#a855f7' : '#ffffff';
+                bgColor = 'rgba(243, 244, 246, 1)';
+                textColor = isSelected ? '#7c3aed' : '#111827';
               } else if (isSelected) {
-                textColor = '#a855f7';
+                textColor = '#7c3aed';
               }
               
               const fontWeight = isHighlighted ? '600' : 'normal';

@@ -2,7 +2,7 @@
 export default function Contact() {
   return (
     <div className="bg-white min-h-screen">
-      <div className="max-w-[1200px] mx-auto px-6 py-24">
+      <div className="max-w-[1200px] mx-auto px-6 py-32 lg:py-40">
         <div className="text-center mb-20">
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 mb-6">
             Get in <span className="gradient-text">Touch</span>
