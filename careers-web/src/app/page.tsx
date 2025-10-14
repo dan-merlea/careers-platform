@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import PlatformShowcase from "@/components/PlatformShowcase";
+import CategorySlider, { SliderItem } from "@/components/CategorySlider";
 
 export default function Home() {
   const highlightRef = useRef<HTMLDivElement>(null);
@@ -11,41 +13,9 @@ export default function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [categoryVisible, setCategoryVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  const categoryScrollRef = useRef<HTMLDivElement>(null);
-  const [sliderPosition, setSliderPosition] = useState({ left: 0, width: 0 });
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  useEffect(() => {
-    // Update slider position when category changes or on mount
-    const updateSliderPosition = () => {
-      if (categoryScrollRef.current) {
-        const container = categoryScrollRef.current;
-        // Skip the background div (first child) and get the button
-        const buttons = Array.from(container.children).filter(child => child.tagName === 'BUTTON');
-        const button = buttons[activeCategory] as HTMLElement;
-        if (button) {
-          setSliderPosition({
-            left: button.offsetLeft,
-            width: button.offsetWidth
-          });
-        }
-      }
-    };
-
-    // Small delay to ensure DOM is updated
-    const timeoutId = setTimeout(updateSliderPosition, 0);
-    
-    // Add resize listener to reposition slider on window resize
-    window.addEventListener('resize', updateSliderPosition);
-    
-    return () => {
-      clearTimeout(timeoutId);
-      window.removeEventListener('resize', updateSliderPosition);
-    };
-  }, [activeCategory, isMounted]);
 
   const handleCategoryChange = (index: number) => {
     if (index === activeCategory || isTransitioning) return;
@@ -56,24 +26,6 @@ export default function Home() {
     setTimeout(() => {
       setActiveCategory(index);
       setIsTransitioning(false);
-      
-      // Scroll the selected button into view (centered)
-      if (categoryScrollRef.current) {
-        const container = categoryScrollRef.current;
-        const buttons = Array.from(container.children).filter(child => child.tagName === 'BUTTON');
-        const button = buttons[index] as HTMLElement;
-        if (button) {
-          const containerWidth = container.offsetWidth;
-          const buttonLeft = button.offsetLeft;
-          const buttonWidth = button.offsetWidth;
-          const scrollLeft = buttonLeft - (containerWidth / 2) + (buttonWidth / 2);
-          
-          container.scrollTo({
-            left: scrollLeft,
-            behavior: 'smooth'
-          });
-        }
-      }
     }, 250); // Match the CSS transition duration
   };
 
@@ -114,11 +66,11 @@ export default function Home() {
     return () => observer.disconnect();
   }, [categoryVisible]);
 
-  const categories = [
-    { name: "Job Search" },
-    { name: "Applications" },
-    { name: "Interviews" },
-    { name: "Career Growth" }
+  const categories: SliderItem[] = [
+    { id: "job-search", label: "Job Search" },
+    { id: "applications", label: "Applications" },
+    { id: "interviews", label: "Interviews" },
+    { id: "career-growth", label: "Career Growth" }
   ];
 
   const categoryContent = [
@@ -389,6 +341,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Platform Showcase Section */}
+      <PlatformShowcase />
+
       {/* Category Features Section */}
       <section ref={categoryRef} className="relative py-16 sm:py-24">
         <div className="max-w-[1200px] mx-auto px-6">
@@ -401,36 +356,13 @@ export default function Home() {
             </div>
             
             {/* Category Navigation */}
-            <div 
-              ref={categoryScrollRef}
-              className="relative flex gap-2 p-0.5 bg-gray-100 rounded-full border border-gray-300 w-full md:w-9/12 lg:w-8/12 xl:w-6/12 overflow-x-auto scrollbar-hide justify-center"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none'
-              }}
-            >
-              {/* Animated Background */}
-              <div 
-                className="absolute h-[calc(100%-4px)] rounded-full transition-all duration-300 ease-out pointer-events-none top-[2px]"
-                style={{
-                  left: `${sliderPosition.left}px`,
-                  width: `${sliderPosition.width}px`,
-                  background: 'radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.25), rgba(71, 71, 71, 0.08) 70%)',
-                  boxShadow: 'rgb(255 255 255 / 10%) 0px 2px 8px'
-                }}
-              />
-              {categories.map((category, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleCategoryChange(index)}
-                  className={`relative z-10 flex-shrink-0 min-w-[120px] px-6 py-3 rounded-full text-sm font-medium transition-colors duration-300 ${
-                    activeCategory === index ? 'text-gray-900' : 'text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
+            <CategorySlider
+              items={categories}
+              activeIndex={activeCategory}
+              onItemClick={handleCategoryChange}
+              className="w-full md:w-9/12 lg:w-8/12 xl:w-6/12"
+              itemClassName="min-w-[120px]"
+            />
           </div>
 
           {/* Cards Grid */}
