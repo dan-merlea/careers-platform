@@ -89,21 +89,21 @@ export default function CompanySignup() {
 
   if (submitSuccess) {
     return (
-      <div className="bg-black pt-24 min-h-screen">
+      <div className="bg-white min-h-screen">
         <div className="max-w-[600px] mx-auto px-6 py-24">
-          <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-12 text-center">
+          <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-lg">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FF6363] to-[#A855F7] flex items-center justify-center mx-auto mb-6">
               <svg className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-4">Thank You!</h1>
-            <p className="text-xl text-gray-400 mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Thank You!</h1>
+            <p className="text-xl text-gray-600 mb-8">
               We&apos;ve received your application. Our team will review it and get back to you within 2-3 business days.
             </p>
             <Link 
               href="/" 
-              className="inline-flex items-center px-6 py-3 bg-white text-black rounded-xl font-semibold hover:bg-gray-100 transition-all"
+              className="inline-flex items-center px-6 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-all"
             >
               Back to Home
             </Link>
@@ -117,15 +117,15 @@ export default function CompanySignup() {
     <div className="bg-black pt-24 min-h-screen">
       <div className="max-w-[800px] mx-auto px-6 py-24">
         <div className="text-center mb-12">
-          <h1 className="text-5xl sm:text-6xl font-bold text-white mb-6">
+          <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-6">
             Start <span className="gradient-text">Hiring</span> Today
           </h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Join hundreds of companies using Hatch Beacon to find top talent. Fill out the form below and we&apos;ll get you started.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-8">
+        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-2xl p-8 shadow-lg">
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400">
               {error}
@@ -134,10 +134,10 @@ export default function CompanySignup() {
 
           {/* Company Information */}
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-white mb-6">Company Information</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Company Information</h2>
             <div className="space-y-6">
               <div>
-                <label htmlFor="companyName" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="companyName" className="block text-sm font-medium text-gray-900 mb-2">
                   Company Name *
                 </label>
                 <input
@@ -147,14 +147,14 @@ export default function CompanySignup() {
                   required
                   value={formData.companyName}
                   onChange={handleChange}
-                  className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="Acme Corporation"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="companySize" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="companySize" className="block text-sm font-medium text-gray-900 mb-2">
                     Company Size *
                   </label>
                   <Select
@@ -167,7 +167,7 @@ export default function CompanySignup() {
                 </div>
 
                 <div>
-                  <label htmlFor="industry" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="industry" className="block text-sm font-medium text-gray-900 mb-2">
                     Industry *
                   </label>
                   <Select
@@ -182,7 +182,7 @@ export default function CompanySignup() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="country" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="country" className="block text-sm font-medium text-gray-900 mb-2">
                     Country *
                   </label>
                   <Select
@@ -196,7 +196,7 @@ export default function CompanySignup() {
                 </div>
 
                 <div>
-                  <label htmlFor="website" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="website" className="block text-sm font-medium text-gray-900 mb-2">
                     Website *
                   </label>
                   <input
@@ -206,7 +206,7 @@ export default function CompanySignup() {
                     required
                     value={formData.website}
                     onChange={handleChange}
-                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder="https://example.com"
                   />
                 </div>
@@ -215,12 +215,12 @@ export default function CompanySignup() {
           </div>
 
           {/* Contact Information */}
-          <div className="mb-8 pt-8 border-t border-white/10">
-            <h2 className="text-2xl font-bold text-white mb-6">Contact Information</h2>
+          <div className="mb-8 pt-8 border-t border-gray-300">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Contact Information</h2>
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="contactFirstName" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="contactFirstName" className="block text-sm font-medium text-gray-900 mb-2">
                     First Name *
                   </label>
                   <input
@@ -230,13 +230,13 @@ export default function CompanySignup() {
                     required
                     value={formData.contactFirstName}
                     onChange={handleChange}
-                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder="John"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="contactLastName" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="contactLastName" className="block text-sm font-medium text-gray-900 mb-2">
                     Last Name *
                   </label>
                   <input
@@ -246,14 +246,14 @@ export default function CompanySignup() {
                     required
                     value={formData.contactLastName}
                     onChange={handleChange}
-                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder="Doe"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="jobTitle" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="jobTitle" className="block text-sm font-medium text-gray-900 mb-2">
                   Job Title *
                 </label>
                 <input
@@ -263,14 +263,14 @@ export default function CompanySignup() {
                   required
                   value={formData.jobTitle}
                   onChange={handleChange}
-                  className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="w-full py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="HR Manager"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="contactEmail" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-900 mb-2">
                     Email *
                   </label>
                   <input
@@ -280,13 +280,13 @@ export default function CompanySignup() {
                     required
                     value={formData.contactEmail}
                     onChange={handleChange}
-                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder="john@example.com"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="contactPhone" className="block text-sm font-medium text-white mb-2">
+                  <label htmlFor="contactPhone" className="block text-sm font-medium text-gray-900 mb-2">
                     Phone Number *
                   </label>
                   <input
@@ -296,7 +296,7 @@ export default function CompanySignup() {
                     required
                     value={formData.contactPhone}
                     onChange={handleChange}
-                    className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    className="w-full py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
@@ -305,11 +305,11 @@ export default function CompanySignup() {
           </div>
 
           {/* Hiring Needs */}
-          <div className="mb-8 pt-8 border-t border-white/10">
-            <h2 className="text-2xl font-bold text-white mb-6">Hiring Needs</h2>
+          <div className="mb-8 pt-8 border-t border-gray-300">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Hiring Needs</h2>
             <div className="space-y-6">
               <div>
-                <label htmlFor="expectedHires" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="expectedHires" className="block text-sm font-medium text-gray-900 mb-2">
                   Expected Hires (Next 12 Months)
                 </label>
                 <Select
@@ -323,7 +323,7 @@ export default function CompanySignup() {
               </div>
 
               <div>
-                <label htmlFor="hiringNeeds" className="block text-sm font-medium text-white mb-2">
+                <label htmlFor="hiringNeeds" className="block text-sm font-medium text-gray-900 mb-2">
                   Tell us about your hiring needs
                 </label>
                 <textarea
@@ -332,7 +332,7 @@ export default function CompanySignup() {
                   rows={4}
                   value={formData.hiringNeeds}
                   onChange={handleChange}
-                  className="w-full py-3 px-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
+                  className="w-full py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all resize-none"
                   placeholder="What roles are you looking to fill? Any specific requirements?"
                 />
               </div>
@@ -343,13 +343,13 @@ export default function CompanySignup() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 py-4 px-6 bg-white text-black rounded-xl font-semibold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:scale-105"
+              className="flex-1 py-4 px-6 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:scale-105"
             >
               {isSubmitting ? "Submitting..." : "Submit Application"}
             </button>
             <Link
               href="/"
-              className="flex-1 py-4 px-6 bg-white/10 text-white rounded-xl font-semibold hover:bg-white/20 transition-all text-center border border-white/10"
+              className="flex-1 py-4 px-6 bg-gray-100 text-gray-900 rounded-xl font-semibold hover:bg-gray-200 transition-all text-center border border-gray-300"
             >
               Cancel
             </Link>

@@ -25,7 +25,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-6 left-0 right-0 z-50 px-6">
-      <div className={`max-w-[1200px] mx-auto transition-all duration-300 rounded-2xl bg-black/50 backdrop-blur-xl border border-white/10 shadow-lg`}>
+      <div className={`max-w-[1200px] mx-auto transition-all duration-300 rounded-2xl bg-white/50 backdrop-blur-xl border border-gray-200 shadow-lg`}>
         <div className="px-6 flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
@@ -39,7 +39,7 @@ export default function Navbar() {
                   className="transition-opacity group-hover:opacity-80"
                 />
               </div>
-              <span className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">
+              <span className="text-lg font-semibold text-gray-900 group-hover:text-gray-700 transition-colors">
                 Hatch Beacon
               </span>
             </Link>
@@ -51,8 +51,8 @@ export default function Navbar() {
               href="/" 
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 isActive('/') 
-                  ? 'text-white' 
-                  : 'text-gray-400 hover:text-white'
+                  ? 'text-gray-900 bg-gray-100' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               Home
@@ -61,8 +61,8 @@ export default function Navbar() {
               href="/features" 
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 isActive('/features') 
-                  ? 'text-white' 
-                  : 'text-gray-400 hover:text-white'
+                  ? 'text-gray-900 bg-gray-100' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               Features
@@ -71,8 +71,8 @@ export default function Navbar() {
               href="/prices" 
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 isActive('/prices') 
-                  ? 'text-white' 
-                  : 'text-gray-400 hover:text-white'
+                  ? 'text-gray-900 bg-gray-100' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               Pricing
@@ -81,8 +81,8 @@ export default function Navbar() {
               href="/contact" 
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 isActive('/contact') 
-                  ? 'text-white' 
-                  : 'text-gray-400 hover:text-white'
+                  ? 'text-gray-900 bg-gray-100' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               Contact
@@ -93,13 +93,13 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center space-x-3">
             <Link 
               href="http://localhost:3000/admin/login" 
-              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all"
+              className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all"
             >
               Login
             </Link>
             <Link 
               href="/signup" 
-              className="px-4 py-2 rounded-lg text-sm font-medium bg-white text-black hover:bg-gray-200 transition-all"
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all"
             >
               Get Started
             </Link>
@@ -109,7 +109,7 @@ export default function Navbar() {
           <div className="lg:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+              className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all"
               aria-expanded="false"
             >
               <span className="sr-only">Open main menu</span>
@@ -129,14 +129,14 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div className="lg:hidden mt-2 max-w-[1200px] mx-auto rounded-2xl border border-white/10 bg-black/95 backdrop-blur-xl overflow-hidden">
+        <div className="lg:hidden mt-2 max-w-[1200px] mx-auto rounded-2xl border border-gray-200 bg-white/95 backdrop-blur-xl overflow-hidden shadow-lg">
           <div className="px-6 py-4 space-y-1">
             <Link 
               href="/" 
               className={`block px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                 isActive('/') 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gray-100 text-gray-900' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               Home
@@ -145,8 +145,8 @@ export default function Navbar() {
               href="/features" 
               className={`block px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                 isActive('/features') 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gray-100 text-gray-900' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               Features
@@ -155,8 +155,8 @@ export default function Navbar() {
               href="/prices" 
               className={`block px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                 isActive('/prices') 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gray-100 text-gray-900' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               Pricing
@@ -165,8 +165,8 @@ export default function Navbar() {
               href="/contact" 
               className={`block px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                 isActive('/contact') 
-                  ? 'bg-white/10 text-white' 
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-gray-100 text-gray-900' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
               }`}
             >
               Contact
@@ -174,13 +174,13 @@ export default function Navbar() {
             <div className="pt-4 space-y-2">
               <Link 
                 href="http://localhost:3000/admin/login" 
-                className="block px-4 py-3 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all text-center"
+                className="block px-4 py-3 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all text-center"
               >
                 Login
               </Link>
               <Link 
                 href="/signup" 
-                className="block px-4 py-3 rounded-lg text-sm font-medium bg-white text-black hover:bg-gray-200 transition-all text-center"
+                className="block px-4 py-3 rounded-lg text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-all text-center"
               >
                 Get Started
               </Link>
