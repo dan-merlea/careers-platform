@@ -28,7 +28,10 @@ export interface CompanyDetails {
   industry: string;
   foundedYear: string;
   size: string;
+  primaryColor: string;
+  secondaryColor: string;
   socialLinks: SocialLinks;
+  slogan: string;
   mission: string;
   vision: string;
   values: CompanyValue[];
@@ -55,12 +58,15 @@ export const companyService = {
           industry: '',
           foundedYear: '',
           size: '',
+          primaryColor: '',
+          secondaryColor: '',
           socialLinks: {
             linkedin: '',
             twitter: '',
             facebook: '',
             instagram: ''
           },
+          slogan: '',
           mission: '',
           vision: '',
           values: [],

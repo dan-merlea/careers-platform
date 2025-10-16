@@ -153,268 +153,268 @@ const AppRoutes: React.FC = () => {
             <NotificationProvider>
               <Layout>
                 <Routes>
-              <Route path="/" element={<HomePage />} />
-              
-              {/* Admin-only routes */}
-              <Route
-                path="/setup"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <SetupPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/company-details/*"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <CompanyDetailsPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/users"
-                element={
-                  <RoleGuard requiredRoles={['admin']} showUnauthorized>
-                    <UsersPage />
-                  </RoleGuard>
-                }
-              />
-              {/* User profile page - accessible to all authenticated users */}
-              <Route path="/profile" element={<ProfilePage />} />
-              
-              {/* Job boards page - accessible to admin users */}
-              <Route
-                path="/job-boards"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <JobBoardsPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/job-boards/:jobBoardId/jobs"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <JobBoardJobsPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/job-boards/:jobBoardId/jobs/create"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <JobBoardJobCreatePage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/job-boards/:jobBoardId/jobs/:id"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <JobDetailPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/job-boards/:jobBoardId/jobs/:id/edit"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <JobEditPage />
-                  </RoleGuard>
-                }
-              />
-              
-              {/* Job pages - accessible to admin users */}
-              <Route
-                path="/jobs"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <JobsPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/jobs/create"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <JobCreatePage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/jobs/:id"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <JobDetailPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/jobs/:id/edit"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <JobEditPage />
-                  </RoleGuard>
-                }
-              />
-              
-              {/* Job approval functionality has been merged into the Jobs page */}
-              
-              {/* Headcount routes */}
-              <Route
-                path="/headcount"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'manager']} showUnauthorized>
-                    <HeadcountListPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/headcount/new"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'manager']} showUnauthorized>
-                    <HeadcountRequestForm />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/headcount/:id"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'manager']} showUnauthorized>
-                    <HeadcountRequestForm />
-                  </RoleGuard>
-                }
-              />
-              
-              {/* Interview Process routes */}
-              <Route
-                path="/interview-processes/create"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <InterviewProcessCreatePage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/interview-processes/:id"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
-                    <InterviewProcessDetailPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/interview-processes/:id/edit"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
-                    <InterviewProcessEditPage />
-                  </RoleGuard>
-                }
-              />
-              
-              {/* Interviews routes */}
-              <Route
-                path="/interviews"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter', 'user']} showUnauthorized>
-                    <InterviewsPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/interview/:id"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter', 'interviewer', 'user']} showUnauthorized>
-                    <InterviewAccessGuard>
-                      <InterviewDetailPage />
-                    </InterviewAccessGuard>
-                  </RoleGuard>
-                }
-              />
-              
-              {/* Debug routes - only visible in development mode */}
-              <Route
-                path="/debug"
-                element={
-                  <RoleGuard requiredRoles={['admin']} showUnauthorized>
-                    <DebugJobApplications />
-                  </RoleGuard>
-                }
-              />
-              
-              {/* Analytics Dashboard */}
-              <Route
-                path="/analytics"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
-                    <AnalyticsPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/analytics/:section"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
-                    <AnalyticsPage />
-                  </RoleGuard>
-                }
-              />
-              
-              {/* User Activity Logs */}
-              <Route
-                path="/logs"
-                element={
-                  <RoleGuard requiredRoles={['admin']} showUnauthorized>
-                    <LogsPage />
-                  </RoleGuard>
-                }
-              />
-              
-              {/* Applicants List Page */}
-              <Route
-                path="/applicants"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
-                    <ApplicantsPage />
-                  </RoleGuard>
-                }
-              />
+                  <Route path="/" element={<HomePage />} />
+                  
+                  {/* Admin-only routes */}
+                  <Route
+                    path="/setup"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <SetupPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/company-details/*"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <CompanyDetailsPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/users"
+                    element={
+                      <RoleGuard requiredRoles={['admin']} showUnauthorized>
+                        <UsersPage />
+                      </RoleGuard>
+                    }
+                  />
+                  {/* User profile page - accessible to all authenticated users */}
+                  <Route path="/profile" element={<ProfilePage />} />
+                  
+                  {/* Job boards page - accessible to admin users */}
+                  <Route
+                    path="/job-boards"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <JobBoardsPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/job-boards/:jobBoardId/jobs"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <JobBoardJobsPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/job-boards/:jobBoardId/jobs/create"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <JobBoardJobCreatePage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/job-boards/:jobBoardId/jobs/:id"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <JobDetailPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/job-boards/:jobBoardId/jobs/:id/edit"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <JobEditPage />
+                      </RoleGuard>
+                    }
+                  />
+                  
+                  {/* Job pages - accessible to admin users */}
+                  <Route
+                    path="/jobs"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <JobsPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/jobs/create"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <JobCreatePage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/jobs/:id"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <JobDetailPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/jobs/:id/edit"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <JobEditPage />
+                      </RoleGuard>
+                    }
+                  />
+                  
+                  {/* Job approval functionality has been merged into the Jobs page */}
+                  
+                  {/* Headcount routes */}
+                  <Route
+                    path="/headcount"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director', 'manager']} showUnauthorized>
+                        <HeadcountListPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/headcount/new"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'manager']} showUnauthorized>
+                        <HeadcountRequestForm />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/headcount/:id"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director', 'manager']} showUnauthorized>
+                        <HeadcountRequestForm />
+                      </RoleGuard>
+                    }
+                  />
+                  
+                  {/* Interview Process routes */}
+                  <Route
+                    path="/interview-processes/create"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <InterviewProcessCreatePage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/interview-processes/:id"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                        <InterviewProcessDetailPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/interview-processes/:id/edit"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director']} showUnauthorized>
+                        <InterviewProcessEditPage />
+                      </RoleGuard>
+                    }
+                  />
+                  
+                  {/* Interviews routes */}
+                  <Route
+                    path="/interviews"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director', 'recruiter', 'user']} showUnauthorized>
+                        <InterviewsPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/interview/:id"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director', 'recruiter', 'interviewer', 'user']} showUnauthorized>
+                        <InterviewAccessGuard>
+                          <InterviewDetailPage />
+                        </InterviewAccessGuard>
+                      </RoleGuard>
+                    }
+                  />
+                  
+                  {/* Debug routes - only visible in development mode */}
+                  <Route
+                    path="/debug"
+                    element={
+                      <RoleGuard requiredRoles={['admin']} showUnauthorized>
+                        <DebugJobApplications />
+                      </RoleGuard>
+                    }
+                  />
+                  
+                  {/* Analytics Dashboard */}
+                  <Route
+                    path="/analytics"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                        <AnalyticsPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/analytics/:section"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                        <AnalyticsPage />
+                      </RoleGuard>
+                    }
+                  />
+                  
+                  {/* User Activity Logs */}
+                  <Route
+                    path="/logs"
+                    element={
+                      <RoleGuard requiredRoles={['admin']} showUnauthorized>
+                        <LogsPage />
+                      </RoleGuard>
+                    }
+                  />
+                  
+                  {/* Applicants List Page */}
+                  <Route
+                    path="/applicants"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                        <ApplicantsPage />
+                      </RoleGuard>
+                    }
+                  />
 
-              {/* Applicant Detail Page */}
-              <Route
-                path="/applicants/:id"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
-                    <ApplicantDetailPage />
-                  </RoleGuard>
-                }
-              />
-              <Route
-                path="/applicants/:id/:tab"
-                element={
-                  <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
-                    <ApplicantDetailPage />
-                  </RoleGuard>
-                }
-              />
-              
-              {/* Referral Page - accessible to all authenticated users */}
-              <Route
-                path="/referrals"
-                element={<ReferralPage />}
-              />
-              <Route
-                path="/referrals/my-referrals"
-                element={<ReferralPage />}
-              />
-              
-              {/* Access control pages */}
-              <Route path="/unauthorized" element={<UnauthorizedPage />} />
-              
-              {/* Add more role-based routes as needed */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
+                  {/* Applicant Detail Page */}
+                  <Route
+                    path="/applicants/:id"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                        <ApplicantDetailPage />
+                      </RoleGuard>
+                    }
+                  />
+                  <Route
+                    path="/applicants/:id/:tab"
+                    element={
+                      <RoleGuard requiredRoles={['admin', 'director', 'recruiter']} showUnauthorized>
+                        <ApplicantDetailPage />
+                      </RoleGuard>
+                    }
+                  />
+                  
+                  {/* Referral Page - accessible to all authenticated users */}
+                  <Route
+                    path="/referrals"
+                    element={<ReferralPage />}
+                  />
+                  <Route
+                    path="/referrals/my-referrals"
+                    element={<ReferralPage />}
+                  />
+                  
+                  {/* Access control pages */}
+                  <Route path="/unauthorized" element={<UnauthorizedPage />} />
+                  
+                  {/* Add more role-based routes as needed */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
+                </Routes>
               </Layout>
             </NotificationProvider>
           </CompanyProvider>

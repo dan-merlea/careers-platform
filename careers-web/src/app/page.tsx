@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import PlatformShowcase from "@/components/PlatformShowcase";
 import CategorySlider, { SliderItem } from "@/components/CategorySlider";
+import DefaultLayout from "@/layouts/DefaultLayout";
 
 export default function Home() {
   const highlightRef = useRef<HTMLDivElement>(null);
@@ -181,7 +182,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <DefaultLayout>
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         {/* Gradient Background */}
@@ -246,6 +247,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Platform Showcase Section */}
+      <PlatformShowcase />
 
       {/* Extension Highlight Section */}
       <section ref={highlightRef} className="relative py-16 sm:py-24 overflow-hidden">
@@ -340,9 +344,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* Platform Showcase Section */}
-      <PlatformShowcase />
 
       {/* Category Features Section */}
       <section ref={categoryRef} className="relative py-16 sm:py-24">
@@ -549,6 +550,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </div>
+    </DefaultLayout>
   );
 }

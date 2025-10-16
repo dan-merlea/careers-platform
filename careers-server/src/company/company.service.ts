@@ -14,6 +14,29 @@ export class CompanyService {
   ) {}
 
   /**
+   * Upload company logo and store it in MongoDB as base64
+   */
+  async uploadLogo(companyId: string, file: Express.Multer.File): Promise<{ logoUrl: string }> {
+    // Convert file buffer to base64
+    const base64Image = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+
+    // Update company with the base64 image
+    const updated = await this.companyModel
+      .findByIdAndUpdate(
+        companyId,
+        { $set: { logo: base64Image } },
+        { new: true }
+      )
+      .exec();
+
+    if (!updated) {
+      throw new Error('Failed to update company logo');
+    }
+
+    return { logoUrl: base64Image };
+  }
+
+  /**
    * Get company details by ID
    */
   async getCompanyDetails(companyId: string): Promise<Company> {

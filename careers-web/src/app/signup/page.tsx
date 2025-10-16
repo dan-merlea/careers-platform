@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Select from "@/components/Select";
 import { COUNTRIES } from "@/lib/countries";
+import DefaultLayout from "@/layouts/DefaultLayout";
 
 const COMPANY_SIZES = [
   "1-10 employees",
@@ -67,7 +68,7 @@ export default function CompanySignup() {
     setError("");
 
     try {
-      const response = await fetch("http://localhost:3001/company-signups", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/company-signups`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -89,7 +90,7 @@ export default function CompanySignup() {
 
   if (submitSuccess) {
     return (
-      <div className="bg-white min-h-screen">
+      <DefaultLayout>
         <div className="max-w-[600px] mx-auto px-6 py-24">
           <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center shadow-lg">
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#FF6363] to-[#A855F7] flex items-center justify-center mx-auto mb-6">
@@ -109,12 +110,12 @@ export default function CompanySignup() {
             </Link>
           </div>
         </div>
-      </div>
+      </DefaultLayout>
     );
   }
 
   return (
-    <div className="min-h-screen">
+    <DefaultLayout>
       <div className="max-w-[800px] mx-auto px-6 py-32 lg:py-40">
         <div className="text-center mb-12">
           <h1 className="text-5xl sm:text-6xl font-bold text-gray-900 mb-6">
@@ -356,6 +357,6 @@ export default function CompanySignup() {
           </div>
         </form>
       </div>
-    </div>
+    </DefaultLayout>
   );
 }

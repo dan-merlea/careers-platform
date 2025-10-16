@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import CandidateLayout from '@/layouts/CandidateLayout';
 
 interface TimeSlot {
   date: string;
@@ -10,11 +11,17 @@ interface TimeSlot {
   timezone: string;
 }
 
+interface CompanyColors {
+  primaryColor: string;
+  secondaryColor: string;
+}
+
 interface ApplicantData {
   firstName: string;
   lastName: string;
   status: string;
   jobTitle: string;
+  companyId?: string;
   availableTimeSlots?: TimeSlot[];
 }
 
@@ -23,6 +30,7 @@ export default function TimeSlotsPage() {
   const applicationId = params.applicationId as string;
   
   const [applicantData, setApplicantData] = useState<ApplicantData | null>(null);
+  const [companyColors, setCompanyColors] = useState<CompanyColors>({ primaryColor: '#3B82F6', secondaryColor: '#8B5CF6' });
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -93,6 +101,24 @@ export default function TimeSlotsPage() {
         }
         const data = await response.json();
         setApplicantData(data);
+        
+        // Fetch company colors if companyId is available
+        if (data.companyId) {
+          try {
+            const companyResponse = await fetch(`/api/company/${data.companyId}`);
+            if (companyResponse.ok) {
+              const companyData = await companyResponse.json();
+              if (companyData.primaryColor && companyData.secondaryColor) {
+                setCompanyColors({
+                  primaryColor: companyData.primaryColor,
+                  secondaryColor: companyData.secondaryColor
+                });
+              }
+            }
+          } catch (err) {
+            console.error('Failed to fetch company colors:', err);
+          }
+        }
         
         // Load existing time slots
         if (data.availableTimeSlots && data.availableTimeSlots.length > 0) {
@@ -254,7 +280,7 @@ export default function TimeSlotsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderBottomColor: companyColors.primaryColor }}></div>
           <p className="mt-4 text-gray-600">Loading...</p>
         </div>
       </div>
@@ -272,26 +298,27 @@ export default function TimeSlotsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Select Your Available Time Slots
-          </h1>
-          {applicantData && (
-            <div className="text-sm text-gray-600 space-y-1">
-              <p><span className="font-medium">Candidate:</span> {applicantData.firstName} {applicantData.lastName}</p>
-              <p><span className="font-medium">Position:</span> {applicantData.jobTitle}</p>
-              <p><span className="font-medium">Stage:</span> {applicantData.status}</p>
-            </div>
-          )}
-        </div>
+    <CandidateLayout companyId={applicantData?.companyId}>
+      <div className="py-8 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">
+              Select Your Available Time Slots
+            </h1>
+            {applicantData && (
+              <div className="text-sm text-gray-600 space-y-1">
+                <p><span className="font-medium">Candidate:</span> {applicantData.firstName} {applicantData.lastName}</p>
+                <p><span className="font-medium">Position:</span> {applicantData.jobTitle}</p>
+                <p><span className="font-medium">Stage:</span> {applicantData.status}</p>
+              </div>
+            )}
+          </div>
 
         {/* Instructions */}
         {isEditMode && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800">
+          <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: `${companyColors.primaryColor}15`, borderColor: `${companyColors.primaryColor}40`, borderWidth: '1px' }}>
+            <p className="text-sm" style={{ color: companyColors.primaryColor }}>
               <strong>Instructions:</strong> Click or drag to select time slots when you&apos;re available for an interview. 
               You can select multiple slots across different days. Click again to deselect.
             </p>
@@ -317,14 +344,17 @@ export default function TimeSlotsPage() {
               <h2 className="text-lg font-semibold text-gray-900">Your Available Time Slots</h2>
               <button
                 onClick={() => setIsEditMode(true)}
-                className="px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700"
+                className="px-4 py-2 text-white font-medium rounded-md transition-colors"
+                style={{ backgroundColor: companyColors.primaryColor }}
+                onMouseEnter={(e) => e.currentTarget.style.opacity = '0.9'}
+                onMouseLeave={(e) => e.currentTarget.style.opacity = '1'}
               >
                 Edit Availability
               </button>
             </div>
             <div className="space-y-3">
               {Object.entries(groupedSlots).sort().map(([date, times]) => (
-                <div key={date} className="border-l-4 border-blue-500 pl-4 py-2">
+                <div key={date} className="border-l-4 pl-4 py-2" style={{ borderLeftColor: companyColors.secondaryColor }}>
                   <div className="font-medium text-gray-900">
                     {new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                   </div>
@@ -391,12 +421,25 @@ export default function TimeSlotsPage() {
                         <td key={dayIndex} className="px-1 py-1">
                           <button
                             onMouseDown={() => handleMouseDown(day, time)}
-                            onMouseEnter={() => handleMouseEnter(day, time)}
-                            className={`w-full h-8 rounded transition-colors ${
-                              isSelected
-                                ? 'bg-blue-600 hover:bg-blue-700'
-                                : 'bg-gray-100 hover:bg-gray-200'
-                            }`}
+                            className="w-full h-8 rounded transition-colors"
+                            style={{
+                              backgroundColor: isSelected ? companyColors.primaryColor : '#F3F4F6',
+                            }}
+                            onMouseEnter={(e) => {
+                              handleMouseEnter(day, time);
+                              if (isSelected) {
+                                e.currentTarget.style.opacity = '0.9';
+                              } else {
+                                e.currentTarget.style.backgroundColor = '#E5E7EB';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (isSelected) {
+                                e.currentTarget.style.opacity = '1';
+                              } else {
+                                e.currentTarget.style.backgroundColor = '#F3F4F6';
+                              }
+                            }}
                             title={`${formatDate(day)} at ${time}`}
                           />
                         </td>
@@ -424,13 +467,17 @@ export default function TimeSlotsPage() {
           <button
             onClick={handleSave}
             disabled={isSaving || selectedSlots.size === 0}
-            className="px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 text-white font-medium rounded-md disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            style={{ backgroundColor: companyColors.primaryColor }}
+            onMouseEnter={(e) => !e.currentTarget.disabled && (e.currentTarget.style.opacity = '0.9')}
+            onMouseLeave={(e) => !e.currentTarget.disabled && (e.currentTarget.style.opacity = '1')}
           >
             {isSaving ? 'Saving...' : `Save ${selectedSlots.size} Time Slot${selectedSlots.size !== 1 ? 's' : ''}`}
           </button>
         </div>
         )}
+        </div>
       </div>
-    </div>
+    </CandidateLayout>
   );
 }

@@ -41,6 +41,7 @@ export async function GET(
       firstName: string;
       lastName: string;
       status: string;
+      companyId: any;
       jobId: { _id: any; title: string; roleId?: any } | any;
       availableTimeSlots?: any[];
     }
@@ -96,6 +97,7 @@ export async function GET(
       lastName: app.lastName,
       status: stageTitle,
       jobTitle,
+      companyId: app.companyId?.toString(),
       availableTimeSlots: app.availableTimeSlots || [],
     };
 

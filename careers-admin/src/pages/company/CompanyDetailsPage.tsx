@@ -42,12 +42,15 @@ const CompanyDetailsPage: React.FC = () => {
     industry: '',
     foundedYear: '',
     size: '',
+    primaryColor: '',
+    secondaryColor: '',
     socialLinks: {
       linkedin: '',
       twitter: '',
       facebook: '',
       instagram: ''
     },
+    slogan: '',
     mission: '',
     vision: '',
     values: []
@@ -63,6 +66,7 @@ const CompanyDetailsPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   const [valueInput, setValueInput] = useState<string>('');
   const [valueIcon, setValueIcon] = useState<string>('');
+  const [uploadingLogo, setUploadingLogo] = useState<boolean>(false);
   
   // Determine active section based on URL path
   const path = location.pathname;
@@ -369,6 +373,64 @@ const CompanyDetailsPage: React.FC = () => {
     }));
   };
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file size (max 1MB)
+    if (file.size > 1024 * 1024) {
+      setError('File size must be less than 1MB');
+      return;
+    }
+
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/svg+xml', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('Please upload a valid image file (PNG, JPG, SVG, or WebP)');
+      return;
+    }
+
+    setUploadingLogo(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('logo', file);
+
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/company/upload-logo`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload logo');
+      }
+
+      const data = await response.json();
+      
+      // Update local state with the new logo URL
+      setCompanyDetails(prev => ({
+        ...prev,
+        logo: data.logoUrl
+      }));
+
+      setSuccess('Logo uploaded successfully');
+      setTimeout(() => setSuccess(null), 3000);
+      
+      // Refresh company data
+      await refreshCompany();
+    } catch (err) {
+      console.error('Error uploading logo:', err);
+      setError('Failed to upload logo. Please try again.');
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -627,6 +689,8 @@ const CompanyDetailsPage: React.FC = () => {
         setValueIcon={setValueIcon}
         handleAddValue={handleAddValue}
         handleRemoveValue={handleRemoveValue}
+        handleLogoUpload={handleLogoUpload}
+        uploadingLogo={uploadingLogo}
       />
     </>
   );

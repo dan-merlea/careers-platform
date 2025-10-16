@@ -57,8 +57,17 @@ export class Company extends Document {
   @Prop()
   size: string;
 
+  @Prop()
+  primaryColor: string;
+
+  @Prop()
+  secondaryColor: string;
+
   @Prop({ type: SocialLinks, default: {} })
   socialLinks: SocialLinks;
+
+  @Prop()
+  slogan: string;
 
   @Prop()
   mission: string;

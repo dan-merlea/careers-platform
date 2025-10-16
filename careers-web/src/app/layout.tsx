@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -12,6 +10,12 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Hatch Beacon",
   description: "The beacon for hiring success",
+  icons: [
+    { rel: 'icon', url: '/favicon.ico' },
+    { rel: 'icon', url: '/favicon-light.ico', media: '(prefers-color-scheme: light)' },
+    { rel: 'icon', url: '/favicon-dark.ico', media: '(prefers-color-scheme: dark)' },
+    { rel: 'apple-touch-icon', url: '/logo192.png' },
+  ],
 };
 
 export default function RootLayout({
@@ -22,10 +26,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} font-kokoro antialiased`}>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-grow bg-[#FAFAFA]">{children}</main>
-          <Footer />
+        <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
+          <main className="flex-grow">{children}</main>
         </div>
       </body>
     </html>

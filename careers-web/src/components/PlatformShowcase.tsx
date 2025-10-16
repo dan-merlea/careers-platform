@@ -97,30 +97,36 @@ export default function PlatformShowcase() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [lastInteraction, setLastInteraction] = useState(Date.now());
 
-  // Auto-advance slideshow every 5 seconds
+  const transitionToSlide = (index: number) => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setActiveIndex(index);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 200);
+    }, 200);
+  };
+
+  // Auto-advance slideshow every 8 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      setActiveIndex((current) => (current + 1) % screenshots.length);
+      transitionToSlide((activeIndex + 1) % screenshots.length);
     }, 8000);
 
     return () => clearInterval(interval);
-  }, [lastInteraction]);
+  }, [lastInteraction, activeIndex]);
 
   const handleNavClick = (index: number) => {
     if (index === activeIndex || isTransitioning) return;
     
-    setIsTransitioning(true);
     setLastInteraction(Date.now()); // Reset timer
-    setTimeout(() => {
-      setActiveIndex(index);
-      setIsTransitioning(false);
-    }, 300);
+    transitionToSlide(index);
   };
 
   const currentScreenshot = screenshots[activeIndex];
 
   return (
-    <section className="relative py-16 sm:py-24 bg-gradient-to-b from-white via-gray-50 to-white">
+    <section className="relative py-16 sm:py-24">
       <div className="max-w-[1200px] mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -159,14 +165,14 @@ export default function PlatformShowcase() {
 
             {/* Overlay with title and description */}
             <div
-              className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-8 transition-all duration-500 ${
-                isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
+              className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-8 transition-all duration-400 ${
+                isTransitioning ? 'opacity-0 translate-y-8' : 'opacity-100 translate-y-0'
               }`}
             >
-              <h3 className="text-2xl font-bold text-white mb-2">
+              <h3 className="text-2xl font-bold text-white mb-2 transition-all duration-400">
                 {currentScreenshot.title}
               </h3>
-              <p className="text-gray-200 text-lg max-w-2xl">
+              <p className="text-gray-200 text-lg max-w-2xl transition-all duration-400">
                 {currentScreenshot.description}
               </p>
             </div>

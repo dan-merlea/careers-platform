@@ -69,11 +69,23 @@ export class CompanyDto {
 
   @IsString()
   @IsOptional()
+  primaryColor: string;
+
+  @IsString()
+  @IsOptional()
+  secondaryColor: string;
+
+  @IsString()
+  @IsOptional()
   headquarters: string;
 
   @ValidateNested()
   @Type(() => SocialLinksDto)
   socialLinks: SocialLinksDto;
+
+  @IsString()
+  @IsOptional()
+  slogan: string;
 
   @IsString()
   @IsOptional()

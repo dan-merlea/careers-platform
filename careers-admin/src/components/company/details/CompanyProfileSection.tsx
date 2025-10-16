@@ -22,6 +22,8 @@ interface CompanyProfileSectionProps {
   setValueIcon: (icon: string) => void;
   handleAddValue: () => void;
   handleRemoveValue: (index: number) => void;
+  handleLogoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  uploadingLogo: boolean;
 }
 
 const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
@@ -39,7 +41,9 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
   valueIcon,
   setValueIcon,
   handleAddValue,
-  handleRemoveValue
+  handleRemoveValue,
+  handleLogoUpload,
+  uploadingLogo
 }) => {
   return (
     <Card>
@@ -78,14 +82,28 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
               </div>
               
               <div>
-                <label className="block text-sm text-gray-700 mb-1">Logo URL</label>
-                <Input
-                  type="text"
-                  name="logo"
-                  value={companyDetails.logo}
-                  onChange={handleInputChange as any}
-                  className="text-sm"
-                />
+                <label className="block text-sm text-gray-700 mb-1">Company Logo</label>
+                <div className="flex items-center gap-3">
+                  {companyDetails.logo && (
+                    <img 
+                      src={companyDetails.logo} 
+                      alt="Company logo" 
+                      className="h-12 w-12 object-contain rounded border border-gray-300"
+                    />
+                  )}
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      disabled={uploadingLogo}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {uploadingLogo ? 'Uploading...' : 'Upload PNG, JPG, SVG, or WebP (max 1MB)'}
+                    </p>
+                  </div>
+                </div>
               </div>
               
               <div>
@@ -140,6 +158,48 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
                     { label: '1001+ employees', value: '1001+' },
                   ]}
                 />
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Primary Brand Color</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    name="primaryColor"
+                    value={companyDetails.primaryColor || '#3B82F6'}
+                    onChange={handleInputChange}
+                    className="h-10 w-20 rounded border border-gray-300 cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    name="primaryColor"
+                    value={companyDetails.primaryColor || ''}
+                    onChange={handleInputChange as any}
+                    placeholder="#3B82F6"
+                    className="text-sm flex-1"
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">Secondary Brand Color</label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    name="secondaryColor"
+                    value={companyDetails.secondaryColor || '#8B5CF6'}
+                    onChange={handleInputChange}
+                    className="h-10 w-20 rounded border border-gray-300 cursor-pointer"
+                  />
+                  <Input
+                    type="text"
+                    name="secondaryColor"
+                    value={companyDetails.secondaryColor || ''}
+                    onChange={handleInputChange as any}
+                    placeholder="#8B5CF6"
+                    className="text-sm flex-1"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -201,6 +261,17 @@ const CompanyProfileSection: React.FC<CompanyProfileSectionProps> = ({
           
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4">Company Culture</h2>
+            
+            <div className="mb-4">
+              <label className="block text-gray-700 mb-2">Slogan</label>
+              <Input
+                type="text"
+                name="slogan"
+                value={companyDetails.slogan}
+                onChange={handleInputChange as any}
+                placeholder="Enter company slogan"
+              />
+            </div>
             
             <div className="mb-4">
               <label className="block text-gray-700 mb-2">Mission</label>
