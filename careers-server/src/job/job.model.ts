@@ -90,6 +90,13 @@ export interface JobResponseDto {
   status: JobStatus;
   rejectionReason?: string;
   jobBoardId?: string;
+  jobBoard?: {
+    _id: string;
+    slug: string;
+    title: string;
+    companyId: string;
+  };
+  slug?: string;
   createdBy?: {
     id: string;
     email: string;

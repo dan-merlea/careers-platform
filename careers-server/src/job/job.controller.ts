@@ -44,6 +44,22 @@ interface OfficeDocument {
 export class JobController {
   constructor(private readonly jobService: JobService) {}
 
+  // Public endpoint - no auth required
+  @Get('public/job-board/:jobBoardId')
+  async findPublicByJobBoard(
+    @Param('jobBoardId') jobBoardId: string,
+  ): Promise<JobResponseDto[]> {
+    const jobs = await this.jobService.findPublicByJobBoard(jobBoardId);
+    return jobs.map((job) => this.mapJobToResponseDto(job));
+  }
+
+  // Public endpoint - no auth required
+  @Get('public/slug/:slug')
+  async findBySlug(@Param('slug') slug: string): Promise<JobResponseDto> {
+    const job = await this.jobService.findBySlug(slug);
+    return this.mapJobToResponseDto(job);
+  }
+
   @Get()
   async findAll(
     @Query('company') companyId?: string,
@@ -196,10 +212,26 @@ export class JobController {
     const company = job.companyId as CompanyDocument;
     const jobId = job._id as { toString(): string };
 
-    // Handle jobBoardId - convert to string if it exists
-    const jobBoardIdStr: string = job.jobBoardId
-      ? job.jobBoardId.toString()
-      : '';
+    // Handle jobBoardId - convert to string if it exists, or populate jobBoard object
+    let jobBoardIdStr: string = '';
+    let jobBoardInfo: any = undefined;
+    
+    if (job.jobBoardId) {
+      if (typeof job.jobBoardId === 'object' && (job.jobBoardId as any)._id) {
+        // jobBoardId is populated
+        const populatedJobBoard = job.jobBoardId as any;
+        jobBoardIdStr = populatedJobBoard._id.toString();
+        jobBoardInfo = {
+          _id: populatedJobBoard._id.toString(),
+          slug: populatedJobBoard.slug || '',
+          title: populatedJobBoard.title || '',
+          companyId: populatedJobBoard.companyId?.toString() || '',
+        };
+      } else {
+        // jobBoardId is just an ID
+        jobBoardIdStr = job.jobBoardId.toString();
+      }
+    }
 
     // Handle createdBy if it exists
     const createdByInfo = job.createdBy
@@ -252,6 +284,8 @@ export class JobController {
       status: job.status,
       rejectionReason: job.rejectionReason,
       jobBoardId: jobBoardIdStr,
+      jobBoard: jobBoardInfo,
+      slug: job.slug,
       createdBy: createdByInfo,
       hiringManager: hiringManagerInfo,
       roleId: job.roleId?.toString(),

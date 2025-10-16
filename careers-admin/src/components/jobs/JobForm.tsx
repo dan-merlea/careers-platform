@@ -9,8 +9,6 @@ import { officesService, Office } from '../../services/officesService';
 import { departmentService, Department } from '../../services/departmentService';
 import { jobRoleService, JobRole } from '../../services/jobRoleService';
 import jobTemplateService, { JobTemplate } from '../../services/jobTemplateService';
-import jobBoardsService, { JobBoard } from '../../services/jobBoardsService';
-import { userService, User } from '../../services/userService';
 import SaveTemplateModal from './SaveTemplateModal';
 import { format } from 'date-fns';
 import Select from '../common/Select';
@@ -23,9 +21,7 @@ interface JobFormProps {
   onCancel: () => void;
   isEdit?: boolean;
   isFromHeadcount?: boolean;
-  headcountRequestId?: string;
   isFromJobBoard?: boolean;
-  jobBoardId?: string;
 }
 
 const JobForm: React.FC<JobFormProps> = ({
@@ -34,9 +30,7 @@ const JobForm: React.FC<JobFormProps> = ({
   onCancel,
   isEdit = false,
   isFromHeadcount = false,
-  headcountRequestId,
   isFromJobBoard = false,
-  jobBoardId
 }) => {
   const [formData, setFormData] = useState<JobCreateDto | JobUpdateDto>({
     internalId: '',
@@ -68,11 +62,7 @@ const JobForm: React.FC<JobFormProps> = ({
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [templates, setTemplates] = useState<JobTemplate[]>([]);
   const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
-  const [jobBoards, setJobBoards] = useState<JobBoard[]>([]);
-  const [isLoadingJobBoards, setIsLoadingJobBoards] = useState(false);
-  const [hiringManagers, setHiringManagers] = useState<User[]>([]);
-  const [isLoadingHiringManagers, setIsLoadingHiringManagers] = useState(false);
-
+  
   // Function to fetch templates for a job role
   const fetchTemplatesForRole = useCallback(async (roleId: string) => {
     if (!roleId) {
@@ -178,27 +168,6 @@ const JobForm: React.FC<JobFormProps> = ({
         const company = await companyService.getCompanyDetails();
         setCompanyDetails(company);
         
-        // Fetch job boards
-        setIsLoadingJobBoards(true);
-        const jobBoardsData = await jobBoardsService.getAllJobBoards();
-        setJobBoards(jobBoardsData);
-        
-        // Set initial job board selection to first board in the list if creating from headcount
-        if (isFromHeadcount && jobBoardsData.length > 0 && !formData.jobBoardId) {
-          setFormData(prev => ({
-            ...prev,
-            jobBoardId: jobBoardsData[0]._id
-          }));
-        }
-        
-        setIsLoadingJobBoards(false);
-        
-        // Fetch hiring managers (managers, directors, and admins)
-        setIsLoadingHiringManagers(true);
-        const hiringManagersData = await userService.getHiringManagers();
-        setHiringManagers(hiringManagersData);
-        setIsLoadingHiringManagers(false);
-        
         // Fetch offices
         const officesData = await officesService.getAll();
         setOffices(officesData);
@@ -233,8 +202,14 @@ const JobForm: React.FC<JobFormProps> = ({
           if (dept && dept.jobRoles && dept.jobRoles.length > 0) {
             await fetchJobRolesForDepartment(dept);
             
+            // If editing and we have a roleId, set it directly
+            if (isEdit && initialData?.roleId) {
+              console.log('Setting roleId from initialData:', initialData.roleId);
+              setSelectedJobRole(initialData.roleId);
+              await fetchTemplatesForRole(initialData.roleId);
+            }
             // If we have a roleTitle from headcount request, try to find matching job role
-            if (isFromHeadcount && initialData?.roleTitle) {
+            else if (isFromHeadcount && initialData?.roleTitle) {
               console.log('Looking for matching role with title:', initialData.roleTitle);
               
               try {
@@ -319,7 +294,7 @@ const JobForm: React.FC<JobFormProps> = ({
     };
     
     fetchData();
-  }, [formData.companyId, isEdit, isFromHeadcount, initialData, workArrangement, fetchJobRolesForDepartment]);
+  }, [formData.companyId, isEdit, isFromHeadcount, initialData, fetchJobRolesForDepartment]);
   
   // Effect to fetch job roles when department changes
   useEffect(() => {
@@ -338,10 +313,11 @@ const JobForm: React.FC<JobFormProps> = ({
     if (selectedJobRole) {
       const role = jobRoles.find(r => r._id === selectedJobRole);
       if (role) {
-        // Prefill the title from the selected role
+        // Only prefill the title if there isn't already a title (for new jobs)
+        // Don't overwrite existing titles when editing
         setFormData(prev => ({
           ...prev,
-          title: role.title
+          title: prev.title || role.title
         }));
         
         // Fetch templates for this role using the ID
@@ -370,18 +346,6 @@ const JobForm: React.FC<JobFormProps> = ({
       });
     }
   };
-
-  const handleMultiSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name } = e.target;
-    const selectedOptions = Array.from(e.target.selectedOptions).map(option => option.value);
-    
-    setFormData({
-      ...formData,
-      [name]: selectedOptions
-    });
-  };
-
-  // Status is always set to DRAFT for new jobs and managed via buttons after creation
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

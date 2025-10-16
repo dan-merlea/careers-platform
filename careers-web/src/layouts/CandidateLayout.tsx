@@ -7,14 +7,17 @@ interface CompanyInfo {
   companyName: string;
   logo?: string;
   slogan?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
 }
 
 interface CandidateLayoutProps {
   children: React.ReactNode;
   companyId?: string;
+  onCompanyLoaded?: (companyInfo: CompanyInfo) => void;
 }
 
-export default function CandidateLayout({ children, companyId }: CandidateLayoutProps) {
+export default function CandidateLayout({ children, companyId, onCompanyLoaded }: CandidateLayoutProps) {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,6 +33,9 @@ export default function CandidateLayout({ children, companyId }: CandidateLayout
         if (response.ok) {
           const data = await response.json();
           setCompanyInfo(data);
+          if (onCompanyLoaded) {
+            onCompanyLoaded(data);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch company info:', error);
@@ -39,7 +45,7 @@ export default function CandidateLayout({ children, companyId }: CandidateLayout
     };
 
     fetchCompanyInfo();
-  }, [companyId]);
+  }, [companyId, onCompanyLoaded]);
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">

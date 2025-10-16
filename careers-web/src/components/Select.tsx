@@ -18,6 +18,7 @@ type SelectProps = {
   allowEmpty?: boolean;
   searchable?: boolean;
   popUpward?: boolean;
+  primaryColor?: string;
 };
 
 const Select: React.FC<SelectProps> = ({
@@ -31,6 +32,7 @@ const Select: React.FC<SelectProps> = ({
   allowEmpty = false,
   searchable = false,
   popUpward = false,
+  primaryColor = '#2563eb',
 }) => {
   const [open, setOpen] = useState(false);
   const [exiting, setExiting] = useState(false);
@@ -117,6 +119,14 @@ const Select: React.FC<SelectProps> = ({
     return options.filter(o => o.label.toLowerCase().includes(q));
   }, [options, query, searchable]);
 
+  // Convert hex color to rgba
+  const hexToRgba = (hex: string, alpha: number) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
   return (
     <div className={`relative inline-block text-left w-full ${className ?? ''}`}>
       <style>{`
@@ -124,7 +134,7 @@ const Select: React.FC<SelectProps> = ({
         @keyframes slc-out { from { opacity: 1; transform: scale(1) } to { opacity: 0; transform: scale(0.98) } }
         .slc-enter { animation: slc-in 120ms ease-out; transform-origin: top left; }
         .slc-exit { animation: slc-out 100ms ease-in; transform-origin: top left; }
-        .slc-item[aria-selected="true"] { background-color: rgba(168, 85, 247, 0.1); }
+        .slc-item[aria-selected="true"] { background-color: ${hexToRgba(primaryColor, 0.1)}; }
       `}</style>
 
       <button
@@ -139,9 +149,24 @@ const Select: React.FC<SelectProps> = ({
           if (open) closeWithAnimation();
           else setOpen(true);
         }}
-        className={`block w-full pl-3 pr-10 py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-left text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent disabled:opacity-50 min-h-[48px] transition-all ${
-          open ? 'ring-2 ring-purple-500 border-transparent' : ''
+        style={{
+          ...(open && { borderColor: primaryColor, boxShadow: `0 0 0 2px ${hexToRgba(primaryColor, 0.2)}` })
+        }}
+        className={`block w-full pl-3 pr-10 py-3 px-4 bg-gray-50 border border-gray-300 rounded-xl text-left text-sm focus:outline-none disabled:opacity-50 min-h-[48px] transition-all ${
+          open ? '' : 'focus:ring-2 focus:border-transparent'
         }`}
+        onFocus={(e) => {
+          if (!open) {
+            e.currentTarget.style.borderColor = primaryColor;
+            e.currentTarget.style.boxShadow = `0 0 0 2px ${hexToRgba(primaryColor, 0.2)}`;
+          }
+        }}
+        onBlur={(e) => {
+          if (!open) {
+            e.currentTarget.style.borderColor = '';
+            e.currentTarget.style.boxShadow = '';
+          }
+        }}
       >
         <span className={`truncate block ${!value && allowEmpty ? 'text-gray-500' : 'text-gray-900'}`}>
           {selectedLabel}
@@ -175,7 +200,18 @@ const Select: React.FC<SelectProps> = ({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search..."
-                className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                style={{
+                  outline: 'none',
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = primaryColor;
+                  e.currentTarget.style.boxShadow = `0 0 0 2px ${hexToRgba(primaryColor, 0.2)}`;
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = '';
+                  e.currentTarget.style.boxShadow = '';
+                }}
+                className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-500"
                 aria-label="Search options"
               />
             </div>
@@ -186,9 +222,10 @@ const Select: React.FC<SelectProps> = ({
                 type="button"
                 role="option"
                 aria-selected={!value}
-                className={`slc-item block w-full text-left px-4 py-2 text-sm ${
-                  !value ? 'text-purple-600' : 'text-gray-700'
-                } hover:bg-gray-50`}
+                style={{
+                  color: !value ? primaryColor : '#374151'
+                }}
+                className={`slc-item block w-full text-left px-4 py-2 text-sm hover:bg-gray-50`}
                 onMouseEnter={() => setActiveIndex(-1)}
                 onClick={() => {
                   onChange(undefined);
@@ -207,13 +244,13 @@ const Select: React.FC<SelectProps> = ({
               let textColor = '#374151';
               
               if (isHighlighted) {
-                bgColor = isHovered ? 'rgba(168, 85, 247, 0.15)' : (opt.highlightColor || 'rgba(168, 85, 247, 0.08)');
-                textColor = '#7c3aed';
+                bgColor = isHovered ? hexToRgba(primaryColor, 0.15) : (opt.highlightColor || hexToRgba(primaryColor, 0.08));
+                textColor = primaryColor;
               } else if (isHovered) {
                 bgColor = 'rgba(243, 244, 246, 1)';
-                textColor = isSelected ? '#7c3aed' : '#111827';
+                textColor = isSelected ? primaryColor : '#111827';
               } else if (isSelected) {
-                textColor = '#7c3aed';
+                textColor = primaryColor;
               }
               
               const fontWeight = isHighlighted ? '600' : 'normal';

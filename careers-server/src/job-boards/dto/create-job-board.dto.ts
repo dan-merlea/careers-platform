@@ -33,4 +33,8 @@ export class CreateJobBoardDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @IsString()
+  @IsOptional()
+  slug?: string;
 }

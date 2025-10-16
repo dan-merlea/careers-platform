@@ -17,6 +17,19 @@ export class JobBoardsService {
   ) {}
 
   async create(createJobBoardDto: any): Promise<JobBoard> {
+    // If slug is provided, check for uniqueness
+    if (createJobBoardDto.slug) {
+      const existingJobBoard = await this.jobBoardModel
+        .findOne({ slug: createJobBoardDto.slug })
+        .exec();
+
+      if (existingJobBoard) {
+        throw new BadRequestException(
+          `A job board with slug "${createJobBoardDto.slug}" already exists. Please choose a different slug.`
+        );
+      }
+    }
+    
     const createdJobBoard = new this.jobBoardModel(createJobBoardDto);
     return createdJobBoard.save();
   }
@@ -33,6 +46,14 @@ export class JobBoardsService {
     return jobBoard;
   }
 
+  async findBySlug(slug: string): Promise<JobBoard> {
+    const jobBoard = await this.jobBoardModel.findOne({ slug }).exec();
+    if (!jobBoard) {
+      throw new NotFoundException(`Job board with slug "${slug}" not found`);
+    }
+    return jobBoard;
+  }
+
   async update(
     id: string,
     updateJobBoardDto: UpdateJobBoardDto,
@@ -40,6 +61,22 @@ export class JobBoardsService {
   ): Promise<JobBoard> {
     // First verify the job board belongs to this company
     await this.findOne(id, companyId);
+    
+    // If slug is being updated, check for uniqueness
+    if (updateJobBoardDto.slug) {
+      const existingJobBoard = await this.jobBoardModel
+        .findOne({
+          slug: updateJobBoardDto.slug,
+          _id: { $ne: id }, // Exclude current job board
+        })
+        .exec();
+
+      if (existingJobBoard) {
+        throw new BadRequestException(
+          `A job board with slug "${updateJobBoardDto.slug}" already exists. Please choose a different slug.`
+        );
+      }
+    }
     
     const updatedJobBoard = await this.jobBoardModel
       .findByIdAndUpdate(id, updateJobBoardDto, { new: true })

@@ -101,7 +101,6 @@ const JobBoardJobCreatePage: React.FC = () => {
           onSubmit={handleSubmit}
           onCancel={handleCancel}
           isFromJobBoard={true}
-          jobBoardId={jobBoardId}
         />
       </div>
     </div>

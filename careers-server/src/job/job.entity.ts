@@ -74,6 +74,9 @@ export class Job {
   @Prop()
   externalUrl?: string;
 
+  @Prop()
+  slug?: string;
+
   // These will be automatically added by the timestamps: true option
   createdAt: Date;
   updatedAt: Date;

@@ -75,6 +75,14 @@ export class JobApplicationsController {
     private readonly jobApplicationsService: JobApplicationsService,
   ) {}
 
+  // Public endpoint for career site applications
+  @Post('public')
+  async createPublicApplication(
+    @Body() createJobApplicationDto: CreateJobApplicationDto,
+  ) {
+    return this.jobApplicationsService.create(createJobApplicationDto);
+  }
+
   @Post()
   @LogAction('create_application', 'job_application')
   @NotifyOn('job_application_created')

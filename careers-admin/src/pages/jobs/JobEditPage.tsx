@@ -7,7 +7,7 @@ import Card from '../../components/common/Card';
 
 const JobEditPage: React.FC = () => {
   const navigate = useNavigate();
-  const { id, jobBoardId } = useParams<{ id: string; jobBoardId?: string }>();
+  const { id } = useParams<{ id: string }>();
   const [initialData, setInitialData] = useState<JobUpdateDto | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,8 @@ const JobEditPage: React.FC = () => {
           content: job.content,
           departmentIds: job.departments.map(dept => dept.id),
           officeIds: job.offices.map(office => office.id),
-          status: job.status
+          status: job.status,
+          roleId: job.roleId
         });
       } catch (err) {
         console.error('Error fetching job:', err);
@@ -50,12 +51,8 @@ const JobEditPage: React.FC = () => {
     try {
       await jobService.updateJob(id, formData);
       
-      // Navigate back to the appropriate page based on context
-      if (jobBoardId) {
-        navigate(`/job-boards/${jobBoardId}/jobs`);
-      } else {
-        navigate('/jobs');
-      }
+      // Navigate back to the previous page
+      navigate(-1);
     } catch (err) {
       console.error('Error updating job:', err);
       setError('Failed to update job. Please try again.');
@@ -63,12 +60,8 @@ const JobEditPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    // Navigate back to the appropriate page based on context
-    if (jobBoardId) {
-      navigate(`/job-boards/${jobBoardId}/jobs`);
-    } else {
-      navigate('/jobs');
-    }
+    // Navigate back to the previous page
+    navigate(-1);
   };
 
   if (isLoading) {

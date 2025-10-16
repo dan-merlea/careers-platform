@@ -63,7 +63,7 @@ export class JobApplicationsService {
 
   async create(
     createJobApplicationDto: CreateJobApplicationDto,
-    file: MulterFile,
+    file?: MulterFile,
   ): Promise<JobApplicationResponseDto> {
     // Fetch the job to get the companyId
     const job = await this.jobModel.findById(createJobApplicationDto.jobId);
@@ -71,28 +71,39 @@ export class JobApplicationsService {
       throw new NotFoundException('Job not found');
     }
 
-    // Calculate consent expiration date
+    // Calculate consent expiration date (default to 12 months if not provided)
     const consentExpiresAt = new Date();
-    consentExpiresAt.setMonth(
-      consentExpiresAt.getMonth() + createJobApplicationDto.consentDuration,
-    );
+    const consentDuration = createJobApplicationDto.consentDuration || 12;
+    consentExpiresAt.setMonth(consentExpiresAt.getMonth() + consentDuration);
 
-    // Upload file to GridFS
-    const fileId = await this.gridFsService.uploadFile(file, {
-      jobId: createJobApplicationDto.jobId,
-      applicantEmail: createJobApplicationDto.email,
-    });
+    let fileId: string | null = null;
+    let resumeFilename: string | null = null;
+    let resumeMimeType: string | null = null;
+
+    // Upload file to GridFS if provided
+    if (file) {
+      fileId = await this.gridFsService.uploadFile(file, {
+        jobId: createJobApplicationDto.jobId,
+        applicantEmail: createJobApplicationDto.email,
+      });
+      resumeFilename = file.originalname;
+      resumeMimeType = file.mimetype;
+    } else if (createJobApplicationDto.resumePath) {
+      // For public applications from career site, store file path reference
+      resumeFilename = createJobApplicationDto.resumeFilename || createJobApplicationDto.resumeOriginalName || null;
+      resumeMimeType = 'application/pdf'; // Default, will be updated if needed
+    }
 
     // Create new job application
     const newJobApplication = new this.jobApplicationModel({
       ...createJobApplicationDto,
       resumeId: fileId,
-      resumeFilename: file.originalname,
-      resumeMimeType: file.mimetype,
+      resumeFilename,
+      resumeMimeType,
       consentExpiresAt,
       companyId: job.companyId,
       status: 'new', // Automatically set status to 'new'
-      source: createJobApplicationDto.source || 'careers-page', // Use provided source or default
+      source: createJobApplicationDto.source || 'career_site',
     });
 
     // Save to database

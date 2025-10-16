@@ -61,6 +61,32 @@ export class JobService {
       .exec();
   }
 
+  async findPublicByJobBoard(jobBoardId: string): Promise<JobDocument[]> {
+    return this.jobModel
+      .find({ 
+        jobBoardId: new Types.ObjectId(jobBoardId),
+        status: JobStatus.PUBLISHED 
+      })
+      .populate('companyId')
+      .populate('departments')
+      .populate('offices')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
+  async findBySlug(slug: string): Promise<JobDocument> {
+    const job = await this.jobModel
+      .findOne({ slug })
+      .populate('companyId')
+      .exec();
+
+    if (!job) {
+      throw new NotFoundException(`Job with slug "${slug}" not found`);
+    }
+
+    return job;
+  }
+
   async findOne(id: string): Promise<JobDocument> {
     // Check if id is valid before querying
     if (!id || id === 'undefined') {
@@ -74,6 +100,7 @@ export class JobService {
       .populate('offices')
       .populate('hiringManagerId')
       .populate('createdBy')
+      .populate('jobBoardId')
       .exec();
 
     if (!job) {
@@ -81,6 +108,17 @@ export class JobService {
     }
 
     return job;
+  }
+
+  private generateSlug(title: string, jobId?: string): string {
+    const baseSlug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    
+    // Append jobId if provided to ensure uniqueness
+    return jobId ? `${baseSlug}-${jobId}` : baseSlug;
   }
 
   async create(jobCreateDto: JobCreateDto): Promise<JobDocument> {
@@ -117,6 +155,7 @@ export class JobService {
       companyId: company._id, // Use companyId instead of company
       departments: departmentObjectIds,
       offices: officeObjectIds,
+      // slug will be generated after save to include jobId
     });
 
     // Add createdBy if provided
@@ -134,9 +173,13 @@ export class JobService {
       newJob.roleId = new Types.ObjectId(roleId) as any;
     }
 
-    // We don't need to set publishedDate since status is always DRAFT
-
-    return newJob.save();
+    // Save to get the jobId
+    const savedJob = await newJob.save();
+    
+    // Generate slug with jobId and update
+    const jobId = (savedJob._id as any).toString();
+    savedJob.slug = this.generateSlug(jobData.title, jobId);
+    return savedJob.save();
   }
 
   async createFromHeadcount(
@@ -217,6 +260,11 @@ export class JobService {
 
     // Save the job
     const savedJob = await newJob.save();
+    
+    // Generate slug with jobId and update
+    const jobId = (savedJob._id as any).toString();
+    savedJob.slug = this.generateSlug(jobData.title, jobId);
+    await savedJob.save();
 
     // Update the headcount request to mark it as having a job created
     // We need to use the mongoose driver directly since we don't have the HeadcountRequest model injected
@@ -244,6 +292,12 @@ export class JobService {
     // Sanitize HTML content if provided
     if (jobData.content) {
       jobData.content = sanitizeHtmlContent(jobData.content);
+    }
+
+    // Regenerate slug if title is being updated
+    if (jobData.title) {
+      const jobId = (job._id as any).toString();
+      job.slug = this.generateSlug(jobData.title, jobId);
     }
 
     // Update simple fields

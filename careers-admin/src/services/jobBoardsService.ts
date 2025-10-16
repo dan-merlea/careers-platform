@@ -9,6 +9,7 @@ export interface JobBoard {
   externalId?: string;
   settings?: Record<string, any>;
   isActive: boolean;
+  slug?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -21,6 +22,7 @@ export interface CreateJobBoardDto {
   externalId?: string;
   settings?: Record<string, any>;
   isActive?: boolean;
+  slug?: string;
 }
 
 export interface UpdateJobBoardDto extends Partial<CreateJobBoardDto> {}

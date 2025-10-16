@@ -33,6 +33,9 @@ export class JobBoard {
   @Prop({ default: true })
   isActive: boolean;
 
+  @Prop()
+  slug: string;
+
   @Prop({ type: Date })
   createdAt: Date;
 

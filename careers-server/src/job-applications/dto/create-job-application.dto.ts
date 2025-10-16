@@ -33,10 +33,10 @@ export class CreateJobApplicationDto {
   @IsString()
   website?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
   @Min(1)
-  consentDuration: number;
+  consentDuration?: number;
 
   @IsNotEmpty()
   @IsMongoId()
@@ -45,6 +45,26 @@ export class CreateJobApplicationDto {
   @IsOptional()
   @IsString()
   source?: string;
+
+  @IsOptional()
+  @IsString()
+  coverLetter?: string;
+
+  @IsOptional()
+  @IsString()
+  linkedinUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  resumePath?: string;
+
+  @IsOptional()
+  @IsString()
+  resumeFilename?: string;
+
+  @IsOptional()
+  @IsString()
+  resumeOriginalName?: string;
 
   // The file will be handled separately through the file interceptor
 }

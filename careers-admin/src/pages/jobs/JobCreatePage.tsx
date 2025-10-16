@@ -189,9 +189,7 @@ const JobCreatePage: React.FC = () => {
             onSubmit={handleSubmit}
             onCancel={handleCancel}
             isFromHeadcount={isFromHeadcount}
-            headcountRequestId={headcountRequestId || undefined}
             isFromJobBoard={isFromJobBoard}
-            jobBoardId={jobBoardId}
           />
         )}
       </div>

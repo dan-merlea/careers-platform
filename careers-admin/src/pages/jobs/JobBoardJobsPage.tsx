@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PlusIcon, EyeIcon, PencilIcon, TrashIcon, ArrowLeftIcon, CheckCircleIcon, ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, EyeIcon, PencilIcon, TrashIcon, ArrowLeftIcon, CheckCircleIcon, ClockIcon, ArrowPathIcon, Cog6ToothIcon } from '@heroicons/react/24/outline';
 import jobBoardsService, { JobBoard } from '../../services/jobBoardsService';
 import jobService, { Job, JobStatus } from '../../services/jobService';
 import { getStatusBadgeClass } from '../../utils/jobStatusUtils';
@@ -27,6 +27,8 @@ const JobBoardJobsPage: React.FC = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
+  const [slug, setSlug] = useState<string>('');
   
   // Filter states
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -71,6 +73,18 @@ const JobBoardJobsPage: React.FC = () => {
       fetchJobs();
     }
   }, [jobBoardId, fetchJobBoardDetails, fetchJobs]);
+
+  // Generate slug from company name
+  useEffect(() => {
+    if (company?.name && !slug) {
+      const generatedSlug = company.name
+        .toLowerCase()
+        .replace(/[^a-zA-Z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+      setSlug(jobBoard?.slug || generatedSlug);
+    }
+  }, [company, jobBoard, slug]);
 
   // Apply filters whenever jobs or filter criteria change
   useEffect(() => {
@@ -188,6 +202,21 @@ const JobBoardJobsPage: React.FC = () => {
     }
   };
 
+  const handleSaveSettings = async () => {
+    if (!jobBoardId) return;
+    
+    try {
+      await jobBoardsService.updateJobBoard(jobBoardId, { slug });
+      await fetchJobBoardDetails();
+      setIsSettingsModalOpen(false);
+      toast.success('Settings saved successfully');
+    } catch (err: any) {
+      console.error('Error saving settings:', err);
+      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to save settings';
+      toast.error(errorMessage);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     return (
       <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(status as JobStatus)}`}>
@@ -217,7 +246,7 @@ const JobBoardJobsPage: React.FC = () => {
       )}
 
       <div className="mb-6 flex justify-between items-center">
-        <div>
+        <div className="flex items-center gap-3">
           {jobBoard && (
             <div className="flex items-center gap-2">
               <span
@@ -242,9 +271,17 @@ const JobBoardJobsPage: React.FC = () => {
               )}
             </div>
           )}
+          <button
+            onClick={() => setIsSettingsModalOpen(true)}
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            title="Job Board Settings"
+          >
+            <Cog6ToothIcon className="h-4 w-4" />
+            Settings
+          </button>
         </div>
         
-        {jobBoard && (<div>
+        {jobBoard && (<div className="flex items-center gap-2">
           {jobBoard.isExternal && (
             <button
               onClick={handleRefreshJobs}
@@ -440,6 +477,43 @@ const JobBoardJobsPage: React.FC = () => {
               </Button>
               <Button onClick={handleDeleteJob} variant="primary">
                 Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {isSettingsModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Job Board Settings</h2>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Slug
+              </label>
+              <Input
+                type="text"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-'))}
+                placeholder="job-board-slug"
+                className="w-full"
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                The slug will be used to create a public link for this job board:
+              </p>
+              <p className="mt-1 text-sm text-blue-600 font-medium">
+                https://hatchbeacon.com/job-board/{slug || 'your-slug'}
+              </p>
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <Button onClick={() => setIsSettingsModalOpen(false)} variant="white">
+                Cancel
+              </Button>
+              <Button onClick={handleSaveSettings} variant="primary">
+                Save
               </Button>
             </div>
           </div>
