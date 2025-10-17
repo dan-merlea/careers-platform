@@ -31,6 +31,48 @@ export default function ApiDocsPage() {
           </p>
         </div>
 
+        {/* Rate Limiting */}
+        <div className="bg-white rounded-lg shadow-sm p-8 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Rate Limiting</h2>
+          <p className="text-gray-600 mb-4">
+            To ensure fair usage and system stability, all public API endpoints are rate limited.
+          </p>
+          
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-900 mb-2">Default Rate Limit</h3>
+              <p className="text-blue-800 text-sm">
+                <strong>300 requests per minute</strong> (average of 5 requests per second)
+              </p>
+              <p className="text-blue-700 text-sm mt-2">
+                Applies to: Company info, Job boards, Job listings
+              </p>
+            </div>
+
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <h3 className="font-semibold text-orange-900 mb-2">Job Applications Rate Limit</h3>
+              <p className="text-orange-800 text-sm">
+                <strong>60 requests per minute</strong> (1 request per second)
+              </p>
+              <p className="text-orange-700 text-sm mt-2">
+                Stricter limit to prevent spam and ensure quality submissions
+              </p>
+            </div>
+
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-900 mb-2">Rate Limit Headers</h3>
+              <p className="text-gray-700 text-sm mb-2">
+                When rate limited, you&apos;ll receive a <code className="bg-gray-200 px-2 py-1 rounded">429 Too Many Requests</code> response with the following headers:
+              </p>
+              <ul className="list-disc list-inside text-gray-700 text-sm space-y-1">
+                <li><code className="bg-gray-200 px-2 py-1 rounded">X-RateLimit-Limit</code> - Maximum requests allowed</li>
+                <li><code className="bg-gray-200 px-2 py-1 rounded">X-RateLimit-Remaining</code> - Requests remaining</li>
+                <li><code className="bg-gray-200 px-2 py-1 rounded">X-RateLimit-Reset</code> - Time when limit resets</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
         {/* Endpoints */}
         <div className="space-y-8">
           {/* Get Company Info */}

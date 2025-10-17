@@ -6,9 +6,11 @@ import {
   Param,
   UseInterceptors,
   UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { JobApplicationsService } from '../job-applications/job-applications.service';
 import { CompanyService } from '../company/company.service';
 import { JobBoardsService } from '../job-boards/job-boards.service';
@@ -30,6 +32,7 @@ interface MulterFile {
 }
 
 @Controller('public-api')
+@UseGuards(ThrottlerGuard)
 export class PublicApiController {
   constructor(
     private readonly jobApplicationsService: JobApplicationsService,
@@ -85,6 +88,7 @@ export class PublicApiController {
   // ==================== Job Application Endpoints ====================
 
   @Post('job-applications')
+  @Throttle({ default: { limit: 60, ttl: 60000 } }) // 1 request per second
   @LogAction('create_application', 'job_application')
   @NotifyOn('job_application_created')
   @UseInterceptors(

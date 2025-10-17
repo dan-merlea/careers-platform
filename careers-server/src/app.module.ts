@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -19,7 +20,7 @@ import { AuthModule } from './auth/auth.module';
 import { CompanyApiKeysModule } from './company-api-keys/company-api-keys.module';
 import { CompanySignupsModule } from './company-signups/company-signups.module';
 import { PublicApiModule } from './public-api/public-api.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { UserLogsInterceptor } from './user-logs/user-logs.interceptor';
 import { NotificationInterceptor } from './notifications/notification.interceptor';
 import { AnalyticsInterceptor } from './analytics/interceptors/analytics.interceptor';
@@ -30,6 +31,12 @@ import { AnalyticsInterceptor } from './analytics/interceptors/analytics.interce
       isGlobal: true,
     }),
     MongooseModule.forRoot('mongodb://localhost:27017/dev_careers'),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 60 seconds
+        limit: 300, // 300 requests per minute (5 per second average)
+      },
+    ]),
     UsersModule,
     ApiKeysModule,
     CompanyModule,
