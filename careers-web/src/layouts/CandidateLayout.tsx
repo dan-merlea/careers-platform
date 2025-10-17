@@ -29,7 +29,7 @@ export default function CandidateLayout({ children, companyId, onCompanyLoaded }
       }
 
       try {
-        const response = await fetch(`/api/company/${companyId}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/public-api/company/${companyId}`);
         if (response.ok) {
           const data = await response.json();
           setCompanyInfo(data);
@@ -62,8 +62,8 @@ export default function CandidateLayout({ children, companyId, onCompanyLoaded }
                   alt={companyInfo.companyName}
                   width={192}
                   height={192}
-                  className="object-contain"
-                  style={{ maxWidth: '192px', maxHeight: '192px', width: 'auto', height: 'auto' }}
+                  className="object-contain w-auto h-auto"
+                  style={{ maxWidth: '192px', maxHeight: '192px' }}
                   unoptimized
                 />
               </div>
@@ -81,7 +81,7 @@ export default function CandidateLayout({ children, companyId, onCompanyLoaded }
         ) : (
           <>
             <h1 className="w-full text-center text-3xl font-bold text-[#022427]">
-              {companyInfo?.companyName || 'Company'}
+              {companyInfo?.companyName}
             </h1>
             {companyInfo?.slogan && (
               <p className="w-full text-center text-sm text-gray-500">{companyInfo.slogan}</p>

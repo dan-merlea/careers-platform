@@ -83,8 +83,8 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  API
+                <Link href="/api-docs" className="text-gray-400 hover:text-white transition-colors text-sm">
+                  API Documentation
                 </Link>
               </li>
             </ul>

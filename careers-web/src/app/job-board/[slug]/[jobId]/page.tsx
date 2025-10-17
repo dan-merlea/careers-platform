@@ -11,8 +11,8 @@ interface Job {
   location: string;
   content: string;
   createdAt: string;
-  company: {
-    id: string;
+  companyId: {
+    _id: string;
     name: string;
   };
   jobBoard?: {
@@ -47,7 +47,8 @@ export default function JobDetailPage() {
         const extractedJobId = match ? match[0] : jobSlug;
         
         // Fetch job details by ID (jobBoard is populated in the response)
-        const jobResponse = await fetch(`http://localhost:3001/jobs/${extractedJobId}`);
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const jobResponse = await fetch(`${backendUrl}/public-api/jobs/${extractedJobId}`);
         if (!jobResponse.ok) {
           throw new Error('Job not found');
         }
@@ -79,16 +80,18 @@ export default function JobDetailPage() {
     setSubmitError(null);
 
     const formData = new FormData(e.currentTarget);
+    formData.append('consentDuration', '12');
     
     try {
-      const response = await fetch('/api/job-applications', {
+      const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${backendUrl}/public-api/job-applications`, {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to submit application');
+        throw new Error(errorData.message || errorData.error || 'Failed to submit application');
       }
 
       setSubmitSuccess(true);
@@ -102,7 +105,7 @@ export default function JobDetailPage() {
 
   if (isLoading) {
     return (
-      <CandidateLayout companyId={job?.jobBoard?.companyId}>
+      <CandidateLayout companyId={job?.companyId._id}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
@@ -115,7 +118,7 @@ export default function JobDetailPage() {
 
   if (error || !job) {
     return (
-      <CandidateLayout companyId={job?.jobBoard?.companyId}>
+      <CandidateLayout companyId={job?.companyId._id}>
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <p className="text-red-600">{error || 'Job not found'}</p>
@@ -133,7 +136,7 @@ export default function JobDetailPage() {
 
   return (
     <CandidateLayout 
-      companyId={job.jobBoard?.companyId || job.company.id}
+      companyId={job.companyId._id}
       onCompanyLoaded={(companyInfo) => {
         if (companyInfo.primaryColor) {
           setPrimaryColor(companyInfo.primaryColor);
@@ -201,7 +204,7 @@ export default function JobDetailPage() {
               <form onSubmit={handleSubmit} className="space-y-6">
                 <input type="hidden" name="jobId" value={job._id} />
                 <input type="hidden" name="jobTitle" value={job.title} />
-                <input type="hidden" name="companyId" value={job.jobBoard?.companyId || job.company.id} />
+                <input type="hidden" name="companyId" value={job.companyId._id} />
                 
                 {submitError && (
                   <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
@@ -219,7 +222,7 @@ export default function JobDetailPage() {
                       id="firstName"
                       name="firstName"
                       required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     />
                   </div>
 
@@ -232,7 +235,7 @@ export default function JobDetailPage() {
                       id="lastName"
                       name="lastName"
                       required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     />
                   </div>
                 </div>
@@ -246,7 +249,7 @@ export default function JobDetailPage() {
                     id="email"
                     name="email"
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -258,7 +261,7 @@ export default function JobDetailPage() {
                     type="tel"
                     id="phone"
                     name="phone"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
 
@@ -272,7 +275,7 @@ export default function JobDetailPage() {
                     name="resume"
                     required
                     accept=".pdf,.doc,.docx"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                   />
                   <p className="mt-1 text-sm text-gray-500">Accepted formats: PDF, DOC, DOCX (Max 5MB)</p>
                 </div>
@@ -285,7 +288,7 @@ export default function JobDetailPage() {
                     id="coverLetter"
                     name="coverLetter"
                     rows={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     placeholder="Tell us why you're a great fit for this role..."
                   />
                 </div>
@@ -299,7 +302,7 @@ export default function JobDetailPage() {
                     id="linkedinUrl"
                     name="linkedinUrl"
                     placeholder="https://linkedin.com/in/yourprofile"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                   />
                 </div>
 

@@ -48,63 +48,12 @@ interface MulterFile {
   buffer: Buffer;
 }
 
-// Helper function to filter file types
-const fileFilter = (req, file, callback) => {
-  const allowedMimeTypes = [
-    'application/pdf', // PDF
-    'application/msword', // DOC
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
-    'text/plain', // TXT
-  ];
-
-  if (allowedMimeTypes.includes(file.mimetype)) {
-    callback(null, true);
-  } else {
-    callback(
-      new BadRequestException(
-        'Invalid file type. Only PDF, DOC, DOCX, and TXT files are allowed.',
-      ),
-      false,
-    );
-  }
-};
 
 @Controller('job-applications')
 export class JobApplicationsController {
   constructor(
     private readonly jobApplicationsService: JobApplicationsService,
   ) {}
-
-  // Public endpoint for career site applications
-  @Post('public')
-  async createPublicApplication(
-    @Body() createJobApplicationDto: CreateJobApplicationDto,
-  ) {
-    return this.jobApplicationsService.create(createJobApplicationDto);
-  }
-
-  @Post()
-  @LogAction('create_application', 'job_application')
-  @NotifyOn('job_application_created')
-  @UseInterceptors(
-    FileInterceptor('resume', {
-      storage: memoryStorage(), // Use memory storage for GridFS
-      fileFilter,
-      limits: {
-        fileSize: 3 * 1024 * 1024, // 3MB limit
-      },
-    }),
-  )
-  async create(
-    @Body() createJobApplicationDto: CreateJobApplicationDto,
-    @UploadedFile() file: MulterFile,
-  ) {
-    if (!file) {
-      throw new BadRequestException('Resume file is required');
-    }
-
-    return this.jobApplicationsService.create(createJobApplicationDto, file);
-  }
 
   @Post('referral')
   @UseGuards(JwtAuthGuard)
@@ -113,7 +62,7 @@ export class JobApplicationsController {
   @UseInterceptors(
     FileInterceptor('resume', {
       storage: memoryStorage(), // Use memory storage for GridFS
-      fileFilter,
+      fileFilter: JobApplicationsService.fileFilter,
       limits: {
         fileSize: 3 * 1024 * 1024, // 3MB limit
       },

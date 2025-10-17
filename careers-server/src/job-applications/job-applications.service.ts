@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -48,6 +49,51 @@ interface MulterFile {
 
 @Injectable()
 export class JobApplicationsService {
+  // Allowed file types for resume uploads
+  static readonly ALLOWED_MIME_TYPES = [
+    'application/pdf', // PDF
+    'application/msword', // DOC
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+  ];
+
+  // Security: Check for malicious content patterns
+  static containsMaliciousContent(buffer: Buffer): boolean {
+    const content = buffer.toString('utf-8', 0, Math.min(buffer.length, 10000));
+    
+    // Check for script tags
+    if (/<script[\s\S]*?>[\s\S]*?<\/script>/gi.test(content)) {
+      return true;
+    }
+    
+    // Check for common JavaScript patterns
+    if (/javascript:/gi.test(content)) {
+      return true;
+    }
+    
+    // Check for eval, Function constructor
+    if (/\beval\s*\(|new\s+Function\s*\(/gi.test(content)) {
+      return true;
+    }
+    
+    // Check for event handlers
+    if (/on(load|error|click|mouse|key)\s*=/gi.test(content)) {
+      return true;
+    }
+    
+    return false;
+  }
+
+  // File filter for multer
+  static fileFilter(req: any, file: any, callback: any): void {
+    if (JobApplicationsService.ALLOWED_MIME_TYPES.includes(file.mimetype)) {
+      callback(null, true);
+    } else {
+      callback(
+        new Error('Invalid file type. Only PDF, DOC, and DOCX files are allowed.'),
+        false,
+      );
+    }
+  }
   constructor(
     @InjectModel(JobApplication.name)
     private jobApplicationModel: Model<JobApplicationDocument>,
@@ -80,18 +126,23 @@ export class JobApplicationsService {
     let resumeFilename: string | null = null;
     let resumeMimeType: string | null = null;
 
-    // Upload file to GridFS if provided
     if (file) {
+      // Security check: Scan for malicious content if file is provided
+      if (JobApplicationsService.containsMaliciousContent(file.buffer)) {
+        throw new BadRequestException(
+          'File contains potentially malicious content and cannot be accepted',
+        );
+      }
+
+      // Upload file to GridFS if provided
       fileId = await this.gridFsService.uploadFile(file, {
         jobId: createJobApplicationDto.jobId,
         applicantEmail: createJobApplicationDto.email,
       });
       resumeFilename = file.originalname;
       resumeMimeType = file.mimetype;
-    } else if (createJobApplicationDto.resumePath) {
-      // For public applications from career site, store file path reference
-      resumeFilename = createJobApplicationDto.resumeFilename || createJobApplicationDto.resumeOriginalName || null;
-      resumeMimeType = 'application/pdf'; // Default, will be updated if needed
+    } else {
+      throw new BadRequestException('Resume file is required');
     }
 
     // Create new job application

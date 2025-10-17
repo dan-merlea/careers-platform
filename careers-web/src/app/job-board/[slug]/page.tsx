@@ -48,7 +48,8 @@ export default function JobBoardPage() {
     async function fetchData() {
       try {
         // Fetch job board by slug
-        const jobBoardResponse = await fetch(`http://localhost:3001/job-boards/public/slug/${slug}`);
+        const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+        const jobBoardResponse = await fetch(`${backendUrl}/public-api/job-boards/slug/${slug}`);
         if (!jobBoardResponse.ok) {
           throw new Error('Job board not found');
         }
@@ -56,7 +57,7 @@ export default function JobBoardPage() {
         setJobBoard(jobBoardData);
 
         // Fetch jobs for this job board
-        const jobsResponse = await fetch(`http://localhost:3001/jobs/public/job-board/${jobBoardData._id}`);
+        const jobsResponse = await fetch(`${backendUrl}/public-api/jobs/job-board/${jobBoardData._id}`);
         if (jobsResponse.ok) {
           const jobsData = await jobsResponse.json();
           setJobs(jobsData);
