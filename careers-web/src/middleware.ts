@@ -51,8 +51,6 @@ export async function middleware(req: NextRequest) {
           url.pathname = `/job-board/${jobBoard.slug}${pathname}`;
         }
 
-		console.log(url);
-
         return NextResponse.rewrite(url);
       }
     }

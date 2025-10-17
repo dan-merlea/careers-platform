@@ -2,6 +2,7 @@
 
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
+import CookieBanner from '@/components/CookieBanner';
 
 interface DefaultLayoutProps {
   children: React.ReactNode;
@@ -14,6 +15,7 @@ export default function DefaultLayout({ children }: DefaultLayoutProps) {
 	<Navbar />
 	{children}
 	<Footer />
+	<CookieBanner />
 	</>
   );
 }

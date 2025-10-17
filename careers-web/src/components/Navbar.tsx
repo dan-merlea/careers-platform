@@ -160,6 +160,16 @@ export default function Navbar() {
               Pricing
             </Link>
             <Link 
+              href="/docs" 
+              className={`block px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                pathname?.startsWith('/docs')
+                  ? 'bg-gray-100 text-gray-900' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+            >
+              Docs
+            </Link>
+            <Link 
               href="/contact" 
               className={`block px-4 py-3 rounded-lg text-sm font-medium transition-all ${
                 isActive('/contact') 

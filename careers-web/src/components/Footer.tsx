@@ -68,18 +68,13 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Resources</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link href="/docs" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Documentation
                 </Link>
               </li>
               <li>
                 <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Help Center
-                </Link>
-              </li>
-              <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
-                  Community
                 </Link>
               </li>
               <li>
@@ -95,22 +90,22 @@ export default function Footer() {
             <h3 className="text-white font-semibold mb-4">Legal</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link href="/legal/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Privacy
                 </Link>
               </li>
               <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link href="/legal/terms" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Terms
                 </Link>
               </li>
               <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link href="/legal/security" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Security
                 </Link>
               </li>
               <li>
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors text-sm">
+                <Link href="/legal/cookies" className="text-gray-400 hover:text-white transition-colors text-sm">
                   Cookies
                 </Link>
               </li>
