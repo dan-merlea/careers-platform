@@ -18,17 +18,11 @@ import { UserRole } from '../users/schemas/user.schema';
 import { LogAction } from 'src/user-logs/user-logs.interceptor';
 
 @Controller('job-boards')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class JobBoardsController {
   constructor(private readonly jobBoardsService: JobBoardsService) {}
 
-  // Public endpoint - no auth required
-  @Get('public/slug/:slug')
-  findBySlug(@Param('slug') slug: string) {
-    return this.jobBoardsService.findBySlug(slug);
-  }
-
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @LogAction('create_job_board', 'job_board')
   create(
@@ -43,7 +37,6 @@ export class JobBoardsController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.RECRUITER)
   findAll(@Req() req: { user: { companyId: string } }) {
     // Filter by company ID
@@ -51,7 +44,6 @@ export class JobBoardsController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.RECRUITER)
   findOne(
     @Param('id') id: string,
@@ -62,7 +54,6 @@ export class JobBoardsController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @LogAction('update_job_board', 'job_board')
   update(
@@ -78,8 +69,16 @@ export class JobBoardsController {
     );
   }
 
+  @Post(':id/verify-domain')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  async verifyCustomDomain(
+    @Param('id') id: string,
+    @Req() req: { user: { companyId: string } },
+  ) {
+    return this.jobBoardsService.verifyCustomDomain(id, req.user.companyId);
+  }
+
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @LogAction('delete_job_board', 'job_board')
   remove(@Param('id') id: string, @Req() req: { user: { companyId: string } }) {
@@ -88,7 +87,6 @@ export class JobBoardsController {
   }
 
   @Post('external/:source')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @LogAction('create_external_job_board', 'job_board')
   createExternalJobBoard(
@@ -103,7 +101,6 @@ export class JobBoardsController {
   }
 
   @Post(':id/refresh')
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.DIRECTOR)
   @LogAction('refresh_ats_jobs', 'job_board')
   async refreshJobsFromATS(

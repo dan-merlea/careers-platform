@@ -1,0 +1,11 @@
+{
+	local_certs
+}
+
+app.localhost, demo.client.localhost, careers.acme.localhost {
+	reverse_proxy https://localhost:3002 {
+		transport http {
+            tls_insecure_skip_verify
+        }
+	}
+}

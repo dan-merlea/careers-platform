@@ -10,6 +10,8 @@ export interface JobBoard {
   settings?: Record<string, any>;
   isActive: boolean;
   slug?: string;
+  customDomain?: string;
+  customDomainVerified?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +25,7 @@ export interface CreateJobBoardDto {
   settings?: Record<string, any>;
   isActive?: boolean;
   slug?: string;
+  customDomain?: string;
 }
 
 export interface UpdateJobBoardDto extends Partial<CreateJobBoardDto> {}
@@ -61,6 +64,11 @@ const jobBoardsService = {
   // Refresh jobs from ATS (Greenhouse or Ashby)
   refreshJobsFromATS: async (jobBoardId: string): Promise<{ imported: number; updated: number; deleted: number; total: number }> => {
     return api.post<{ imported: number; updated: number; deleted: number; total: number }>(`/job-boards/${jobBoardId}/refresh`);
+  },
+
+  // Verify custom domain
+  verifyCustomDomain: async (jobBoardId: string): Promise<{ verified: boolean; message: string; cname?: string }> => {
+    return api.post<{ verified: boolean; message: string; cname?: string }>(`/job-boards/${jobBoardId}/verify-domain`);
   }
 };
 

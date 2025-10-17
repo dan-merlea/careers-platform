@@ -46,6 +46,7 @@ import AnalyticsPage from './pages/analytics/AnalyticsPage';
 
 // Debug pages
 import DebugJobApplications from './pages/debug/DebugJobApplications';
+
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { CompanyProvider } from './context/CompanyContext';
 import { NotificationProvider } from './context/NotificationContext';

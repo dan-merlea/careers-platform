@@ -36,6 +36,12 @@ export class JobBoard {
   @Prop()
   slug: string;
 
+  @Prop()
+  customDomain: string;
+
+  @Prop({ default: false })
+  customDomainVerified: boolean;
+
   @Prop({ type: Date })
   createdAt: Date;
 

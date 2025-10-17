@@ -520,7 +520,7 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="relative py-16 sm:py-24 bg-gray-50">
-        <div className="relative max-w-4xl mx-auto px-6 lg:px-8">
+        <div className="relative max-w-[1200px] mx-auto px-6 lg:px-8">
           <div className="bg-gradient-to-br from-[#FF6363] via-[#A855F7] to-[#EC4899] rounded-3xl p-1">
             <div className="bg-white rounded-3xl p-12 sm:p-16">
               <div className="text-center">

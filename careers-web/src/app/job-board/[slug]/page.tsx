@@ -176,7 +176,7 @@ export default function JobBoardPage() {
       }}
     >
       <div className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           {/* Filters - Inline at top */}
           <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

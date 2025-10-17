@@ -13,6 +13,7 @@ import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import Select from '../../components/common/Select';
 import Input from '../../components/common/Input';
+import JobBoardModal from '../../components/jobs/JobBoardModal';
 
 const JobBoardJobsPage: React.FC = () => {
   const { jobBoardId } = useParams<{ jobBoardId: string }>();
@@ -28,7 +29,6 @@ const JobBoardJobsPage: React.FC = () => {
   const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
-  const [slug, setSlug] = useState<string>('');
   
   // Filter states
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -73,18 +73,6 @@ const JobBoardJobsPage: React.FC = () => {
       fetchJobs();
     }
   }, [jobBoardId, fetchJobBoardDetails, fetchJobs]);
-
-  // Generate slug from company name
-  useEffect(() => {
-    if (company?.name && !slug) {
-      const generatedSlug = company.name
-        .toLowerCase()
-        .replace(/[^a-zA-Z0-9]/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-      setSlug(jobBoard?.slug || generatedSlug);
-    }
-  }, [company, jobBoard, slug]);
 
   // Apply filters whenever jobs or filter criteria change
   useEffect(() => {
@@ -202,19 +190,9 @@ const JobBoardJobsPage: React.FC = () => {
     }
   };
 
-  const handleSaveSettings = async () => {
-    if (!jobBoardId) return;
-    
-    try {
-      await jobBoardsService.updateJobBoard(jobBoardId, { slug });
-      await fetchJobBoardDetails();
-      setIsSettingsModalOpen(false);
-      toast.success('Settings saved successfully');
-    } catch (err: any) {
-      console.error('Error saving settings:', err);
-      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to save settings';
-      toast.error(errorMessage);
-    }
+  const handleCloseSettings = async () => {
+    await fetchJobBoardDetails();
+    setIsSettingsModalOpen(false);
   };
 
   const getStatusBadge = (status: string) => {
@@ -485,39 +463,12 @@ const JobBoardJobsPage: React.FC = () => {
 
       {/* Settings Modal */}
       {isSettingsModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">Job Board Settings</h2>
-            
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Slug
-              </label>
-              <Input
-                type="text"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-'))}
-                placeholder="job-board-slug"
-                className="w-full"
-              />
-              <p className="mt-2 text-sm text-gray-500">
-                The slug will be used to create a public link for this job board:
-              </p>
-              <p className="mt-1 text-sm text-blue-600 font-medium">
-                https://hatchbeacon.com/job-board/{slug || 'your-slug'}
-              </p>
-            </div>
-            
-            <div className="flex justify-end space-x-2">
-              <Button onClick={() => setIsSettingsModalOpen(false)} variant="white">
-                Cancel
-              </Button>
-              <Button onClick={handleSaveSettings} variant="primary">
-                Save
-              </Button>
-            </div>
-          </div>
-        </div>
+        <JobBoardModal 
+          isOpen={isSettingsModalOpen}
+          jobBoard={jobBoard}
+          companyName={company?.name || ''}
+          onClose={handleCloseSettings}
+        />
       )}
     </div>
   );

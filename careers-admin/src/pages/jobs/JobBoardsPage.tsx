@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlusIcon, PencilIcon, TrashIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import ActionsMenu, { ActionsMenuItem } from '../../components/common/ActionsMenu';
 import jobBoardsService, { JobBoard } from '../../services/jobBoardsService';
-import Input from '../../components/common/Input';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
+import JobBoardModal from '../../components/jobs/JobBoardModal';
+import { useCompany } from '../../context/CompanyContext';
 
 const JobBoardsPage: React.FC = () => {
   const navigate = useNavigate();
+  const { company } = useCompany();
+
   const [jobBoards, setJobBoards] = useState<JobBoard[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [currentJobBoard, setCurrentJobBoard] = useState<JobBoard | null>(null);
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    isActive: true
-  });
+  
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [jobBoardToDelete, setJobBoardToDelete] = useState<JobBoard | null>(null);
 
@@ -43,72 +42,26 @@ const JobBoardsPage: React.FC = () => {
     }
   };
 
-  // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
-
-  // Handle checkbox changes
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, checked } = e.target;
-    setFormData({
-      ...formData,
-      [name]: checked
-    });
-  };
+  
 
   // Open modal for creating a new job board
   const openCreateModal = () => {
     setCurrentJobBoard(null);
-    setFormData({
-      title: '',
-      description: '',
-      isActive: true
-    });
     setIsModalOpen(true);
   };
 
   // Open modal for editing an existing job board
   const openEditModal = (jobBoard: JobBoard) => {
     setCurrentJobBoard(jobBoard);
-    setFormData({
-      title: jobBoard.title,
-      description: jobBoard.description || '',
-      isActive: jobBoard.isActive
-    });
     setIsModalOpen(true);
   };
 
   // Close the modal
   const closeModal = () => {
     setIsModalOpen(false);
+    fetchJobBoards();
   };
 
-  // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      if (currentJobBoard) {
-        // Update existing job board
-        await jobBoardsService.updateJobBoard(currentJobBoard._id, formData);
-      } else {
-        // Create new job board
-        await jobBoardsService.createJobBoard(formData);
-      }
-      
-      // Refresh job boards list
-      await fetchJobBoards();
-      closeModal();
-    } catch (err) {
-      console.error('Error saving job board:', err);
-      setError('Failed to save job board. Please try again.');
-    }
-  };
 
   // Open delete confirmation modal
   const openDeleteModal = (jobBoard: JobBoard) => {
@@ -225,70 +178,12 @@ const JobBoardsPage: React.FC = () => {
       )}
 
       {/* Create/Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">
-              {currentJobBoard ? 'Edit Job Board' : 'Create Job Board'}
-            </h2>
-            
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                  Title *
-                </label>
-                <Input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="mb-4">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded"
-                  rows={3}
-                />
-              </div>
-              
-              <div className="mb-6">
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="isActive"
-                    name="isActive"
-                    checked={formData.isActive}
-                    onChange={handleCheckboxChange}
-                    className="h-4 w-4 text-blue-600 border-gray-300 rounded"
-                  />
-                  <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-                    Active
-                  </label>
-                </div>
-              </div>
-              
-              <div className="flex justify-end space-x-2">
-                <Button type="button" onClick={closeModal} variant="white">
-                  Cancel
-                </Button>
-                <Button type="submit" variant="primary">
-                  {currentJobBoard ? 'Update' : 'Create'}
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <JobBoardModal
+        isOpen={isModalOpen}
+        jobBoard={currentJobBoard}
+        companyName={company?.name || ''}
+        onClose={closeModal}
+      />
 
       {/* Delete Confirmation Modal */}
       {isDeleting && jobBoardToDelete && (

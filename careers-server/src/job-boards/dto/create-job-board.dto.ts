@@ -37,4 +37,8 @@ export class CreateJobBoardDto {
   @IsString()
   @IsOptional()
   slug?: string;
+
+  @IsString()
+  @IsOptional()
+  customDomain?: string;
 }

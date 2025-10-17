@@ -54,13 +54,24 @@ export class JobBoardsService {
     return jobBoard;
   }
 
+  async findByCustomDomain(customDomain: string): Promise<JobBoard> {
+    const jobBoard = await this.jobBoardModel.findOne({ 
+      customDomain 
+    }).exec();
+    console.log(jobBoard);
+    if (!jobBoard) {
+      throw new NotFoundException(`Job board with custom domain "${customDomain}" not found`);
+    }
+    return jobBoard;
+  }
+
   async update(
     id: string,
     updateJobBoardDto: UpdateJobBoardDto,
     companyId: string,
   ): Promise<JobBoard> {
     // First verify the job board belongs to this company
-    await this.findOne(id, companyId);
+    const jobBoard = await this.findOne(id, companyId);
     
     // If slug is being updated, check for uniqueness
     if (updateJobBoardDto.slug) {
@@ -77,6 +88,18 @@ export class JobBoardsService {
         );
       }
     }
+
+    // If custom domain is being set, require slug to be present
+    if (updateJobBoardDto.customDomain) {
+      const currentSlug = updateJobBoardDto.slug || jobBoard.slug;
+      if (!currentSlug) {
+        throw new BadRequestException(
+          'A slug is required before setting a custom domain. Please set a slug first.'
+        );
+      }
+      // Reset verification status when domain changes
+      updateJobBoardDto['customDomainVerified'] = false;
+    }
     
     const updatedJobBoard = await this.jobBoardModel
       .findByIdAndUpdate(id, updateJobBoardDto, { new: true })
@@ -87,6 +110,42 @@ export class JobBoardsService {
     }
 
     return updatedJobBoard;
+  }
+
+  async verifyCustomDomain(
+    id: string,
+    companyId: string,
+  ): Promise<{ verified: boolean; message: string; cname?: string }> {
+    const jobBoard = await this.findOne(id, companyId);
+
+    if (!jobBoard.customDomain) {
+      throw new BadRequestException('No custom domain configured for this job board');
+    }
+
+    if (!jobBoard.slug) {
+      throw new BadRequestException('Job board must have a slug before verifying custom domain');
+    }
+
+    try {
+      // In a production environment, you would perform DNS lookup here
+      // For now, we'll return instructions for manual verification
+      const expectedCNAME = `${process.env.APP_DOMAIN || 'app.localhost'}`;
+      
+      // TODO: Implement actual DNS verification using dns.promises.resolve()
+      // const dns = require('dns').promises;
+      // const records = await dns.resolveCname(jobBoard.customDomain);
+      
+      return {
+        verified: false,
+        message: 'Please verify your DNS settings manually. Automatic verification will be available soon.',
+        cname: expectedCNAME,
+      };
+    } catch (error) {
+      return {
+        verified: false,
+        message: 'Unable to verify domain. Please ensure your CNAME record is properly configured.',
+      };
+    }
   }
 
   async remove(id: string, companyId: string): Promise<void> {

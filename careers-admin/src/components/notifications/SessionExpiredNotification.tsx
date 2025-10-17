@@ -12,7 +12,7 @@ const SessionExpiredNotification: React.FC = () => {
       
       // Automatically redirect after 3 seconds
       setTimeout(() => {
-        navigate('/login');
+        navigate('/login', { replace: true });
       }, 3000);
     };
     
@@ -22,6 +22,11 @@ const SessionExpiredNotification: React.FC = () => {
       window.removeEventListener(SESSION_EXPIRED_EVENT, handleSessionExpired);
     };
   }, [navigate]);
+  
+  const handleLoginClick = () => {
+    setVisible(false);
+    navigate('/login', { replace: true });
+  };
   
   if (!visible) return null;
   
@@ -42,7 +47,7 @@ const SessionExpiredNotification: React.FC = () => {
             <button
               type="button"
               className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm"
-              onClick={() => navigate('/login')}
+              onClick={handleLoginClick}
             >
               Login Now
             </button>

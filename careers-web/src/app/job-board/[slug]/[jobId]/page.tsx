@@ -144,7 +144,7 @@ export default function JobDetailPage() {
       }}
     >
       <div className="py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-[1200px] mx-auto">
           {/* Back button */}
           <a
             href={`/job-board/${job.jobBoard?.slug || slug}`}

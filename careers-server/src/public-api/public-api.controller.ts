@@ -67,6 +67,11 @@ export class PublicApiController {
     return this.jobBoardsService.findBySlug(slug);
   }
 
+  @Get('job-boards/domain/:domain')
+  async getJobBoardByCustomDomain(@Param('domain') domain: string) {
+    return this.jobBoardsService.findByCustomDomain(domain);
+  }
+
   @Get('job-boards/:jobBoardId')
   async getJobBoard(@Param('jobBoardId') jobBoardId: string) {
     const jobBoard = await this.jobBoardsService.findBySlug(jobBoardId);
