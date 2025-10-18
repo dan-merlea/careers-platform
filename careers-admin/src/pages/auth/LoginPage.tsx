@@ -5,6 +5,7 @@ import { API_URL } from "../../config";
 import { api } from "../../utils/api";
 import Input from "../../components/common/Input";
 import Button from "../../components/common/Button";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -13,6 +14,7 @@ const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, loading } = useAuth();
+  const { loginWithRedirect } = useAuth0();
 
   // Check if there was a redirect from a protected route
   useEffect(() => {
@@ -166,7 +168,7 @@ const LoginPage: React.FC = () => {
             </div>
           </form>
 
-          <div className="mt-4">
+          <div className="mt-4 space-y-3">
             <a
               href={`${API_URL}/auth/google`}
               className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -179,6 +181,17 @@ const LoginPage: React.FC = () => {
               </svg>
               Sign in with Google
             </a>
+            
+            <button
+              onClick={() => loginWithRedirect()}
+              className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 border border-gray-600 rounded-md shadow-sm text-sm font-medium text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm0 21.6c-5.302 0-9.6-4.298-9.6-9.6S6.698 2.4 12 2.4s9.6 4.298 9.6 9.6-4.298 9.6-9.6 9.6z"/>
+                <path d="M12 6c-3.309 0-6 2.691-6 6s2.691 6 6 6 6-2.691 6-6-2.691-6-6-6zm0 9.6c-1.988 0-3.6-1.612-3.6-3.6s1.612-3.6 3.6-3.6 3.6 1.612 3.6 3.6-1.612 3.6-3.6 3.6z"/>
+              </svg>
+              Sign in with Okta (Auth0)
+            </button>
           </div>
 
           <div className="mt-6">

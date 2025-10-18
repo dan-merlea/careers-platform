@@ -50,9 +50,37 @@ export class CompanyService {
   }
 
   /**
+   * Extract domain from URL (removes protocol and path)
+   */
+  private extractDomain(url: string): string {
+    if (!url) return url;
+    
+    try {
+      // Remove protocol if present
+      let domain = url.replace(/^https?:\/\//, '');
+      
+      // Remove www. prefix if present
+      domain = domain.replace(/^www\./, '');
+      
+      // Remove path, query params, and hash
+      domain = domain.split('/')[0].split('?')[0].split('#')[0];
+      
+      return domain;
+    } catch (error) {
+      // If parsing fails, return original
+      return url;
+    }
+  }
+
+  /**
    * Create or update company details
    */
   async saveCompanyDetails(companyId: string, companyDto: CompanyDto): Promise<Company> {
+    // Sanitize website URL to keep only domain
+    if (companyDto.website) {
+      companyDto.website = this.extractDomain(companyDto.website);
+    }
+
     // Check if company details already exist
     const existingCompany = await this.companyModel.findById(companyId).exec();
 

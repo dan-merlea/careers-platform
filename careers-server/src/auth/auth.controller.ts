@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  Post,
+  Body,
   HttpException,
   HttpStatus,
   Logger,
@@ -193,6 +195,103 @@ export class AuthController {
         error instanceof Error ? error.message : 'Authentication failed';
       url.searchParams.set('error', message);
       return res.redirect(url.toString());
+    }
+  }
+
+  @Post('auth0/exchange')
+  async auth0Exchange(
+    @Body() body: { idToken: string; email: string; name?: string; sub: string },
+  ) {
+    try {
+      const { email, name, sub } = body;
+
+      if (!email || !sub) {
+        throw new HttpException(
+          'Missing required Auth0 user information',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      this.logger.log(`Auth0 token exchange for email: ${email}`);
+
+      // Find or create user based on Auth0 email
+      let user = await this.userModel.findOne({ email }).exec();
+
+      if (!user) {
+        // Check if domain is allowed
+        const domain = (email.split('@')[1] || '').toLowerCase();
+        const company = await this.companyModel.findOne({
+          website: domain,
+        }).exec();
+
+        if (!company) {
+          throw new HttpException(
+            'Your email domain is not authorized. Please contact an administrator.',
+            HttpStatus.FORBIDDEN,
+          );
+        }
+
+        // Create new user with Auth0 sub
+        user = await this.userModel.create({
+          email,
+          name: name || email.split('@')[0],
+          role: 'user',
+          isActive: true,
+          auth0Sub: sub,
+          companyId: company?._id,
+        });
+
+        this.logger.log(`Created new user from Auth0: ${email}`);
+      } else {
+        // Update existing user with Auth0 sub if not already set
+        if (!(user as any).auth0Sub) {
+          await this.userModel.findByIdAndUpdate(user._id, {
+            auth0Sub: sub,
+          });
+        }
+      }
+
+      // Check if user is active
+      if (!(user as any).isActive) {
+        throw new HttpException(
+          'Your account has been deactivated. Please contact an administrator.',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      // Generate JWT token
+      const token = this.authService.generateToken({
+        sub: user._id,
+        email: user.email,
+        role: user.role,
+        companyId: user.companyId,
+      });
+
+      // Get company info
+      const company = user.companyId
+        ? await this.companyModel.findById(user.companyId).exec()
+        : null;
+
+      return {
+        token,
+        user: {
+          id: user._id,
+          email: user.email,
+          role: user.role,
+          name: user.name,
+          departmentId: user.departmentId,
+          companyId: user.companyId,
+        },
+        company: company
+          ? {
+              id: company._id,
+              name: company.name,
+            }
+          : null,
+      };
+    } catch (error) {
+      this.logger.error('Auth0 token exchange error:', error);
+      throw error;
     }
   }
 }
